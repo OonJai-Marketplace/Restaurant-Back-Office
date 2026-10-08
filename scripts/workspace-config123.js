@@ -1,5 +1,5 @@
 // Default deployed repository names. Administrators can change destinations in Switch Workspace.
-window.OJM_WORKSPACE_URLS = {accounting:'/Accounting/', restaurant:'/Restaurant/'};
+window.OJM_WORKSPACE_URLS = {accounting:'/Accounting/', restaurant:'https://oonjai-marketplace.github.io/Restaurant-Back-Office/'};
 (()=>{'use strict';const key='ojm_workspace_urls14234';
 function read(){try{return {...window.OJM_WORKSPACE_URLS,...JSON.parse(localStorage.getItem(key)||'{}')}}catch{return window.OJM_WORKSPACE_URLS}}
 function resolve(target,fallback){let overrides={};try{overrides=JSON.parse(localStorage.getItem(key)||'{}')}catch{}const value=overrides[target]||fallback||read()[target];if(location.protocol==='file:'&&!/^https?:\/\//i.test(value))throw Error('This is a local HTML copy. Set the full published '+target+' website URL in Workspace links.');const url=new URL(value,location.href);if(!['https:','http:'].includes(url.protocol)||url.username||url.password)throw Error('Use a published HTTP or HTTPS website URL.');return url}
