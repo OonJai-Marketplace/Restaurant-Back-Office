@@ -1,0 +1,601 @@
+/* Accounting v142.18 sidebar and floating controls: original selectors, declarations, order and breakpoints. */
+/* styles.css */
+#appSidebar,#workspaceTools108{--sidebar-bg:         #062e22;--sidebar-border:     #08382a;--sidebar-active:     #059669;--sidebar-text:       #cbd5e1;--sidebar-muted:      #94a3b8;--bg-workspace:       #f8fafc;--surface-white:      #ffffff;--text-main:          #0f172a;--text-muted:         #475569;--text-light:         #94a3b8;--border-subtle:      #e2e8f0;--border-strong:      #cbd5e1;--border-focus:       #059669;--primary:            #059669;--primary-hover:      #047857;--danger:             #dc2626;--danger-light:       #fee2e2;--badge-asset-bg:     #ecfdf5;--badge-asset-txt:    #065f46;--badge-liab-bg:      #fffbeb;--badge-liab-txt:     #92400e;--badge-eq-bg:        #f5f3ff;--badge-eq-txt:       #5b21b6;--badge-rev-bg:       #f0fdfa;--badge-rev-txt:      #115e59;--badge-exp-bg:       #fef2f2;--badge-exp-txt:      #991b1b;}
+.sidebar{
+  width: 270px;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+  color: #ffffff;
+}
+.sidebar-brand{
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: #041f17;
+}
+.brand-icon-emblem{
+  width: 36px;
+  height: 36px;
+  background: radial-gradient(circle, #22c55e 0%, #059669 70%, #044e37 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.brand-icon-emblem svg{
+  width: 20px;
+  height: 20px;
+  fill: #ffffff;
+}
+.sidebar-brand h2{
+  font-family: "Playfair Display", serif;
+  font-size: 16px;
+  line-height: 1.15;
+  color: #ffffff;
+  font-weight: 700;
+}
+.sidebar-brand h2 span{
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #34d399;
+  font-weight: 600;
+}
+.nav-category{
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.nav-header{
+  padding: 12px 18px;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #a7f3d0;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.15s;
+}
+.nav-header:hover{
+  background: rgba(255, 255, 255, 0.05);
+}
+.nav-links{
+  display: none;
+  flex-direction: column;
+  background: rgba(0, 0, 0, 0.25);
+}
+.nav-category.open .nav-links{
+  display: flex;
+}
+.mobile-menu-toggle,.sidebar-scrim{
+  display: none;
+}
+@media  print {.sidebar{ display: none !important; }}
+@media  (min-width: 768px) and (max-width: 1024px) {.sidebar{ width: 220px; }
+.sidebar-brand{ padding: 16px 14px; }}
+@media  (max-width: 767px) {.sidebar{
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 1200;
+    width: min(84vw, 310px);
+    max-width: 310px;
+    transform: translateX(-105%);
+    transition: transform .22s ease;
+    box-shadow: 12px 0 30px rgba(2, 20, 15, .25);
+  }
+.sidebar.mobile-open{ transform: translateX(0); }
+.sidebar-scrim{
+    position: fixed;
+    inset: 0;
+    z-index: 1190;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: rgba(15, 23, 42, .42);
+  }
+body.nav-drawer-open .sidebar-scrim{ display: block; }
+.mobile-menu-toggle{
+    display: inline-flex;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+  }
+.mobile-menu-toggle span{ width: 18px; height: 2px; border-radius: 2px; background: #064e3b; }}
+.header-account-menu{ position:relative; }
+.header-account-trigger{ display:flex; align-items:center; gap:7px; min-height:38px; padding:5px 9px 5px 6px; border:1px solid #cbd5e1; border-radius:999px; background:#fff; color:#334155; cursor:pointer; }
+#headerAccountInitials{ display:grid; place-items:center; width:28px; height:28px; border-radius:50%; background:var(--sidebar-bg); color:#fff; font-size:10px; font-weight:800; letter-spacing:.03em; }
+.header-account-chevron{ color:#64748b; font-size:11px; }
+.header-account-dropdown{ position:absolute; z-index:120; top:calc(100% + 8px); right:0; width:230px; padding:8px; border:1px solid #cbd5e1; border-radius:12px; background:#fff; box-shadow:0 18px 48px rgba(15,23,42,.2); }
+.header-account-identity{ padding:8px 10px; }
+.header-account-identity strong,.header-account-identity span{ display:block; }
+.header-account-identity strong{ color:#0f172a; font-size:12px; overflow-wrap:anywhere; }
+.header-account-identity span{ margin-top:3px; color:#64748b; font-size:10.5px; }
+.header-account-divider{ height:1px; margin:5px 0; background:#e2e8f0; }
+@media (max-width:600px){.header-account-dropdown{position:fixed;top:58px;right:8px}}
+.header-account-trigger{ width:40px; height:40px; min-height:40px; padding:0 !important; justify-content:center; border:0 !important; border-radius:50% !important; background:#041f17 !important; color:#fff !important; }
+.header-account-trigger:hover,.header-account-trigger[aria-expanded="true"]{ background:#059669 !important; }
+.header-account-dropdown{ border-color:#31594d !important; background:#041f17 !important; color:#fff; }
+.header-account-identity strong{ color:#fff !important; }
+.header-account-identity span{ color:#a7c7bb !important; }
+.header-account-divider{ background:#31594d !important; }
+.sidebar-user-footer{
+  position: sticky;
+  bottom: 0;
+  z-index: 8;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 9px;
+  margin-top: auto;
+  padding: 11px 12px;
+  background: #041f17;
+  border-top: 1px solid rgba(255, 255, 255, .14);
+}
+.sidebar-user-avatar{
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #10b981;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+.sidebar-user-footer #headerAccountInitials{
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  background: #10b981;
+  color: #ffffff;
+  font-size: 10px;
+}
+.sidebar-user-copy{ min-width: 0; }
+.sidebar-user-copy strong,.sidebar-user-copy span{
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sidebar-user-copy strong{ color: #ffffff; font-size: 11px; }
+.sidebar-user-copy span{ margin-top: 2px; color: #9dd7c4; font-size: 9.5px; text-transform: capitalize; }
+.sidebar-user-footer .header-account-trigger{
+  width: 32px;
+  height: 32px;
+  border-color: rgba(255, 255, 255, .18);
+  color: #ffffff;
+  background: rgba(255, 255, 255, .08);
+  letter-spacing: 1px;
+}
+.sidebar-user-footer .header-account-menu{ position: relative; }
+.sidebar-user-footer .header-account-dropdown{
+  position: absolute;
+  right: 0;
+  top: auto;
+  bottom: calc(100% + 9px);
+  width: 238px;
+  z-index: 90;
+}
+.nav-category.active-category > .nav-header{ color: #ffffff; background: rgba(16, 185, 129, .18); }
+@media  (min-width: 768px) {.sidebar .nav-links{ display: none !important; }
+.sidebar .nav-header .arrow{ display: none; }}
+@media  (max-width: 767px) {.sidebar .nav-links{ display: none; }
+.sidebar .nav-category.open .nav-links{ display: flex; }
+.sidebar .nav-header .arrow{ display: inline; }
+.sidebar-user-footer{ margin-top: 12px; }
+.sidebar-user-footer .header-account-dropdown{
+    position: fixed;
+    left: 10px;
+    right: auto;
+    top: auto;
+    bottom: 68px;
+    width: min(270px, calc(100vw - 20px));
+  }}
+/* subusers-final-v53.css */
+
+/* subusers-final-v55.css */
+
+/* subusers-final-v56.css */
+
+/* design-system-v58.css */
+#appSidebar,#workspaceTools108{--oj-title-main:20px;--oj-title-module:16px;--oj-text-body:13px;--oj-text-subtitle:12.5px;--oj-text-label:12px;--oj-text-tab:11.5px;--oj-text-helper:11.5px;--oj-button-height:36px;--oj-table-emerald:#07835e;--oj-primary-emerald:#059669;--oj-dark-emerald:#064e3b;}
+.sidebar-user-footer .header-account-trigger{
+  display:grid!important;width:32px!important;min-width:32px!important;max-width:32px!important;
+  height:32px!important;min-height:32px!important;max-height:32px!important;place-items:center!important;
+  padding:0!important;border:1px solid rgba(255,255,255,.22)!important;border-radius:50%!important;
+  background:rgba(255,255,255,.08)!important;color:#fff!important;line-height:1!important;letter-spacing:1px!important
+}
+.sidebar-user-footer .header-account-trigger:hover,.sidebar-user-footer .header-account-trigger[aria-expanded="true"]{
+  border-color:#34d399!important;background:#07835e!important
+}
+.sidebar-user-footer .header-account-dropdown{
+  overflow:hidden!important;padding:7px!important;border:1px solid #8ebcaa!important;
+  border-top:4px solid var(--oj-primary-emerald)!important;border-radius:11px!important;
+  background:#fff!important;color:#173f34!important;box-shadow:0 18px 46px rgba(3,31,23,.28)!important
+}
+.sidebar-user-footer .header-account-identity{padding:8px 9px!important}
+.sidebar-user-footer .header-account-identity strong{color:var(--oj-dark-emerald)!important;font-size:12px!important}
+.sidebar-user-footer .header-account-identity span{color:#64748b!important;font-size:10.5px!important}
+.sidebar-user-footer .header-account-divider{border-color:#d9e7e1!important}
+.sidebar-user-footer .header-menu-item{
+  min-height:34px!important;padding:7px 9px!important;border-radius:7px!important;
+  background:transparent!important;color:#31584c!important;font-size:12px!important
+}
+.sidebar-user-footer .header-menu-item:hover,.sidebar-user-footer .header-menu-item:focus-visible{
+  background:#e9f8f1!important;color:#065f46!important;outline:none!important
+}
+.sidebar-user-footer .header-menu-item.danger{color:#b42318!important}
+.sidebar-user-footer .header-menu-item.danger:hover{background:#fff0ee!important;color:#a61b13!important}
+/* subusers-mobile-v61.css */
+@media (min-width:768px) and (hover:none) and (pointer:coarse){body.subusers-workspace-active .sidebar{position:fixed!important;inset:0 auto 0 0!important;z-index:1200!important;width:min(84vw,310px)!important;max-width:310px!important;transform:translateX(-105%)!important}
+body.subusers-workspace-active .sidebar.mobile-open{transform:translateX(0)!important}
+body.subusers-workspace-active.nav-drawer-open .sidebar-scrim{display:block!important;position:fixed!important;inset:0!important;z-index:1190!important;width:100%!important;height:100%!important;background:rgba(15,23,42,.42)!important}}
+/* mobile-tables-v66.css */
+
+/* transactions-v67.css */
+#appSidebar,#workspaceTools108{--module-emerald:#059669;}
+/* accounts-review-v69.css */
+
+/* desktop-v71.css */
+@media (min-width:1025px){#appSidebar,#workspaceTools108{--desktop-heading:20px;--desktop-subheading:16px;--desktop-body:13px;--desktop-label:12px;--desktop-module-border:#059669;}}
+/* transactions-mobile-v72.css */
+
+/* mobile-polish-v73.css */
+@media (max-width:1024px){#appSidebar{height:100dvh!important;max-height:100dvh!important;display:flex!important;flex-direction:column!important;overflow-y:auto!important;box-sizing:border-box;padding-bottom:env(safe-area-inset-bottom,0px)}
+#appSidebar>*{flex-shrink:0}
+#appSidebar .sidebar-user-footer{margin-top:auto!important;position:sticky;bottom:0;background:inherit;padding-top:16px!important}}
+/* mobile-refinements-v74.css */
+
+/* subusers-polish-v75.css */
+#nav-module-sub-users>.nav-links{display:none!important}
+/* review-mobile-v78.css */
+
+/* reports-desktop-v79.css */
+
+/* desktop-corrections-v80.css */
+
+/* desktop-refinements-v81.css */
+
+/* desktop-layout-v82.css */
+
+/* payroll-reports-v82.css */
+
+/* table-alignment-v83.css */
+
+/* desktop-polish-v84.css */
+
+/* layout-fixes-v85.css */
+
+/* layout-consistency-v87.css */
+
+/* session-inputs-v88.css */
+
+/* prefixes-badges-v89.css */
+
+/* scheduled-journals-v91.css */
+
+/* refinements-v93.css */
+
+/* settings-payroll-v94.css */
+
+/* payroll-groups-v95.css */
+
+/* payroll-polish-v97.css */
+.universal-search97{position:relative;margin:10px 8px 14px;padding:0 2px}
+.universal-search97>label{display:block;margin-bottom:5px;color:#64748b;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+.universal-search97>input{box-sizing:border-box;width:100%;min-height:38px;padding:8px 10px;border:1px solid #b7c7bf;border-radius:8px;background:#fff;color:#0f172a;font:inherit;font-size:12px}
+.universal-search-results97{position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:120;background:#fff;border:1px solid #cbd5e1;border-radius:8px;box-shadow:0 12px 28px rgba(15,23,42,.18);max-height:55vh;overflow:auto}
+.universal-search-results97[hidden]{display:none}
+.universal-search-results97 button{display:block;width:100%;padding:9px 11px;border:0;border-bottom:1px solid #e2e8f0;background:#fff;text-align:left;color:#1e293b;font:inherit;font-size:12px;cursor:pointer}
+.universal-search-results97 button:hover,.universal-search-results97 button:focus{background:#edf6f0;color:#065f46}
+.universal-search-results97 p{padding:8px 10px;color:#64748b;font-size:11px}
+/* transactions-v98.css */
+
+/* workspace-v99.css */
+@media (min-width:1025px){body .sidebar{width:238px!important;min-width:238px!important}}
+.tablet99 #appSidebar{display:flex!important;position:fixed!important;left:0;top:0;bottom:0;width:238px!important;z-index:10010;transform:translateX(-100%);transition:transform .18s}
+.tablet99.tablet-nav-open99 #appSidebar{transform:translateX(0)}
+/* theme-v100.css */
+#appSidebar,#workspaceTools108{--bg-workspace:#f6f1e7;--surface-white:#fffcf6;--text-main:#21382d;--text-muted:#4b6055;--border-subtle:#dce5d9;--border-strong:#bbcec0;--border-focus:#008563;--primary:#008563;--primary-hover:#006c51;--sidebar-bg:#074532;--sidebar-border:#0b523c;--sidebar-active:#12654d;--sidebar-text:#f0f7ef;--sidebar-muted:#b9d4c4;--oj-table-emerald:#008563;--oj-primary-emerald:#008563;}
+body .sidebar,body #appSidebar{background:#074532!important;border-color:#0b523c!important}
+body .sidebar-brand,body .sidebar-user-footer{background:#053b2c!important}
+body #appSidebar .nav-header{display:flex!important;justify-content:flex-start!important;gap:11px!important;color:#eef6ee!important;text-transform:none!important;font-size:12.5px!important;letter-spacing:0!important;padding:10px 15px!important;min-height:39px!important}
+body #appSidebar .nav-header .arrow{margin-left:auto}
+body #appSidebar .nav-icon100{display:block;flex:0 0 17px;width:17px;height:17px;color:#e6f3e9}
+body #appSidebar .nav-category.active-category>.nav-header{background:#125d46!important;color:#fff!important;box-shadow:inset 3px 0 #c5a15a!important}
+body #appSidebar .nav-category.active-category>.nav-header .nav-icon100{color:#fff}
+body #appSidebar .tab-btn.active{background:#12654d!important}
+body #appSidebar .nav-header:focus-visible{outline:2px solid #d7b878;outline-offset:-2px}
+body .sidebar-user-footer .header-account-dropdown{background:#fffcf6!important;border-color:#b7cbbd!important;border-top-color:#008563!important;box-shadow:0 10px 32px rgba(3,37,25,.18)!important}
+body .sidebar-user-footer .header-menu-item:hover{background:#e7efe6!important}
+/* polish-v101.css */
+body .sidebar-user-footer .header-account-trigger{border:0!important;box-shadow:none!important;background:transparent!important;color:#fff!important;border-radius:0!important;width:32px!important;height:32px!important;font-size:19px!important;letter-spacing:0!important;padding:0!important}
+body .sidebar-user-footer .header-account-trigger:hover,body .sidebar-user-footer .header-account-trigger:focus-visible{background:#13654d!important;outline:2px solid #d4e7d2;outline-offset:0}
+body .sidebar-brand{display:flex!important;align-items:flex-start!important;flex-direction:column!important;padding:13px 12px!important;gap:5px!important}
+body .sidebar-brand h2{font-size:14px!important;line-height:1.15!important;text-align:left!important;margin:0!important;overflow-wrap:anywhere}
+body .sidebar-brand .brand-icon-emblem{display:none!important}
+#companyLogo101{display:block;width:auto;max-width:100%;max-height:62px;object-fit:contain;object-position:left center;margin-bottom:2px}
+#companyLogo101[hidden]{display:none!important}
+/* reports-tax-v102.css */
+body .sidebar-brand{padding-top:2mm!important}
+body #companyLogo101{align-self:center!important;object-position:center!important;margin-inline:auto!important}
+/* universal-date-v104.css */
+body .sidebar-brand h2{width:100%;text-align:center!important;font-family:"Plus Jakarta Sans",sans-serif!important;font-weight:750!important;letter-spacing:.01em!important}
+body .sidebar-brand{align-items:center!important;padding-top:2mm!important}
+body #companyLogo101{align-self:center!important;object-position:center!important}
+body .universal-search97{display:none!important}
+/* header-profile-v104.css */
+body #transactionsHeading98 .header-account-menu{position:relative;display:block}
+body #transactionsHeading98 .header-account-trigger{display:flex!important;align-items:center;justify-content:flex-start!important;gap:7px;width:auto!important;min-width:155px!important;max-width:240px!important;height:auto!important;min-height:34px!important;max-height:none!important;padding:3px 7px!important;border:1px solid #bcd5c4!important;border-radius:6px!important;background:#fffcf6!important;color:#114d39!important;text-align:left;letter-spacing:0!important;font-size:12px!important;cursor:pointer}
+body #transactionsHeading98 .header-account-trigger:hover,body #transactionsHeading98 .header-account-trigger:focus-visible{background:#e8f4e9!important;color:#114d39!important}
+body #transactionsHeading98 .sidebar-user-avatar{display:grid!important;place-items:center;flex:none;width:27px!important;height:27px!important;min-width:27px!important;min-height:27px!important;margin:0!important;border-radius:50%;overflow:hidden;background:#dcefe1;color:#075640;font-size:10px}
+body #transactionsHeading98 .sidebar-user-avatar img{width:100%;height:100%;object-fit:cover}
+body #transactionsHeading98 .sidebar-user-copy{display:flex!important;flex-direction:column;min-width:0;line-height:1.15}
+body #transactionsHeading98 .sidebar-user-copy strong,body #transactionsHeading98 .sidebar-user-copy span{display:block;max-width:155px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body #transactionsHeading98 .sidebar-user-copy strong{font-size:11px;color:#114d39!important}
+body #transactionsHeading98 .sidebar-user-copy span{font-size:9px;color:#456756!important}
+body #transactionsHeading98 .header-account-dropdown{position:absolute!important;top:calc(100% + 5px)!important;right:0!important;left:auto!important;bottom:auto!important;min-width:190px;z-index:1200!important;border:1px solid #bcd5c4!important;border-top:3px solid #008563!important;background:#fffcf6!important;color:#174836!important;box-shadow:0 9px 22px #10392430}
+body #transactionsHeading98 .header-account-dropdown .header-menu-item{color:#174836!important}
+body #transactionsHeading98 .header-account-dropdown .header-menu-item.danger{color:#b63830!important}
+body #transactionsHeading98 #upcomingBell101{position:relative}
+body #transactionsHeading98 #headerNoticeBadge104{position:absolute;top:-6px;right:-7px;display:grid;place-items:center;min-width:16px;height:16px;padding:0 3px;border-radius:10px;background:#ce332f;color:white;font-size:10px;font-weight:800;line-height:1}
+body #transactionsHeading98 #headerNoticeBadge104[hidden],body #transactionsHeading98 .header-account-dropdown[hidden]{display:none!important}
+body .header-notices104 #headerNoticeList104{padding:4px}
+body .header-notices104 #headerNoticeList104>button{display:flex;flex-direction:column;gap:2px;width:100%;padding:8px;border:0;border-bottom:1px solid #e0eae0;background:none;color:#174836;text-align:left;cursor:pointer}
+body .header-notices104 #headerNoticeList104>button:hover{background:#edf6ee}
+body .header-notices104 #headerNoticeList104>button strong{font-size:10px;color:#007659}
+body .header-notices104 #headerNoticeList104>button span{font-size:12px}
+body .header-notices104 #headerNoticeList104>button small{font-size:10px;color:#5b7060}
+body .header-notices104 #headerNoticeList104>p{padding:10px;font-size:12px}
+@media (max-width:700px){body #transactionsHeading98 .sidebar-user-copy{display:none!important}
+body #transactionsHeading98 .header-account-trigger{padding:3px!important;min-width:44px!important}}
+/* refinements-v105.css */
+body #appSidebar,body .sidebar{background:#f9f5eb!important;border-color:#c8d8c7!important}
+body #appSidebar .sidebar-brand{background:#f9f5eb!important;border-bottom:1px solid #cfdbcb}
+body .sidebar-brand h2{font-size:19px!important;line-height:1.25!important;color:#174f3d!important}
+body #appSidebar .nav-header,body #appSidebar .tab-btn{color:#234a39!important;background:transparent!important}
+body #appSidebar .nav-icon100{color:#006e50!important}
+body #appSidebar .nav-category.active-category>.nav-header{background:#007e5b!important;color:white!important;border-radius:6px;box-shadow:inset 3px 0 #c5a15a!important}
+body #appSidebar .nav-category.active-category>.nav-header .nav-icon100{color:white!important}
+body #appSidebar .tab-btn.active{background:#daecde!important;color:#064c35!important}
+body #appSidebar .nav-header:hover{background:#e3eddf!important;color:#164936!important}
+body #transactionsHeading98 #headerAccountTrigger{min-height:52px!important;max-width:300px!important;padding:4px 9px!important;gap:10px!important}
+body #transactionsHeading98 .sidebar-user-avatar{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;font-size:15px}
+body #transactionsHeading98 .sidebar-user-copy strong{font-size:14px!important;max-width:205px}
+body #transactionsHeading98 .sidebar-user-copy span{font-size:11px!important}
+@media (max-width:700px){body #transactionsHeading98 .sidebar-user-copy{display:none!important}
+body #transactionsHeading98 #headerAccountTrigger{min-width:52px!important}}
+/* document-editor-v105.css */
+
+/* refinements-v106.css */
+body #appSidebar,body #appSidebar .sidebar-brand{background:#fcf9f1!important}
+body #appSidebar .sidebar-brand{padding:8px 14px 13px!important;min-height:0!important;border-bottom:3px solid #b79a59!important;gap:7px!important}
+body #companyLogo101{width:72px!important;height:72px!important;max-height:72px!important;object-fit:contain;margin:0 auto!important}
+body .sidebar-brand h2{font-size:21px!important;font-weight:750!important;letter-spacing:-.4px;line-height:1.15!important;margin:4px 0!important}
+body #appSidebar .nav-header{padding-top:9px!important;padding-bottom:9px!important}
+body #transactionsHeading98 #headerAccountTrigger{background:#fcfaf3!important;color:#173e31!important;border:1px solid #c8b783!important;border-radius:8px!important;min-height:56px!important}
+body #transactionsHeading98 .sidebar-user-avatar{width:48px!important;height:48px!important;min-width:48px!important;min-height:48px!important;border-radius:7px!important;background:#fff!important}
+body #transactionsHeading98 .sidebar-user-copy strong{color:#173e31!important;font-size:14px!important}
+body #transactionsHeading98 .sidebar-user-copy span{color:#52685e!important}
+body #appSidebar button.nav-header{width:100%;border:0;text-align:left;font:inherit;font-weight:700;cursor:pointer}
+/* editor-tables-v107.css */
+#appSidebar,#workspaceTools108{--app-data-row-height:32px;--app-selected:#ccebdd;}
+/* shared-v108.css */
+body #appSidebar .sidebar-brand{display:flex!important;flex-direction:row!important;align-items:center;justify-content:flex-start;gap:10px!important;padding:10px 12px!important;text-align:left!important}
+body #companyLogo101{width:48px!important;height:48px!important;min-width:48px;max-height:48px!important;margin:0!important}
+body .sidebar-brand h2{font-size:17px!important;text-align:left!important;margin:0!important}
+body #appSidebar :is(.nav-header,.nav-category,.tab-btn,.nav-icon100){transition:none!important;animation:none!important}
+.sidebar-quote108{margin-top:auto;padding:14px 12px;border-top:1px solid #d5cfbd;color:#7c786b;font:italic 11px/1.5 Georgia,serif;text-align:center}
+.universal-search108{position:relative;padding:9px 10px}
+.universal-search108 input{width:100%;min-width:0;border:1px solid #bdcfc1;border-radius:5px;padding:8px;background:#fffdf7;color:#214936;font-size:12px}
+.universal-search108>div{position:absolute;top:100%;left:8px;right:8px;max-height:55vh;overflow:auto;background:#fffdf7;border:1px solid #b4c7b7;z-index:2000;box-shadow:0 5px 16px #143d3020;padding:5px}
+.universal-search108 button{display:block;width:100%;text-align:left;padding:8px;border:0;background:transparent;color:#17523c;font-size:12px}
+.universal-search108 button:hover{background:#e0eee2}
+#workspaceTools108{position:fixed;bottom:16px;right:14px;z-index:900;display:flex;flex-direction:column;gap:7px}
+#workspaceTools108[hidden]{display:none}
+#workspaceTools108 button{display:grid;place-items:center;width:38px;height:38px;padding:8px;border:1px solid #a8c7b7;border-radius:6px;background:#fffdf7;color:#075f45;box-shadow:0 2px 6px #123c3020}
+#workspaceTools108 svg{width:21px;height:21px}
+#workspaceTools108 button[aria-pressed=true]{background:#087b57;color:#fff}
+@media  print{#workspaceTools108,.sidebar-quote108{display:none!important}}
+.brand-monogram108{display:grid;place-items:center;flex:0 0 40px;height:40px;border:1px solid #c4a35c;color:#086048;font:700 17px Georgia,serif;background:#f9f0d6}
+.sidebar-brand:has(#companyLogo101:not([hidden])) .brand-monogram108{display:none}
+body #appSidebar .sidebar-brand h2{line-height:1.25!important}
+/* refinements-v109.css */
+#appSidebar,#workspaceTools108{--header-height109:88px;--inner-gap109:12px;--border109:#b8cbbb;}
+body #appSidebar{border-right:2px solid #a39159!important;box-sizing:border-box}
+body #appSidebar .sidebar-brand{height:var(--header-height109)!important;min-height:var(--header-height109)!important;max-height:var(--header-height109)!important;box-sizing:border-box!important;border-bottom:3px solid #b59b55!important;margin:0!important}
+body #appSidebar .sidebar-brand{padding:10px 14px!important}
+body #appSidebar .nav-selected109{background:#d8eadf!important;color:#075c43!important}
+body #appSidebar .nav-selected109 *{color:inherit!important}
+body #topHeaderProfile104.sidebar-profile109{position:static!important;margin-top:auto!important;padding:10px!important;background:transparent!important;border:0!important;border-top:1px solid #d4d8c6!important;width:100%!important;box-sizing:border-box;flex-shrink:0}
+body .sidebar-profile109 #headerAccountTrigger{width:100%!important;max-width:100%!important;background:#fffcf6!important;border:1px solid #c5d4c5!important;box-shadow:none!important;padding:8px!important;min-height:56px!important}
+body .sidebar-profile109 .sidebar-user-copy{min-width:0;white-space:normal}
+body .sidebar-profile109 #currentUserChip{font-size:12px!important}
+body .sidebar-profile109 #sidebarUserRole{font-size:11px!important}
+body .sidebar-profile109 #headerAccountMenu{display:none!important}
+body .sidebar-quote108{position:relative;margin-top:0!important;border:0!important;padding:22px 14px!important;color:#5d4928!important;font:italic 14px/1.45 Georgia,serif;isolation:isolate;flex-shrink:0}
+body .sidebar-quote108:before{content:"";position:absolute;inset:14px 9px;z-index:-1;opacity:.65;background:#e9cc8d;clip-path:polygon(2% 19%,14% 10%,35% 14%,56% 3%,79% 11%,97% 4%,94% 23%,100% 35%,96% 47%,99% 65%,89% 72%,97% 85%,71% 89%,46% 82%,23% 97%,4% 83%,8% 68%,0 52%,6% 39%);transform:rotate(-2deg)}
+body #workspaceTools108{z-index:1200}
+body #workspaceTools108 button[hidden]{display:none!important}
+body #headerNotices104{position:fixed!important;top:auto!important;bottom:65px!important;right:65px!important;z-index:1300!important;max-height:65vh}
+@media (max-width:767px){#appSidebar,#workspaceTools108{--header-height109:76px;}
+body .sidebar-profile109{display:block!important}}
+body #appSidebar #topHeaderProfile104.sidebar-profile109 #headerAccountTrigger{display:flex!important;align-items:center!important;gap:10px!important;color:#174f3d!important}
+body #appSidebar #topHeaderProfile104.sidebar-profile109 .sidebar-user-copy{display:flex!important;flex-direction:column!important;text-align:left!important}
+body #appSidebar #topHeaderProfile104.sidebar-profile109 #currentUserChip{color:#174f3d!important}
+body #appSidebar #topHeaderProfile104.sidebar-profile109 #sidebarUserRole{color:#58725f!important}
+body #appSidebar .sidebar-profile109 .header-account-menu{width:100%!important;max-width:none!important;display:block!important}
+body #appSidebar .sidebar-profile109 #headerAccountInitials{flex:0 0 30px!important;width:30px!important;height:30px!important;min-width:30px!important;border-radius:50%;display:grid!important;place-items:center;overflow:hidden}
+body #appSidebar .sidebar-profile109 #headerAccountInitials img{width:100%;height:100%;object-fit:cover}
+body #appSidebar .sidebar-profile109 .sidebar-user-copy{visibility:visible!important;opacity:1!important;width:auto!important;max-width:none!important;flex:1!important}
+body #appSidebar .sidebar-profile109 #headerAccountDropdown{display:none!important}
+body #appSidebar #topHeaderProfile104.sidebar-profile109{display:block!important;grid-template-columns:none!important}
+body #appSidebar #topHeaderProfile104.sidebar-profile109 #headerAccountTrigger{height:auto!important;justify-content:flex-start!important;border-radius:4px!important;letter-spacing:0!important}
+/* editor-fixes-v110.css */
+body #workspaceTools108 #upcomingBell101{position:relative!important;display:flex!important;align-items:center;justify-content:center;margin:0!important;width:38px!important;height:38px!important;min-width:38px!important;padding:8px!important;border:1px solid #b8cbbb!important;border-radius:5px!important;background:#fffcf6!important;color:#075c43!important}
+body #workspaceTools108 #upcomingBell101 svg{width:20px;height:20px}
+body #workspaceTools108 #headerNoticeBadge104{position:absolute;top:-5px;right:-5px;min-width:14px;font-size:9px;background:#b6322e;color:white;border-radius:8px;padding:2px}
+body #workspaceTools108 [hidden]{display:none!important}
+body #headerNotices104{bottom:110px!important}
+body #headerNotices104{top:50%!important;left:50%!important;right:auto!important;bottom:auto!important;transform:translate(-50%,-50%)!important;width:380px!important;max-width:calc(100vw - 32px)!important;background:#fffcf6!important;border:1px solid #b8cbbb!important;border-top:3px solid #008563!important;border-radius:6px!important;color:#214737!important;box-shadow:0 12px 40px #173b3030!important;font:12px "Plus Jakarta Sans",Arial,sans-serif!important}
+body #headerNotices104 header{background:#edf3e8!important;color:#174f3d!important}
+body #headerNotices104 :is(button,p){font:inherit!important;color:#214737!important}
+/* dashboard-warm-v112.css */
+#appSidebar,#workspaceTools108{--dash-forest112:#123d2b;--dash-deep112:#092f23;--dash-cream112:#fbf5e8;--dash-paper112:#fffdfa;--dash-gold112:#dcb170;--dash-brown112:#914511;}
+body #appSidebar{background:#0b3426!important;border-right:1px solid #3a5d42!important;color:#f5eddb!important}
+body #appSidebar .sidebar-brand{border-bottom-color:#94714677!important;background:#0b3426!important}
+body #appSidebar .sidebar-brand h2{font-family:Georgia,serif!important;font-size:18px!important;color:#fff5dd!important;line-height:1.14!important}
+body #appSidebar .sidebar-brand h2 span{font-size:13px!important;color:#dcb170!important}
+body #appSidebar .nav-header,body #appSidebar .tab-btn{color:#f0eadc!important;border-radius:5px!important}
+body #appSidebar :is(.nav-header,.tab-btn).active,body #appSidebar .nav-selected109{background:#254e39!important;color:#fff9e8!important;border-left:3px solid #dcb170!important}
+body #appSidebar :is(.nav-header,.tab-btn):hover{background:#264b38!important}
+body #appSidebar .universal-search108 input{background:#173c2b!important;border-color:#60765a!important;color:#fff!important}
+body #appSidebar .universal-search108 input::placeholder{color:#cfcfbd!important}
+body #appSidebar .sidebar-quote108{color:#e9c184!important;border-color:#7b6849!important}
+body #workspaceTools108 button{border-radius:7px!important;border-color:#d9c6aa!important;background:#fffaf0!important;color:#6b461f!important}
+body #workspaceTools108 #dashZoomOut112,body #workspaceTools108 #dashZoomIn112{background:#fff8e9!important;color:#8e4b22!important}
+body #workspaceTools108 #dashFull112,body #workspaceTools108 #docExpand112{background:#14533b!important;color:#fff!important;border-color:#14533b!important}
+body #workspaceTools108 #upcomingBell101{background:#dcb170!important;color:#3a2b18!important;border-color:#bc965b!important}
+body #workspaceTools108 #dashProfile112{background:#8a421f!important;color:#fff!important;border-color:#8a421f!important;border-radius:50%!important}
+body #workspaceTools108 #dashProfile112 img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+body #workspaceTools108 #dashProfile112 span{font-weight:800;font-size:11px}
+body.dash-present112 #appSidebar{display:none!important}
+@media  print{body #workspaceTools108{display:none!important}}
+body #workspaceTools108 #docExpandDock112{background:#14533b!important;color:#fff!important;border-color:#14533b!important}
+body:has(#document-editor105.expanded108) #workspaceTools108{z-index:1600!important}
+body #appSidebar #topHeaderProfile104 #headerAccountInitials{display:none!important}
+body > #headerAccountDropdown:not([hidden]){display:block!important;position:fixed!important;z-index:3100!important;background:#fffbf1!important;border:1px solid #d4be95!important;border-radius:10px!important;box-shadow:0 12px 32px #1a281a33!important;min-width:180px}
+/* polish-v113.css */
+body.shell113 #appSidebar :is(.nav-header,.tab-btn),body.shell113 #appSidebar :is(.nav-header,.tab-btn) :is(span,svg,i){color:#fff8eb!important}
+body.shell113 #appSidebar :is(.nav-header,.tab-btn):hover,body.shell113 #appSidebar .nav-selected109{color:#fff!important;background:#38634b!important}
+body.shell113 #appSidebar .nav-header svg{stroke:currentColor!important;fill:none!important}
+.nav-icon113{display:inline-flex;width:21px;height:21px;margin-right:9px;vertical-align:middle}
+.nav-icon113 svg{width:100%;height:100%}
+body.shell113 #appSidebar .nav-header:has(.nav-icon113)::before{display:none!important}
+body.shell113 #appSidebar .nav-header>.nav-icon113~svg{display:none!important}
+body.shell113 #appSidebar .logo-tile113{display:grid;place-items:center;flex:0 0 85px;width:85px;height:53px;padding:5px;border:1px solid #dfccaa;border-radius:5px;overflow:hidden;color:#18533f!important;cursor:pointer}
+.logo-tile113 #companyLogo101{width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;margin:0!important}
+.logo-tile113:disabled{opacity:1;cursor:default}
+body.shell113 #appSidebar #topHeaderProfile104{margin-top:auto!important;border-top:1px solid #8e886855!important;padding:10px!important;background:#0a2e22!important;width:auto!important}
+body.shell113 #appSidebar #topHeaderProfile104 :is(strong,span){color:#fff7e9!important}
+body.shell113 .universal-search108>div{background:#fffaf1!important;color:#263f33!important;border:1px solid #d0bea0!important;box-shadow:0 10px 24px #0003;max-height:360px;overflow:auto;z-index:1800}
+body.shell113 #appSidebar .universal-search108>div button{display:block;width:100%;padding:10px!important;background:#fffaf1!important;color:#263f33!important;font-size:12px!important;text-align:left;border:0!important;border-bottom:1px solid #eee1cc!important}
+body.shell113 #appSidebar .universal-search108>div button:hover{background:#ead9bd!important;color:#3f301e!important}
+body.shell113 #workspaceTools108{background:#fff7e9!important;border:1px solid #dbc39c!important;box-shadow:0 5px 18px #35250f26!important;border-radius:12px!important;padding:6px!important;gap:7px!important}
+body.shell113 #workspaceTools108>button{width:36px!important;height:36px!important;min-height:36px!important;background:#194c38!important;color:#fffaf1!important;border:1px solid #194c38!important;border-radius:8px!important}
+body.shell113 #workspaceTools108 #signOut110{background:#a4503b!important;border-color:#a4503b!important}
+body.shell113 #workspaceTools108 #upcomingBell101{background:#e6c18a!important;border-color:#bd955c!important;color:#452e19!important}
+body.shell113 #workspaceTools108>button:hover{filter:brightness(1.12)}
+@media  print{.logo-tile113{display:none!important}}
+#appSidebar .nav-icon113 img{width:21px;height:21px;object-fit:contain;filter:brightness(0) invert(1)}
+body.shell113 #appSidebar .sidebar-brand h2{font-size:17px!important;line-height:1.2!important;word-break:normal!important;overflow-wrap:normal!important;margin:0;min-width:0}
+body.shell113 #appSidebar .logo-tile113{width:64px;flex-basis:64px;height:48px}
+.sidebar-brand{gap:10px!important}
+body.shell113 #appSidebar .nav-header:has(.nav-icon113)>.nav-icon100{display:none!important}
+body.shell113 #headerAccountTrigger{background:#173d2e!important;border:1px solid #587260!important;color:#fffaf1!important}
+body.shell113 #headerAccountTrigger :is(span,strong,small){color:#fffaf1!important}
+body.shell113 .header-account-dropdown{bottom:100%!important;top:auto!important;left:10px!important;right:10px!important;background:#fffbf3!important;color:#243f30!important}
+body.shell113 #appSidebar #headerAccountTrigger *{color:#fffaf1!important}
+body.shell113 #appSidebar #headerAccountTrigger #sidebarUserRole{color:#d8ddc9!important}
+body.shell113 #appSidebar .logo-tile113{width:58px!important;height:58px!important;flex:0 0 58px!important;aspect-ratio:1;padding:5px;box-sizing:border-box}
+body.shell113 #appSidebar .logo-tile113 img{width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important}
+@media  (min-width:768px) and (max-width:1024px){body.shell113 .sidebar{position:fixed;inset:0 auto 0 0;z-index:1200;width:min(310px,84vw)!important;max-width:310px;transform:translateX(-105%);transition:transform .22s ease;box-shadow:12px 0 30px #02140f40}
+body.shell113 .sidebar.mobile-open{transform:translateX(0)}
+body.shell113 .sidebar-scrim{position:fixed;inset:0;z-index:1190;width:100%;height:100%;border:0;background:#0f172a6b}
+body.shell113.nav-drawer-open .sidebar-scrim{display:block}
+body.shell113 .mobile-menu-toggle{display:inline-flex;width:40px;height:40px;flex:0 0 40px;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:1px solid #53735e;border-radius:8px;background:#fff;cursor:pointer}
+body.shell113 .mobile-menu-toggle span{width:18px;height:2px;border-radius:2px;background:#0b3426}}
+/* final-v117.css */
+body.shell113 #appSidebar #topHeaderProfile104 :is(#currentUserChip,.sidebar-user-copy strong){color:#fff8e9!important}
+body.shell113 #appSidebar :is(.nav-selected109,.tab-btn.active),body.shell113 #appSidebar :is(.nav-selected109,.tab-btn.active):hover{background:#f2e0ac!important;color:#173c2e!important}
+body.shell113 #appSidebar :is(.nav-selected109,.tab-btn.active) :is(span,svg,i){color:#173c2e!important}
+body.shell113 #appSidebar :is(.nav-header,.tab-btn):hover:not(.active):not(.nav-selected109){background:#37634b!important;color:#fff!important}
+body.shell113 #appSidebar .logo-tile113{outline-offset:3px;cursor:pointer}
+body.shell113 #appSidebar .logo-tile113:hover:not(:disabled),body.shell113 #appSidebar .logo-tile113:focus-visible{box-shadow:0 0 0 3px #e2b45c!important}
+body.shell113 #appSidebar .nav-header.active,body.shell113 #appSidebar .nav-header.active:hover{background:#f2e0ac!important;color:#173c2e!important}
+body.shell113 #appSidebar .active-category>.nav-header,body.shell113 #appSidebar .active-category>.nav-header:hover{background:#f2e0ac!important;color:#173c2e!important;transition:none!important}
+body.shell113 #appSidebar .active-category>.nav-header *{color:inherit!important}
+body.shell113.tablet117 .sidebar{position:fixed!important;inset:0 auto 0 0!important;z-index:1200;width:min(310px,84vw)!important;max-width:310px;transform:translateX(-105%)!important;transition:transform .2s ease;box-shadow:12px 0 30px #02140f40}
+body.shell113.tablet117 .sidebar.mobile-open{transform:translateX(0)!important}
+body.shell113.tablet117 .mobile-menu-toggle{display:inline-flex!important;width:38px;height:38px;flex:0 0 38px;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:1px solid #53735e;border-radius:7px;background:#fff;cursor:pointer}
+body.shell113.tablet117 .mobile-menu-toggle span{width:18px;height:2px;background:#0b3426}
+body.shell113.tablet117 .sidebar-scrim{position:fixed;inset:0;z-index:1190;width:100%;height:100%;border:0;background:#0f172a6b}
+body.shell113.tablet117.nav-drawer-open .sidebar-scrim{display:block!important}
+/* final-v118.css */
+body.shell113 #appSidebar #topHeaderProfile104 #headerAccountInitials{display:flex!important;width:34px!important;height:34px!important;border-radius:5px!important;border:1px solid #e0dbc4!important;overflow:hidden;flex:0 0 34px}
+body.shell113 #headerAccountInitials img{width:100%!important;height:100%!important;object-fit:cover;border-radius:0!important;border:0!important}
+body.shell113 #headerAccountTrigger{display:flex!important;align-items:center!important;gap:9px!important}
+body.shell113 .sidebar-user-copy{color:#fffaf1!important}
+body.tablet118 .mobile-menu-toggle{display:none!important}
+body.tablet118 #appSidebar{position:fixed!important;inset:0 auto 0 0!important;width:240px!important;z-index:1300!important;transform:translateX(-105%)!important;transition:transform .18s ease!important}
+body.tablet118.nav118 #appSidebar{transform:translateX(0)!important}
+body.tablet118 .sidebar-scrim{display:none!important}
+body.shell113 #appSidebar #topHeaderProfile104.sidebar-profile109 #headerAccountTrigger #currentUserChip{color:#fffaf1!important}
+body.shell113 #appSidebar #topHeaderProfile104.sidebar-profile109 #headerAccountTrigger #sidebarUserRole{color:#dfebd8!important}
+/* workflows-v136.css */
+body.shell113 #appSidebar .nav-category.current-module136>.nav-header,body.shell113 #appSidebar .nav-category.current-module136>.nav-header:hover,body.shell113 #appSidebar .nav-header.nav-selected109,body.shell113 #appSidebar .nav-header.nav-selected109:hover{background:#f1dfad!important;color:#70431c!important;box-shadow:inset 4px 0 #bc8d36!important}
+body.shell113 #appSidebar .module-btn.active:hover,body.shell113 #appSidebar .nav-module-btn.active:hover,body.shell113 #appSidebar [aria-current=page]:hover{background:#f1dfad!important;color:#70431c!important;box-shadow:inset 4px 0 #bc8d36!important}
+body.shell113 #appSidebar .module-btn:not(.active):hover,body.shell113 #appSidebar .nav-module-btn:not(.active):hover{background:#285440!important;color:#fff8e8!important}
+body.shell113 #appSidebar .nav-category.is-active>.nav-header,body.shell113 #appSidebar .nav-category.is-active>.nav-header:hover,body.shell113 #appSidebar .nav-header.active,body.shell113 #appSidebar .nav-header.active:hover{background:#f1dfad!important;color:#70431c!important;box-shadow:inset 4px 0 #bc8d36!important}
+body.shell113 #appSidebar .nav-header:not(.active):hover{background:#285440!important;color:#fff8e8!important}
+body.shell113 #appSidebar .nav-category.current-module136>.nav-header,body.shell113 #appSidebar .nav-category.current-module136>.nav-header:hover{background:#f1dfad!important;color:#70431c!important;box-shadow:inset 4px 0 #bc8d36!important}
+/* combined-v138.css */
+
+/* submission-review-v139.css */
+
+/* carry-forward-v142.css */
+
+/* recovery-reset-fix-v142.css */
+
+/* focused-v1422.css */
+
+/* device-mode132.css */
+html[data-device132=phone] :is(.ui-overlay108,.modal-overlay,.modal-backdrop,.submission-compare-overlay,.scheduled-overlay91,#status118,#centerStatusToast,#headerAccountDropdown){z-index:21000!important}
+html[data-device132=tablet] #appSidebar{position:fixed!important;left:0!important;top:0!important;bottom:0!important;width:270px!important;transform:translateX(-105%)!important;z-index:1300!important}
+html[data-device132=tablet] body.nav118 #appSidebar{transform:translateX(0)!important}
+html[data-device132=phone] :is(#workspaceTools108,#tx73Balance,#headerNotices104){display:none!important}
+/* editor-print1424.css */
+
+/* editor-menus1426.css */
+
+/* focused1427.css */
+
+/* account-picker1428.css */
+
+/* fixes1429.css */
+
+/* payroll-template1431.css */
+
+/* entry1430.css */
+
+/* workspaces1432.css */
+body.restaurant-active1432>#workspaceTools108{z-index:9500}
+body.restaurant-active1432>#workspaceTools108>*:not(#switchAccount110){display:none!important}
+/* voucher-accounts1433.css */
+
+/* workflows1434.css */
+body #appSidebar :is(#headerAccountInitials,.profile-avatar104,.user-photo113),body #appSidebar #headerAccountInitials img{background:#fff!important;color:#174c3b!important}
+body.shell113 #appSidebar #topHeaderProfile104 #headerAccountInitials{background:#fff!important;color:#174c3b!important}
+body.shell113 #appSidebar #topHeaderProfile104 #headerAccountInitials *{color:#174c3b!important}
+/* personal-journal1437.css */
+
+/* desktop-tasks1438.css */

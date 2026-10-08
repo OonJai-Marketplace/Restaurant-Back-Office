@@ -1,0 +1,103 @@
+body #transactionsHeading98{border-radius:0!important}
+body .doc-source-action105{display:none!important}
+body .workspace-scroll{padding-right:64px!important}
+body .period-closing-bar,body .period-closing-bar>div{justify-content:flex-start!important}
+body #periodTransactionsBody .transaction-review-actions .je-btn{width:58px!important;min-width:58px!important;padding:3px 7px!important}
+.ui-overlay108{position:fixed;inset:0;background:#15352d80;z-index:15000;display:flex;align-items:center;justify-content:center;padding:18px}
+.ui-dialog108{width:min(620px,96vw);max-height:90vh;background:#fffdf7;color:#203d31;border:1px solid #adc8b5;border-top:4px solid #008563;border-radius:8px;display:flex;flex-direction:column;box-shadow:0 15px 60px #15352d50}
+.ui-dialog108.wide{width:min(1050px,96vw)}
+.ui-dialog108>header,.ui-dialog108>footer{display:flex;align-items:center;gap:10px;padding:12px 16px}
+.ui-dialog108>header{border-bottom:1px solid #d6dfd3}
+.ui-dialog108 h3{margin:0;flex:1;font-size:17px}
+.ui-body108{padding:12px 16px;overflow:auto;line-height:1.5}
+.ui-dialog108>footer{justify-content:flex-end;border-top:1px solid #d6dfd3}
+.ui-dialog108 button{cursor:pointer;padding:7px 12px;border:1px solid #b6ccbc;border-radius:4px;color:#17543d;background:#fffdf7}
+.ui-dialog108 .primary108{background:#087b57;color:#fff}
+.ui-dialog108 .danger108{color:#b42318;border-color:#b42318}
+.ui-dialog108 table{border-collapse:collapse;width:100%}
+.ui-dialog108 th,.ui-dialog108 td{padding:7px;border:1px solid #d4dfd5;text-align:left}
+.ui-dialog108 label{display:flex;flex-direction:column;gap:4px;font-size:12px}
+.ui-dialog108 input,.ui-dialog108 select{padding:7px;border:1px solid #b6ccbc;border-radius:4px;min-width:0}
+body .oj-date-shell104,body #journal .oj-date-shell104,body #period-review .period-review-picker>.oj-date-shell104{width:max-content!important;min-width:0!important;max-width:100%!important;flex:0 0 auto!important}
+body .oj-date-button104{width:max-content!important;min-width:0!important;white-space:nowrap!important}
+body .oj-date-label104{overflow:visible!important;text-overflow:clip!important;white-space:nowrap!important}
+body #payroll-entries #runMeta82 .fields82{display:flex!important;flex-wrap:wrap;gap:10px;align-items:flex-end!important}
+body #payroll-entries #runMeta82 label:not(.check82){display:flex;flex-direction:column;gap:5px;min-width:130px;flex:1 1 150px}
+body #payroll-entries #runMeta82 label:has(.oj-date-shell104){flex:0 0 auto}
+body #payroll-entries #runMeta82 :is(input:not([type=checkbox]),select,textarea,.oj-date-button104){height:34px!important;min-height:34px!important;padding:7px 9px!important;box-sizing:border-box;font-size:12px!important}
+body #payroll-entries #runMeta82 .check82{flex-basis:100%}
+body .attendance-grid99 thead th:not(:first-child){text-align:center!important;vertical-align:middle!important}
+body .attendance-grid99 tbody td{padding:2px!important;text-align:center!important}
+body .attendance-grid99 .attendance-dot99{display:inline-flex!important;align-items:center;justify-content:center;width:22px!important;min-width:22px!important;max-width:22px!important;height:22px!important;min-height:22px!important;max-height:22px!important;padding:0!important;margin:0!important;border-radius:5px!important;box-sizing:border-box}
+.schedule-card91>summary{display:flex!important;gap:18px!important;align-items:center}
+.schedule-identity91{margin-right:auto!important;flex:1}
+.schedule-amount91,.schedule-next91,.schedule-posted91{flex:0 0 auto!important;width:auto!important;min-width:85px!important}
+.schedule-amount91 small{display:block;font-size:10px}
+.schedule-status108{padding:4px 8px;border-radius:4px;font-size:11px;background:#fff0cf;color:#725018}
+.schedule-status108.complete{background:#dceaff;color:#234e84}
+.schedule-status108.failed{background:#ffe0db;color:#9d261a}
+.schedule-history108[hidden]{display:none!important}
+.schedule-card91{position:relative}
+.schedule-trace108{position:absolute;inset:0;pointer-events:none;z-index:3;overflow:visible}
+.schedule-trace108 rect{fill:none;stroke:#bd8727;stroke-width:3;stroke-dasharray:6 2 3 2 1 86;animation:trace108 2s linear infinite,traceFade108 10s linear forwards}
+@keyframes trace108{to{stroke-dashoffset:-100}}
+@keyframes traceFade108{0%{opacity:0}5%,80%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.schedule-trace108 rect{animation:traceFade108 10s linear forwards}}
+@media  print{.ui-overlay108{display:none!important}}
+body #document-editor105 .doc-shell105{padding:5px;border-radius:0}
+body #document-editor105 .doc-title105{gap:8px;margin:0;padding:2px 0}
+body #document-editor105 h2{font-size:16px;margin:0;white-space:nowrap}
+body #document-editor105 .doc-status105{flex:1;text-align:center;font-size:10px;margin:0;min-height:0}
+body #document-editor105 .doc-name107{margin:0;max-width:260px}
+body #document-editor105 .doc-name107 input{width:100%;min-height:28px;padding:3px 8px}
+body #document-editor105 .doc-actions105{padding:3px 0;gap:5px;margin:0}
+body #document-editor105 .doc-actions105 button{min-height:26px;padding:3px 8px;font-size:11px}
+body #document-editor105 #docImport105{max-width:185px;font-size:10px;min-height:26px;padding:2px}
+body #document-editor105 .doc-tabs107{margin:0;padding:0}
+body #document-editor105 .doc-toolbar105{flex-wrap:wrap;margin:0;padding:4px;gap:8px;justify-content:space-between}
+body #document-editor105 .doc-group107{padding:0 8px}
+body #document-editor105 .doc-canvas105{padding:0;border-radius:0;margin-top:4px}
+body #document-editor105 #docFrame105{height:calc(100vh - 305px);min-height:350px;box-shadow:none;background:#e5e9df}
+body #document-editor105 .doc-bottom108{display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:2px 5px}
+body #document-editor105 .doc-bottom108 span:last-child{display:flex;gap:5px;align-items:center}
+body #document-editor105 .doc-bottom108 button{min-height:23px;padding:1px 7px}
+body #document-editor105 .doc-list105:empty{display:none}
+body #document-editor105.expanded108{position:fixed;inset:4px;z-index:1500;background:#fffcf6;overflow:auto}
+body #document-editor105.expanded108 #docFrame105{height:calc(100vh - 216px)}
+body .ui-dialog108 .doc-options105{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px}
+body .ui-dialog108 label{display:flex;flex-direction:column;gap:5px;font-size:12px}
+body .ui-dialog108 :is(input,select){padding:7px;border:1px solid #b4cabc;border-radius:4px;max-width:100%;box-sizing:border-box}
+body .ui-dialog108 input[type=checkbox]{width:16px}
+body #document-editor105 #docDesign108 .doc-options105{padding:5px}
+.margin108{display:inline-flex;align-items:center;padding:3px 7px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;border:1px solid}
+.margin108.gold{background:#fff1bb;color:#775200;border-color:#cfab3c}
+.margin108.green{background:#e2f3e7;color:#17643e;border-color:#76b78b}
+.margin108.orange{background:#fff0d8;color:#984c04;border-color:#e3ae67}
+.margin108.red{background:#ffe5df;color:#a42a24;border-color:#db9992}
+.margin108.unknown{background:#eee;color:#555;border-color:#bbb}
+.legend108,.engineering-filter108{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin:12px 0}
+.engineering-filter108 label{display:flex;flex-direction:column;gap:4px;font-size:12px}
+.engineering-filter108 :is(input,select,button){min-height:32px;border:1px solid #b8cdbc;border-radius:4px;padding:5px 8px}
+.im-card104>.im-card104{margin:8px}
+.schedule-actions91{justify-content:flex-end}
+.schedule-actions91 button[onclick^="editScheduled91"]{order:7}
+.schedule-actions91 button[onclick^="scheduleHistory108"]{order:8}
+.schedule-actions91 button[onclick^="switchTab"]{order:9}
+body #document-editor105 .doc-group107:last-child{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+body #document-editor105 .doc-group107:last-child small{grid-column:1/-1}
+body #document-editor105 .doc-group107{gap:2px}
+body #document-editor105 .doc-group107 small{padding-top:1px}
+body #document-editor105 [role=tabpanel]{padding:4px}
+body #document-editor105 .doc-tabs107 button{padding:4px 9px;min-height:26px}
+body #document-editor105 .doc-toolbar105{gap:4px}
+body #document-editor105 .doc-toolbar105 label select,body #document-editor105 .doc-toolbar105 label input{min-height:25px;padding:2px 5px}
+body #document-editor105 .doc-toolbar105 button{min-height:25px;max-height:27px;padding:3px 7px;font-size:11px}
+body #document-editor105 .doc-group107:last-child button{max-width:125px}
+body .attendance-grid99 .attendance-cell101{display:inline-flex;justify-content:center;align-items:center;width:26px!important;min-width:26px!important;height:26px!important;min-height:26px!important;padding:0!important}
+body .schedule-trace108{width:100%;height:100%}
+body .workspace-scroll:has(#document-editor105.active){padding-right:10px!important}
+body :is(.tab-content,#journal) .clustered-journal-table .transaction-review-actions .je-btn[onclick*="openTransactionReview"]{width:64px!important;min-width:64px!important;padding:3px 8px!important}
+body .tab-content table tbody td:has(.transaction-review-actions){overflow:visible!important}
+body #payroll-entries #runMeta82 textarea{height:34px!important;resize:vertical;max-height:180px}
+body .oj-date-popup104{z-index:16010!important}
+body #payroll-entries #runMeta82 :is(.oj-date-shell104,.oj-date-button104){min-width:0!important}

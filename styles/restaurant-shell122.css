@@ -1,0 +1,48 @@
+/* Restaurant content adapters; the sidebar itself comes from Accounting. */
+body.shell113 .main-content-area{margin-left:0!important;min-width:0;flex:1;width:auto!important}
+body.shell113 #appSidebar{height:100dvh}
+body.shell113 #appSidebar .nav-header{width:100%;text-align:left;border:0;background:transparent;font-family:inherit;line-height:1.5}
+body.shell113 #appSidebar .nav-links{display:none!important}
+body.shell113 #appSidebar .restaurant-brand-logo{border-radius:0;background:transparent!important;box-shadow:none;padding:0;min-width:0!important}
+body.shell113 #appSidebar .sidebar-brand{flex-shrink:0}
+body.shell113 #searchResults121{min-width:0;left:8px;right:8px}
+body.shell113 #searchResults121:empty{display:none}
+body.shell113 #workspaceTools108 #posFullscreen122{background:#14533b!important;color:#fff!important}
+body.shell113 #workspaceTools108 button{position:relative;cursor:pointer}
+body.shell113 .module-header{min-height:54px;padding-right:22px}
+#workspaceApps122,#headerNotices104{position:fixed;right:72px;bottom:16px;z-index:1600;width:min(340px,calc(100vw - 90px));max-height:65dvh;overflow:auto;border:1px solid #9aaf96;border-radius:8px;background:#fffaf0;box-shadow:0 8px 24px #163b2433;padding:12px;color:#244d3b}
+#workspaceApps122 h3{font-size:14px;margin:0 0 8px}
+#workspaceApps122 button,#headerNoticeList104 button{display:block;width:100%;text-align:left;padding:10px;border:0;border-radius:5px;background:transparent;color:#244d3b;cursor:pointer}
+#workspaceApps122 button:hover,#workspaceApps122 button[aria-pressed=true],#headerNoticeList104 button:hover{background:#e0ecd9}
+#workspaceApps122 button:last-child{border-top:1px solid #c5ceb9;margin-top:7px}
+#headerNotices104 header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+#headerNotices104 header button{border:0;background:transparent;font-size:20px;cursor:pointer;color:inherit}
+#headerNoticeList104 strong,#headerNoticeList104 span{display:block}#headerNoticeList104 span,#headerNoticeList104 p{font-size:12px}
+#headerNoticeBadge104{position:absolute;right:-5px;top:-5px;background:#b6322e;color:#fff;border-radius:10px;min-width:17px;padding:1px 3px;font:10px/15px Arial}
+.pos-focus-bar122{display:none}
+body.pos-focus122 #appSidebar,body.pos-focus122 .module-header,body.pos-focus122 #categoryTabShell,body.pos-focus122 #workspaceTools108,body.pos-focus122 #pos118>.area-banner113,body.pos-focus122 #pos118>.pos-top118,body.pos-focus122 #pos118>.pos-main-tabs118,body.pos-focus122 #pos118>.pos-subtabs118{display:none!important}
+body.pos-focus122 .main-content-area{width:100%!important;margin:0!important;max-width:none!important}
+body.pos-focus122 .workspace-scroll{padding:0!important}
+body.pos-focus122 #pos118{padding:8px 12px!important;min-height:100dvh;box-sizing:border-box}
+body.pos-focus122 .pos-focus-bar122{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.pos-focus-bar122 strong{font:700 15px Georgia,serif;color:#194e38}
+.pos-focus-bar122 button{padding:6px 12px;min-height:34px}
+body.pos-focus122 #pos118>.pos-grid118{grid-template-columns:minmax(0,1.9fr) minmax(310px,1fr);align-items:start}
+body.pos-focus122 .pos-grid118>.pos-card118{max-height:calc(100dvh - 68px);overflow:auto}
+body.pos-focus122 .pos-grid118>.pos-card118.gold{display:flex;flex-direction:column}
+body.pos-focus122 .pos-order-scroll118{min-height:0;overflow:auto}
+body.pos-focus122 .pos-order-footer118{flex-shrink:0}
+body.pos-focus122 .pos-sample118{padding:4px 8px;margin-bottom:6px;font-size:11px}
+body.pos-focus122:has(.pos-sample118) .pos-grid118>.pos-card118{max-height:calc(100dvh - 100px)}
+.pos-product118{touch-action:manipulation;user-select:none}
+.pos-click-hint122{font-size:11px;color:#627164;margin:0 0 10px}
+@media(max-width:1024px){body.shell113 #appSidebar{position:fixed!important;inset:0 auto 0 0!important;width:min(310px,84vw)!important;min-width:0!important;max-width:310px;z-index:1300!important;transform:translateX(-105%)!important;transition:transform .2s ease!important}body.shell113.restaurant-nav-open #appSidebar{transform:translateX(0)!important}body.shell113.restaurant-nav-open #sidebarScrim{display:block!important;position:fixed;inset:0;z-index:1290;background:#0f172a6b;width:100%;height:100%;border:0}body.shell113 #mobileMenuToggle{display:flex!important}}
+@media(max-width:700px){body.pos-focus122 #pos118>.pos-grid118{grid-template-columns:minmax(0,1fr)}body.pos-focus122 .pos-grid118>.pos-card118{max-height:none!important}body.pos-focus122 .pos-catalog118{grid-template-columns:repeat(3,minmax(0,1fr))}body.shell113 #workspaceTools108{right:8px;bottom:8px}}
+@media print{.pos-focus-bar122,#workspaceApps122,#headerNotices104{display:none!important}}
+/* Native button defaults must match Accounting's navigation divs. */
+body.shell113 #appSidebar .nav-header{font-weight:600}
+body.shell113 #appSidebar .sidebar-brand{flex-shrink:1}
+body.shell113 #appSidebar #companyLogo101{min-width:48px!important;height:48px!important}
+body.shell113.pos-focus122 #restaurantApp .module-header{display:none!important}
+
+body.shell113 #workspaceTools108{color:#203c32}

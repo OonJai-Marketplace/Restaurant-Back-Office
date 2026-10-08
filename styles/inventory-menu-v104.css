@@ -1,0 +1,38 @@
+.im-title104{padding:0 3px 10px;color:#124837}
+.im-title104 h2{margin:0;font-size:19px}
+.im-title104 p{margin:3px 0;font-size:12px;color:#527260}
+.im-card104{margin:0 0 9px;border:1px solid #b4cfbc;border-top:4px solid #008563;border-radius:8px;background:#fffcf6;color:#173f32;overflow:hidden}
+.im-card104>header{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:34px;padding:6px 11px;background:#ebf6ee}
+.im-card104>header h3{margin:0;font-size:14px}
+.im-card104>header button{margin-left:5px}
+.im-body104{padding:9px 11px}
+.im-scroll104{width:100%;overflow:auto}
+.im-scroll104 table{width:100%;border-collapse:collapse;font-size:11px}
+.im-scroll104 th{padding:5px 6px;background:#008563;color:white;text-align:left;white-space:nowrap}
+.im-scroll104 td{padding:4px 6px;border-bottom:1px solid #d6e7dc;vertical-align:middle}
+.im-scroll104 tbody tr:hover{background:#edf7ef}
+.im-card104 button{padding:5px 9px;border:1px solid #abcbb5;border-radius:5px;background:#f5fbf5;color:#08674b;font:600 11px "Plus Jakarta Sans",sans-serif;cursor:pointer}
+.im-card104 button:hover{background:#def0e2}
+.im-card104 button[type=submit]{background:#008563;border-color:#008563;color:#fff}
+.im-form104{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px;align-items:end}
+.im-form104 label{display:flex;flex-direction:column;gap:4px;min-width:0;font-size:11px;font-weight:600}
+.im-form104 input,.im-form104 select{width:100%;height:31px;box-sizing:border-box;border:1px solid #b9cfbe;border-radius:5px;background:#fffcf6;color:#183f31;padding:4px 7px}
+.im-form104 .im-check104{align-self:center;flex-direction:row;align-items:center}
+.im-form104 .im-check104 input{width:auto;height:auto}
+.im-actions104,.im-recipe104,.im-form-error104{grid-column:1/-1}
+.im-actions104{display:flex;justify-content:flex-end;gap:7px;padding-top:6px}
+.im-recipe104{padding:9px;border:1px solid #c6dbc9;border-radius:5px}
+.im-recipe104>strong{display:block;margin-bottom:6px;font-size:12px}
+.im-recipe-row104{display:grid;grid-template-columns:minmax(0,2fr) minmax(80px,1fr) 28px;gap:5px;margin-bottom:5px}
+.im-recipe-row104 button{padding:3px!important}
+.im-error104,.im-form-error104{padding:8px;border-left:3px solid #bc3932;background:#fef0ee;color:#8d2d29;font-size:11px}
+.im-metrics104{display:flex;gap:15px;flex-wrap:wrap}
+.im-metrics104 span{padding:7px 9px;border:1px solid #d8e8dc;border-radius:5px}
+.im-metrics104 b{font-size:16px;color:#075d45}
+.im-low104{color:#ac4b17;font-weight:700}
+.employee-photo-field104 input{padding:5px!important}
+.employee-photo-preview104{display:flex;align-items:center;gap:10px;min-width:110px}
+.employee-photo-preview104 img{height:44px;width:44px;object-fit:cover;border-radius:50%}
+.employee-photo-preview104 label{display:flex;align-items:center;flex-direction:row!important;font-size:11px}
+.employee-photo-preview104 input{width:auto;min-height:0}
+.im-warning120{padding:10px 12px;border-left:3px solid #ad6b25;background:#fff5e6;color:#603b12;border-radius:5px;font-weight:600}

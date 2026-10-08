@@ -1,0 +1,127 @@
+:root{--forest121:#174c38;--cream121:#f6f3ec;--line121:#cbd8cd;--gold121:#caa45e}
+.restaurant-brand-logo{width:56px;height:56px;border-radius:10px;padding:5px;box-shadow:inset 2px 2px 5px #0002,2px 3px 6px #0003}
+body.shell113 .module-header{min-height:68px;padding:12px 20px;background:#f7f4ec;border-bottom:1px solid var(--line121);display:flex;align-items:center;gap:12px}
+body.shell113 .module-header-title{font-size:15px;color:#244938}
+.header-tools121{margin-left:auto;display:flex;align-items:center;gap:10px;position:relative}
+.header-tools121 input{width:240px;border-radius:20px;padding:10px 16px;background:#ebece3;border:0;box-shadow:inset 2px 2px 5px #223b2818}
+.header-tools121 button,.settings-tabs121 button{border:1px solid #bbcbbc;border-radius:8px;padding:8px 12px;background:#fffaf1;color:#244938;cursor:pointer}
+#profile121{background:#244f3b;color:#fff3d4}
+#searchResults121{position:absolute;top:100%;left:0;z-index:1000;background:#fffaf1;box-shadow:0 8px 25px #0003;min-width:230px;border-radius:8px}
+#searchResults121:empty{display:none}
+#searchResults121 button{display:block;width:100%;border:0;text-align:left}
+body.shell113 .category-tab-shell{padding:0 20px;background:#f7f4ec;border-bottom:1px solid var(--line121)}
+body.shell113 .category-tab{background:transparent;color:#52685a;border:0;border-bottom:3px solid transparent;padding:12px;font-size:12px;border-radius:0}
+body.shell113 .category-tab.active{color:#126642;border-bottom-color:#148259;font-weight:800}
+body.shell113 .workspace-scroll{padding:18px 22px;background:#f2f1e9}
+body.shell113 .area-banner113{height:186px;min-height:186px;border-radius:14px;position:relative;overflow:hidden;box-shadow:0 6px 18px #173c2212;border:1px solid #e0d8c5;background-size:cover;margin-bottom:20px}
+body.shell113 .banner-copy113{position:relative;z-index:1;padding:25px 28px;max-width:48%}
+body.shell113 .banner-copy113 h1{font-size:28px;margin:14px 0 8px;color:#214c35}
+body.shell113 .banner-copy113 p{font-size:12px;color:#5f6959}
+body.shell113 .banner-copy113 small{font-size:9px;letter-spacing:2px;color:#836c40}
+body.shell113 .area-banner113 blockquote,body.shell113 .banner-preview113 blockquote{position:absolute!important;margin:0;max-width:40%;width:max-content;max-height:80%;overflow:hidden;padding:6px 10px;background:transparent;text-align:center;line-height:1.1;border-radius:0}
+body.shell113 .panel113{background:#fffdf8;border:1px solid var(--line121);border-top:3px solid #2e7d54;border-radius:10px;padding:22px;margin-bottom:16px;box-shadow:0 5px 16px #1837250a}
+.panel113 h2{font-size:18px;margin:0 0 8px}
+.panel113 p{color:#627164;font-size:12px;line-height:1.6}
+.panel113 header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.panel113 header p{flex-basis:100%;margin:0 0 12px}
+.settings-tabs121{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.settings-tabs121 button.active{background:#285d43;color:#fff3d4}
+.form121{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.form121 label,.restaurant-dialog label{font-size:12px;font-weight:600;display:block;color:#35533f}
+.form121 input:not([type=checkbox]),.form121 select,.form121 textarea,.restaurant-dialog input:not([type=checkbox]),.restaurant-dialog select{display:block;width:100%;box-sizing:border-box;margin-top:7px;padding:9px;border:1px solid #c4d1c1;background:#fffefb;border-radius:6px;color:#243e2e}
+.wide121{grid-column:1/-1}
+.form121 input[type=range]{padding:3px;accent-color:#26794f}
+.panel113 footer,.restaurant-dialog footer{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+.panel113 button,.restaurant-dialog button{padding:9px 14px;border:1px solid #2b7250;border-radius:6px;background:#f3f3e9;color:#245439;cursor:pointer}
+.panel113 button[type=submit],#addUser121{background:#226645;color:#fff}
+.panel113 button:disabled,button[data-denied121]{opacity:.4;cursor:not-allowed!important}
+body.shell113 .banner-preview113{height:190px;position:relative;margin-top:22px;padding:0;overflow:hidden;border:1px solid #cfdbc8;border-radius:10px;background-size:cover}
+.brand-preview121{width:100px;height:100px;object-fit:contain;padding:8px;border-radius:10px;background:#f4ead5}
+.permission-grid121{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:18px}
+.permission-grid121 fieldset{border:1px solid #c5d2c0;border-radius:8px;padding:12px}
+.permission-grid121 legend{font-weight:700;color:#245539;padding:0 6px}
+.check121{display:flex!important;align-items:center;gap:9px;padding:7px 0;font-weight:500!important}
+.check121 input{accent-color:#2c7b50}
+.restaurant-dialog-body{padding:20px}
+.restaurant-dialog [role=alert]{color:#ae301f}
+.panel113 table small{display:block;color:#7a8276;font-size:11px;margin-top:5px}
+body.shell113 table{border-collapse:collapse;width:100%;box-shadow:none}
+body.shell113 table tbody tr:nth-child(n){background:transparent}
+body.shell113 table th{background:#e5eddf;color:#245139;padding:8px;text-align:left}
+body.shell113 table td{padding:6px 8px;border-bottom:1px solid #e0e7dc;font-size:12px}
+body.shell113 table tbody tr:hover{background:#f1f5eb}
+body.shell113 .im-title104:has(>h2[hidden]){margin:0;padding:0}
+.restaurant-login form{background:#f9f5eb;box-shadow:12px 12px 40px #061d1b66,-5px -5px 20px #ffffff08}
+.restaurant-login img{width:76px;height:76px;padding:7px;border-radius:12px;background:#e7dcc0}
+.restaurant-login button.link121{background:transparent;color:#315943;font-size:12px;margin:0}
+.login-loader121{display:flex;justify-content:center;gap:6px;padding:10px}
+.login-loader121 i{width:6px;height:6px;border-radius:50%;background:#287b53;animation:bounce121 .8s infinite alternate}
+.login-loader121 i:nth-child(2){animation-delay:.2s}
+.login-loader121 i:nth-child(3){animation-delay:.4s}
+@keyframes bounce121{to{transform:translateY(-7px);opacity:.3}}
+body.pro-mode121 .area-banner113,body.pro-mode121 .restaurant-overview-grid{display:none!important}
+body.pro-mode121 .main-content-area{margin-left:0!important;width:100%!important}
+body.pro-mode121 .workspace-scroll{padding:6px}
+body.pro-mode121 table td{padding:3px 6px;font-size:11px}
+body.pro-mode121 table tr.selected121{background:#d7ead9!important}
+body.pro-mode121 .app-layout{grid-template-columns:1fr!important}
+body.restaurant-dark121 .workspace-scroll,body.restaurant-dark121 .module-header,body.restaurant-dark121 .category-tab-shell{background:#162c24;color:#e4ecdf}
+body.restaurant-dark121 .panel113,body.restaurant-dark121 .restaurant-card,body.restaurant-dark121 .im-card104,body.restaurant-dark121 .pos-card118{background:#213b30;color:#e4ecdf;border-color:#44634d}
+body.restaurant-dark121 :is(.panel113,.restaurant-card,.im-card104,.pos-card118) :is(h2,h3,p,label),body.restaurant-dark121 .module-header-title{color:#e1e9d8}
+body.restaurant-dark121 table td{border-color:#45604e;color:#e4ecdf}
+body.restaurant-dark121 .restaurant-metrics div{background:#344e3c}
+body.restaurant-dark121 .restaurant-metrics strong{color:#e4c889}
+@media (max-width:900px){.form121{grid-template-columns:repeat(2,minmax(0,1fr))}
+.header-tools121 input{width:170px}
+.header-tools121{gap:5px}
+.header-tools121 button{font-size:11px;padding:8px}
+.module-header-title{display:none!important}
+body.shell113 .banner-copy113 h1{font-size:24px}}
+@media (max-width:700px){body.shell113 .workspace-scroll{padding:10px}
+.header-tools121 input{width:130px}
+#profile121{max-width:95px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
+.form121,.permission-grid121{grid-template-columns:1fr}
+.settings-tabs121{gap:5px}
+.settings-tabs121 button{font-size:11px;padding:8px}
+.panel113{padding:14px!important}
+body.shell113 .area-banner113{height:150px;min-height:150px}
+body.shell113 .banner-copy113{padding:18px 14px}
+body.shell113 .banner-copy113 h1{font-size:20px}
+body.shell113 .banner-copy113 small{font-size:7px}
+body.shell113 .area-banner113 blockquote{font-size:18px!important;max-width:43%}
+.restaurant-dialog{max-height:94vh}
+body.shell113 .module-header{padding:10px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.workspace-switch121{margin:14px 12px 5px;border:1px solid #819277;background:#294b38;color:#e9d9b5;border-radius:8px;padding:11px;text-align:left;cursor:pointer;font-size:12px}
+#restaurantToast button{margin-left:14px;border:1px solid #fff7;background:transparent;color:#fff;border-radius:5px;padding:4px 8px;cursor:pointer}
+body.shell113 #restaurantBannerPreview{width:100%;max-width:none;box-sizing:border-box}
+body.shell113 .area-banner113 blockquote,body.shell113 .banner-preview113 blockquote{clip-path:none;right:auto;bottom:auto}
+body.shell113 .form121 input[type=color]{height:38px;padding:5px}
+body.shell113 #restaurantApp .main-content-area{min-width:0}
+body.shell113 .banner-copy113{box-sizing:border-box}
+body.shell113 #restaurantApp{height:100dvh;overflow:hidden}
+body.shell113 .workspace-scroll{min-height:0;flex:1;overflow:auto}
+body.shell113 .main-content-area{display:flex;flex-direction:column;height:100dvh}
+@media (max-width:1024px){body.shell113 .main-content-area{margin-left:0!important;width:100%!important}
+body.shell113 #mobileMenuToggle{display:flex!important}
+body.shell113 .workspace-scroll{padding:10px!important}
+body.shell113 .category-tab-shell{display:block}
+body.shell113 .category-tab-shell[hidden]{display:none!important}}
+@media (max-width:700px){body.shell113 .area-banner113{height:150px!important;min-height:150px!important;padding:0!important;display:block}
+body.shell113 .area-banner113 .banner-copy113{max-width:52%;padding:20px 12px}
+body.shell113 .area-banner113 .banner-copy113 h1{font-size:20px!important}
+.header-tools121{flex:1;min-width:0;justify-content:flex-end}
+body.shell113 .category-tab-shell{padding:0 8px}
+body.shell113 .workspace-scroll>.tab-content{padding:0!important}
+body.shell113 .module-header{flex-shrink:0}
+body.shell113 .area-banner113 blockquote{max-width:42%!important;max-height:80%;margin:0!important}
+body.shell113 .category-tabs{display:flex!important}
+body.shell113 .restaurant-overview-grid{grid-template-columns:1fr}}
+body.shell113 #categoryTabShell:not([hidden]){display:block!important}
+body.shell113 #categoryTabShell .category-tab{flex:0 0 auto;max-width:none}
+body.shell113 #categoryTabShell .category-tab.active{border-bottom-color:#178059!important;color:#12583b!important;background:#e8efdf!important}
+body.shell113 .area-banner113 blockquote,body.shell113 .banner-preview113 blockquote{width:40%!important;max-width:40%!important}
+body.shell113 .module-header{flex:0 0 68px;box-sizing:border-box}
+body.shell113 #restaurantApp .workspace-scroll{min-height:0!important;height:0;flex:1 1 auto!important}
+body.shell113 #restaurantApp .main-content-area{min-height:0!important}
+@media  screen{body.shell113 #restaurantApp .module-header{display:flex!important}}

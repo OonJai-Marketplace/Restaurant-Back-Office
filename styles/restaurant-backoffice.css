@@ -1,0 +1,55 @@
+[hidden]{display:none!important}
+body.shell113{font-family:"Plus Jakarta Sans",Arial,sans-serif;background:#f6f3ec;color:#234132}
+body.shell113 .app-layout{min-height:100vh}
+.restaurant-brand-logo{width:42px;height:42px;object-fit:contain;border-radius:9px;background:#fffaf1}
+.restaurant-signout{background:#914511;border:0;color:white;border-radius:6px;padding:7px 9px;cursor:pointer;font-size:11px}
+body.shell113 .main-content-area{min-width:0}
+.restaurant-header-status{margin-left:auto;font-size:12px;color:#53665c}
+body.shell113 .workspace-scroll{overflow:auto;min-height:calc(100vh - 70px);padding:14px}
+body.shell113 .workspace-scroll>.tab-content{display:none}
+body.shell113 .workspace-scroll>.tab-content.active{display:block}
+.restaurant-overview-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.restaurant-card{border:1px solid #cbd8cd;border-top:4px solid #21835b;background:#fffdfa;padding:20px;border-radius:9px;box-shadow:0 7px 20px #1d4c3410}
+.restaurant-card h2{margin:0 0 12px;color:#19523c}
+.restaurant-quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:18px}
+.restaurant-quick button,.restaurant-card button{border:1px solid #0d7752;border-radius:6px;background:#0d7752;color:white;padding:9px;cursor:pointer}
+.restaurant-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:20px 0}
+.restaurant-metrics div{padding:14px;background:#edf6ed;border-radius:8px;text-align:center}
+.restaurant-metrics strong{display:block;font-size:24px;color:#165f43}
+.restaurant-metrics span{font-size:11px}
+.restaurant-login{position:fixed;inset:0;z-index:5000;background:linear-gradient(145deg,#154b38,#0b3027);display:grid;place-items:center;padding:16px}
+.restaurant-login form{width:min(400px,100%);box-sizing:border-box;background:#fffaf1;border-top:6px solid #e6bc6a;border-radius:14px;padding:30px;box-shadow:0 20px 60px #0006}
+.restaurant-login img{width:58px;height:58px;object-fit:contain}
+.restaurant-login h1{margin:9px 0 0;color:#18543b}
+.restaurant-login p{margin:4px 0 18px;color:#657369}
+.restaurant-login label{display:block;font-size:12px;font-weight:700;margin:12px 0;color:#334d3f}
+.restaurant-login input{display:block;width:100%;box-sizing:border-box;padding:11px;border:1px solid #b9cbbd;border-radius:7px;margin-top:5px}
+.restaurant-login button{width:100%;border:0;background:#087c57;color:#fff;font-weight:700;padding:12px;border-radius:7px;margin-top:12px}
+.restaurant-login #loginError{color:#b42318;font-size:12px}
+.restaurant-modal{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:#0b3027aa;padding:12px}
+.restaurant-dialog{width:min(620px,100%);max-height:90vh;overflow:auto;background:#fffdfa;border:1px solid #b8d0bb;border-top:5px solid #07855c;border-radius:10px;box-shadow:0 20px 55px #0004}
+.restaurant-dialog.wide{width:min(1000px,100%)}
+.restaurant-dialog>header,.restaurant-dialog>footer{display:flex;align-items:center;justify-content:space-between;gap:9px;padding:12px 16px}
+.restaurant-dialog>header{background:#edf6ed}
+.restaurant-dialog>header h3{margin:0}
+.restaurant-dialog-body{padding:15px}
+.restaurant-dialog button{border:1px solid #087c57;background:#087c57;color:white;border-radius:5px;padding:6px 10px;cursor:pointer}
+.restaurant-dialog button.danger{background:#b42318;border-color:#b42318}
+#restaurantToast{position:fixed;z-index:12000;left:50%;bottom:28px;transform:translateX(-50%);padding:12px 18px;border-radius:8px;background:#155a40;color:#fff;box-shadow:0 10px 25px #0004;max-width:min(540px,90vw)}
+#restaurantToast.error{background:#a6241b}
+body.shell113 .area-banner113{background-size:cover;min-height:180px;margin-bottom:13px}
+body.shell113 .area-banner113 blockquote{position:absolute!important;left:var(--quote-x,68%);top:var(--quote-y,52%);max-width:27%;padding:7px 10px;background:#fff7e8cc;border-radius:8px;color:var(--quote-color,#503b25);font:24px/1.1 var(--quote-font,"Caveat Brush"),Georgia,cursive;transform:rotate(var(--quote-angle,-12deg));text-align:center}
+body.shell113 .banner-preview113{background-size:cover;min-height:120px;display:flex;align-items:center;padding:16px}
+body.shell113 #restaurantAppearance>footer{display:flex;gap:12px;justify-content:flex-end;margin:15px 0}
+body.shell113 .category-tab-shell[hidden]{display:none!important}
+body.shell113 .category-tabs{display:flex;gap:3px;overflow-x:auto}
+body.shell113 .category-tab{white-space:nowrap}
+body.shell113 #pos118{padding:0!important}
+@media (max-width:900px){.restaurant-overview-grid{grid-template-columns:1fr}
+.restaurant-header-status{display:none}}
+@media (max-width:700px){body.shell113 .workspace-scroll{padding:8px}
+.restaurant-metrics{grid-template-columns:repeat(3,1fr)}
+body.shell113 .area-banner113 blockquote{font-size:17px;max-width:42%}}
+body.shell113 #pos118>.area-banner113{min-height:115px;height:115px;margin:0 0 10px}
+body.shell113 #pos118>.area-banner113 .banner-copy113 h1{font-size:22px}
+body.shell113 #pos118>.area-banner113 blockquote{font-size:16px;max-width:31%}

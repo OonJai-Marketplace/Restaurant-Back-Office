@@ -1,0 +1,37 @@
+OON JAI RESTAURANT - NAVIGATION AND POS UPDATE (2 OCTOBER 2026)
+
+Uses Accounting v142.18 navigation styles in their original cascade:
+238px desktop sidebar, forest colors, gold selected section, identical logo,
+search, menu spacing, icons and bottom profile geometry. Restaurant menu items
+retain their own permissions. The user profile remains in the bottom sidebar.
+
+Bottom-right controls: notifications, workspace/account switch, sign out,
+and a fullscreen orders control when POS is open. The top name, sidebar
+workspace/sign-out buttons and Pro Mode have been removed.
+
+POS: one click selects the product; double-clicking its image/card adds one
+item using the selected choices. Required choices and sales permissions still
+apply. The existing Add to order button remains available for keyboard users
+and customization. Double-tap is also supported on touch devices.
+
+Fullscreen opens Sales > New Order and hides the sidebar, banner and navigation
+headers. Exit fullscreen restores navigation and keeps the current order.
+Native browser fullscreen is used when available; otherwise orders fill the
+available page. Escape also exits.
+
+Notifications show available restaurant order/sync information, clearly marked
+when in sample mode. This update does not add a live notification subscription.
+
+INSTALL
+Read START-HERE-SEPARATE-REPOSITORIES.txt. Publish this ZIP as the separate
+Restaurant repository. The Accounting ZIP contains only the Accounting app.
+Admin-only session sharing requires same-hostname paths and migration 08.
+
+CHECKED LOCALLY
+- Sidebar styles/geometry compared in Chromium against Accounting v142.18.
+- Single click, double-click on product images, repeated double-clicks.
+- Fullscreen/exit with current-order preservation and hidden headers.
+- Floating menu, notifications, sign-out confirmation and mobile drawer.
+- Independent-site switch both directions, admin checks and separate staff sessions.
+- View-only POS users cannot quick-add items.
+No live transactions were posted and no deployment was performed.

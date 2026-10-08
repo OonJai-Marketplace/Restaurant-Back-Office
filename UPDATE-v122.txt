@@ -1,0 +1,6 @@
+OON JAI RESTAURANT v122 — WORKSPACE LINK UPDATE
+Upload only this package to your Restaurant repository.
+The switch menu now includes Workspace links for the published Accounting and Restaurant
+URLs. Existing Accounting path in Logo & Theme is preserved unless overridden there.
+Locally opened HTML must use full published URLs. Administrator checks remain in place.
+No accounting modules were copied into this restaurant package. No deployment performed.

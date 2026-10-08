@@ -1,0 +1,89 @@
+body.shell113 .ledger-summary71.aligned85>span{grid-column:auto!important;grid-row:auto!important;float:none!important;position:static!important}
+body.shell113 .ledger-summary71.aligned85>.ledger-identity85{grid-column:1!important;flex-direction:row!important;justify-content:flex-start!important;text-align:left!important}
+body.shell113 .ledger-summary71 .ledger-name71 strong{overflow-wrap:normal!important;word-break:normal!important;white-space:normal!important}
+body.shell113 .archive-month.archive-aligned85>summary{grid-template-columns:minmax(180px,1fr) repeat(2,minmax(140px,180px))!important;width:100%!important}
+body.shell113 #runMeta95>.fields82{display:flex!important;flex-wrap:nowrap!important;align-items:end;gap:12px}
+body.shell113 #runMeta95>.fields82>label{flex:0 1 130px!important;min-width:0!important;width:auto!important}
+body.shell113 #runMeta95>.fields82>label:last-child{flex:1 1 200px!important}
+body.shell113 #runMeta95 input{width:100%!important;max-width:100%!important;box-sizing:border-box}
+.rate-date118{margin:8px 0;color:#536559;font-size:12px}
+.rate-date118 label{display:block;max-width:170px}
+.history-actions95{display:flex!important;gap:10px!important;padding:16px 0 4px!important;border-top:1px solid #416a5550;margin-top:14px}
+.history-actions95 button{background:#e4eee5!important;border:1px solid #416a55!important;color:#143e2d!important;min-width:75px}
+.history-actions95 button:first-child,.history-actions95 button:last-child{background:#174c38!important;color:#fff!important}
+.history-actions95 button[onclick*="delete"]{background:#fff0ec!important;color:#a52822!important;border-color:#c8736c!important}
+.pay-summary118{display:flex;justify-content:flex-end;gap:20px;flex-wrap:wrap}
+.pay-summary118>span{display:flex;flex-direction:column;gap:4px;text-align:right}
+.pay-summary118 small{font-size:10px;color:#657067}
+.pay-summary118 strong{font-size:13px}
+body.shell113 .inventory-metrics117{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+body.shell113 #settings-backup113.active{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+#settings-backup113>.area-banner113{grid-column:1/-1}
+#settings-backup113>.panel113{margin:0!important;min-width:0}
+body.shell113 :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea):not(.inline-cell117){padding:8px 12px!important;line-height:1.4!important;box-sizing:border-box;min-height:36px;height:auto;}
+body.shell113 select{padding-right:30px!important;text-overflow:ellipsis}
+body.shell113 input:is([type=checkbox],[type=radio]){padding:0!important;margin:0 8px 0 0!important;vertical-align:middle;flex-shrink:0;width:16px!important;height:16px!important;min-height:16px!important;accent-color:#174c38}
+body.shell113 label:has(>input:is([type=checkbox],[type=radio])){line-height:1.5;gap:8px;align-items:center}
+body.shell113 :is(.dash-hero-controls112,.dash-controls112) select{padding-left:12px!important;margin:0 6px!important}
+#dashProfile112{display:none!important}
+body.shell113 :is(.ui-dialog108,.pay-dialog95,.modal-content,.v49-review-dialog){border:1px solid #416a55!important;border-radius:12px;max-height:90dvh;max-width:calc(100vw - 32px);overflow:auto;box-sizing:border-box}
+body.shell113 :is(.ui-dialog108,.pay-dialog95,.modal-content)>header{position:sticky;top:0;background:#fffaf2;z-index:2}
+body.shell113 .close117{background:transparent!important;border:0!important;color:#ae2925!important;border-radius:50%!important;width:32px!important;height:32px!important;min-height:32px!important;font:26px/1 Arial!important;padding:0!important}
+#status118{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:100000;display:flex;align-items:center;gap:15px;width:max-content;max-width:min(520px,85vw);padding:20px 26px;background:#fffaf2;border:1px solid #416a55;border-radius:14px;box-shadow:0 14px 70px #102b2850;color:#173c2d;pointer-events:none;font-size:15px;line-height:1.5}
+#status118[hidden]{display:none}
+#status118.error{border-color:#b1372d;color:#9c2823}
+#status118 .status-motion118{width:24px;height:24px;border:3px dotted #c49c45;border-top-color:#174c38;border-radius:50%;flex:0 0 24px;animation:status-spin118 1.2s linear infinite}
+#status118:not(.pending) .status-motion118{animation:none;border:0;font-size:22px;display:grid;place-items:center}
+@keyframes status-spin118{to{transform:rotate(360deg)}}
+#tabletMenu118{display:none}
+#tabletScrim118{display:none}
+#tabletMenu99,#tabletScrim99,#rotateTablet99{display:none!important}
+body.tablet118 #tabletMenu118{display:inline-flex!important;flex:0 0 38px!important;width:38px!important;height:38px!important;align-items:center;justify-content:center;margin:0 8px 0 0;border:1px solid #416a55;background:#f6f5eb;color:#173c2d;border-radius:6px;cursor:pointer}
+body.tablet118.nav118 #tabletScrim118{display:block;position:fixed;inset:0;width:100%;height:100%;background:#102a2255;border:0;z-index:1290}
+body.tablet118 .main-content-area{margin-left:0!important;width:100%!important;max-width:none!important}
+body.tablet118 #categoryTabShell{display:flex!important;align-items:center!important;gap:0!important}
+body.tablet118[data-area113=dashboard] #categoryTabShell{display:none!important}
+body.tablet118 #categoryTabs{flex:1;min-width:0}
+body.tablet118 .dash-tabs112{display:flex!important;align-items:center!important}
+body.shell113 #categoryTabs{scrollbar-width:thin;scrollbar-color:#738c74 transparent}
+body.shell113 #categoryTabs::-webkit-scrollbar{height:4px!important}
+body.shell113 #categoryTabs::-webkit-scrollbar-thumb{background:#738c74;border-radius:4px}
+.balance-badge118{display:inline-block;border:1px solid #93a993;border-radius:4px;padding:2px 5px;margin-right:7px;font:600 10px/1.2 Arial;vertical-align:middle;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){#status118 .status-motion118{animation:none}}
+body.shell113[data-area113=pos] #categoryTabShell{display:none!important}
+body.shell113 #report-bs .statement82{max-width:none!important}
+body.shell113 #report-bs .statement82 table{table-layout:fixed!important;width:100%!important;min-width:0!important}
+body.shell113 #report-bs .statement82 :is(th,td){width:20%!important;min-width:0!important;max-width:none!important;white-space:normal!important;overflow:visible!important;word-break:normal!important;text-align:right!important}
+body.shell113 #report-bs .statement82 :is(th,td):first-child{width:40%!important;text-align:left!important}
+body.shell113 :is(#report-gl,#report-activity) .r79-table table{table-layout:fixed!important;width:100%!important;min-width:0!important}
+body.shell113 :is(#report-gl,#report-activity) .r79-table :is(th,td){min-width:0!important;max-width:none!important;white-space:normal!important;overflow-wrap:break-word!important}
+body.shell113 :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(1){width:9%!important}
+body.shell113 :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(2){width:9%!important}
+body.shell113 :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(3){width:20%!important}
+body.shell113 :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(4){width:26%!important}
+body.shell113 :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(n/**/+5){width:12%!important}
+body.shell113 .ledger-account69 table{table-layout:fixed!important;width:100%!important;min-width:0!important}
+body.shell113 .ledger-account69 table :is(th,td){min-width:0!important;white-space:normal!important;overflow-wrap:break-word!important}
+body.shell113 .ledger-account69 table th:nth-child(1){width:10%!important}
+body.shell113 .ledger-account69 table th:nth-child(2){width:11%!important}
+body.shell113 .ledger-account69 table th:nth-child(3){width:29%!important}
+body.shell113 .ledger-account69 table th:nth-child(4),body.shell113 .ledger-account69 table th:nth-child(5){width:12%!important}
+body.shell113 .ledger-account69 table th:nth-child(6){width:16%!important}
+body.shell113 .ledger-account69 table th:nth-child(7){width:10%!important}
+body.tablet118[data-area113=sub-users] #categoryTabShell{display:none!important}
+body.shell113 #tabletMenu118 svg{width:20px!important;height:20px!important;min-width:20px;flex:none}
+body.shell113 #payroll-entries #runMeta95>.fields82:first-child{display:flex!important;grid-auto-flow:initial!important;overflow:visible!important;gap:12px!important;flex-wrap:nowrap!important}
+body.shell113 #payroll-entries #runMeta95>.fields82:first-child>label{flex:0 0 140px!important;width:auto!important;min-width:0!important}
+body.shell113 #payroll-entries #runMeta95>.fields82:first-child>label:first-child{flex-basis:170px!important}
+body.shell113 #payroll-entries #runMeta95>.fields82:first-child>label:last-child{flex:1 1 220px!important}
+body.shell113 .pay-group95>summary>.pay-summary118{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;align-items:center!important;justify-content:flex-end!important;gap:10px 24px!important;padding:8px 12px!important}
+body.shell113 .pay-group95>summary>.pay-summary118>span{display:flex!important;flex-direction:column!important;align-items:flex-end!important;justify-content:center!important;text-align:right!important;flex:0 1 auto!important;width:auto!important;min-width:70px!important;gap:3px!important;margin:0!important;padding:0!important;border:0!important}
+body.shell113 .pay-group95>summary>.pay-summary118 :is(small,strong){display:block!important;float:none!important;width:auto!important;margin:0!important;text-align:right!important;line-height:1.3!important;white-space:nowrap!important}
+#status118{left:var(--view-center-x118,50%)!important;top:var(--view-center-y118,50%)!important}
+body.shell113 .modal-backdrop.active,body.shell113 .ui-overlay108{inset:auto!important;left:var(--view-left118,0px)!important;top:var(--view-top118,0px)!important;width:var(--view-width118,100vw)!important;height:var(--view-height118,100dvh)!important;box-sizing:border-box;align-items:center!important;justify-content:center!important}
+body.shell113 .modal-dialog,body.shell113 .ui-dialog108{max-height:calc(var(--view-height118,100dvh) - 32px)!important}
+body:has(#loginGate:not(.is-authenticated)) .app-layout{visibility:hidden!important}
+body.shell113 #loginGate:not(.is-authenticated){inset:auto!important;left:var(--view-left118,0px)!important;top:var(--view-top118,0px)!important;width:var(--view-width118,100vw)!important;height:var(--view-height118,100dvh)!important;box-sizing:border-box}
+body:has(#loginGate:not(.is-authenticated)) #landscape117{display:none!important}
+body.shell113 #modalRecurringWarnings.active{z-index:16000!important}
+body.shell113 #settings-recovery113 .recovery-contact114 h3{background:#0b3426!important;color:#fffaf1!important}

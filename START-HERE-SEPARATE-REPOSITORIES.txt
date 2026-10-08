@@ -1,0 +1,75 @@
+OON JAI — SEPARATE REPOSITORIES / ADMIN SIGN-IN (2 OCTOBER 2026)
+
+READ THIS FIRST. This replaces the older combined-workspace instructions.
+The two ZIPs are independent website roots. Do not put Restaurant inside the
+Accounting repository, or Accounting inside the Restaurant repository.
+
+HOSTING AND LINKS
+Publish each package to its own repository. Shared administrator sign-in in this
+implementation requires BOTH sites to use the SAME HTTPS hostname and Supabase
+project. Example project sites (Restaurant path is a proposed name):
+  https://oonjai-marketplace.github.io/Accounting/
+  https://oonjai-marketplace.github.io/Restaurant/
+In BOTH packages, set scripts/workspace-config123.js to the actual case-sensitive
+repository paths. Defaults are /Accounting/ and /Restaurant/. Restaurant's saved
+Settings > Logo & Theme > Accounting workspace path takes precedence; update that
+setting if it points elsewhere. Add the Restaurant URL to Supabase Auth redirect
+URLs for email/password recovery. Different hostnames require another SSO design;
+these packages deliberately reject cross-origin workspace switching.
+
+ACCOUNTS
+Only active administrators share a login and can use the floating workspace switch
+in either direction. The server verifies administrator access. Signing in to either
+app as admin makes that session available to the other on the same browser origin.
+Admin password changes affect the same shared identity. Signing out ends the shared
+admin session. Switching from an assisted Accounting sub-user requires returning
+to the Administrator account first.
+Accounting sub-users keep their existing Accounting accounts and permissions.
+Restaurant staff have distinct Restaurant accounts and isolated browser sessions.
+Do not enable an Accounting sub-user as Restaurant staff. Only administrators can
+manage staff and permissions. A hidden switch alone is not the access boundary:
+the included database migration enforces the separation on the server.
+
+DATABASE SETUP — NOT APPLIED BY THIS DELIVERY
+1. Keep a current backup. Existing Accounting setup and Restaurant SQL migrations
+   01–07 must already be installed. Do not rerun historical/sample-data installers.
+   For an earlier Restaurant installation, follow START-HERE-v121.txt for migration
+   07 and the restaurant-users Edge Function first.
+2. BEFORE publishing these updated staff login pages, run the included
+   08-workspace-separation123.sql ONCE in the existing Supabase SQL editor.
+   The copies in Accounting/setup and Restaurant/sql are identical.
+3. The migration adds eligibility checks, account-assignment guards, restrictive
+   access policies and an API request guard. It does not change passwords, profile
+   roles, journal/account records, calculations or existing business function bodies.
+   It aborts the transaction if an existing non-admin has both Restaurant membership
+   and Accounting grants, or if another API pre-request hook needs integration.
+   Preserve Accounting access and resolve the conflict explicitly before proceeding.
+   Do not bypass these checks or overwrite another hook.
+4. Verify on your hosted installation with an admin, an existing Accounting sub-user,
+   and a separate Restaurant staff account before distributing staff access.
+   The updated Accounting staff login fails closed if migration 08 is unavailable.
+
+NAVIGATION AND ORDERS
+Switching navigates between independent sites; there is no embedded Restaurant or
+iframe host. Accounting document drafts are flushed before leaving. Unsaved forms
+outside that document workspace should be saved before navigating away.
+Restaurant prompts to Save unpaid & switch when an unpaid POS order is in progress;
+Stay here keeps the order open. The accounting-style Restaurant sidebar, bottom
+profile, notification/sign-out controls, focused POS fullscreen, and single-select /
+double-click-add behavior remain included. Staff do not see the workspace switch.
+
+VERIFICATION AND DELIVERY
+Local browser tests covered admin-only links, rejected staff links, isolated staff
+sessions, admin session reuse, navigation, POS selection/addition and fullscreen.
+Local PostgreSQL-compatible tests covered migration installation/rerun, Accounting
+access preservation, Restaurant denial from Accounting data/RPC, and conflict guards.
+These are local tests, not a live Supabase or hosted production certification.
+No live database changes, account changes or website deployment were performed.
+
+ACCOUNTING FILE COMPARISON
+Against the original supplied Accounting v142.18 ZIP: all 72 CSS files and 101
+retained JavaScript files are byte-identical (209 retained files unchanged).
+The old embedded workspace script and bundled Restaurant folder are removed.
+Existing index.html only replaces its switch script reference with two new
+configuration/link scripts. Historical v142.12 instructions are corrected, and
+this guide plus migration 08 are added. No Accounting business script is edited.

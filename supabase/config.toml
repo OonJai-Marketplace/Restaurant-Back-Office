@@ -1,0 +1,3 @@
+# Authentication is validated with getUser() and is_admin() inside the function.
+[functions.restaurant-users]
+verify_jwt = false

@@ -1,0 +1,89 @@
+CURRENT INSTALLATION: Read START-HERE-SEPARATE-REPOSITORIES.txt first.
+
+OON JAI RESTAURANT BACK OFFICE · v121
+
+This is the complete Restaurant folder, based on the separated v120 ZIP.
+It uses the existing Oon Jai Supabase project. Accounting code is not replaced.
+
+WHAT CHANGED
+• Accounting-style forest/cream layout, compact tables, horizontal category tabs,
+  sidebar search, bottom profile/password shortcut and responsive navigation.
+• Banners and quotations by area or individual tab: image, crop position, font,
+  color, size, rotation, position, outline and shadow, with live preview.
+• Logo upload, square logo frame (ivory/gold/green/brown), and dark forest theme.
+• Settings → Users & Access: create new email users, or enable existing Oon Jai
+  profiles; enable/disable sign-in and select each module's allowed actions.
+• New users receive the temporary password entered by the administrator and must
+  change it at first sign-in. This program does not send temporary passwords.
+• Change password and forgotten-password email flow.
+• Admin-only floating workspace switch to the separate Accounting website.
+
+SETUP — EXISTING SHARED DATABASE
+1. Keep a database backup. In Supabase SQL Editor apply ONLY
+   sql/07-restaurant-access-appearance.sql if migrations 01–06 were already applied.
+   The earlier SQL files remain in this ZIP for reference; do not rerun them over 07.
+   This migration adds restaurant membership and presentation tables and staff RLS.
+   It copies relevant existing appearance settings once and then stores restaurant
+   appearance independently. Existing accounting records and roles stay intact.
+   It preserves the installed stock/version/history guards and adapts their access
+   checks only on restaurant tables. It also adds POS action permissions.
+   The migration is transactional and can be rerun. An unfamiliar guard aborts the
+   transaction for review instead of silently replacing its validation.
+2. In the existing Supabase project deploy the included Edge Function:
+      supabase functions deploy restaurant-users
+   Source: supabase/functions/restaurant-users/index.ts
+   Supabase supplies SUPABASE_URL, SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY
+   to hosted functions. Never put the service-role key in the website scripts.
+   The function validates the caller's session and administrator role itself.
+   If your project's gateway requires a JWT-verification exception for publishable
+   API keys, use the supplied function config; caller verification still occurs
+   inside the function. Configure this in your Supabase project, not the browser.
+3. Add the hosted restaurant URL to Supabase Authentication → URL Configuration →
+   Redirect URLs. Set up and test authentication email delivery before distributing
+   logins. A password recovery link cannot return to a local file:// HTML page.
+4. Open the restaurant, sign in using an existing administrator, then use Settings.
+   A fresh device initially shows the bundled Oon Jai logo. Uploaded branding loads
+   after authorized sign-in. Staff cannot read settings or records before changing
+   a required temporary password.
+
+ACCOUNTS AND PERMISSIONS
+Administrators retain full access. Only administrators can create users or manage
+permissions. Other users are denied Restaurant entry until enabled in Users & Access.
+Accounting sub-users must remain separate from Restaurant staff accounts.
+Use a distinct email/account for Restaurant staff. Only administrators share their
+identity and sign-in across both apps. Duplicate emails do not reset passwords.
+New users use the established non-admin profiles role, submitter. This does not
+promote them or grant accounting module permissions.
+
+View grants access to the records needed by that module, not individual data fields:
+• Inventory: view, item editing, stock in, stock out, adjustments/reversals, deletion.
+• Menu: view recipes/ingredients/costs, edit catalog/prices, engineering sales, deletion.
+• POS & Online Orders: view operational records, sell/pay/shift, void, refund, settings.
+• Settings: view and change appearance. User administration remains admin-only.
+Menu readers can read inventory needed for costing. POS readers receive the recipe,
+stock, receipt and shift records required by the existing POS snapshot. A view-only
+role is not a promise to conceal costs or prevent copying records it can see.
+POS customization/import and ingredient links retain their existing administrator
+requirement. The legacy POS cashier list no longer grants access; use Users & Access.
+Disabling a member blocks subsequent server access; a disconnected device may still
+hold its previously downloaded offline copy. Queued sales remain subject to current
+server permissions when replayed.
+
+SEPARATE REPOSITORIES AND ADMIN SIGN-IN
+Read START-HERE-SEPARATE-REPOSITORIES.txt for current hosting and migration 08.
+The earlier same-page integration companion has been removed. Each ZIP is its own
+repository root. Admin sign-in can be shared on the same HTTPS hostname; staff
+remain confined to their assigned workspace. Navigation never grants permission.
+
+VALIDATION
+Browser checks with mocked Supabase responses passed: appearance save/reset,
+branding save, user creation request, permission dependencies, restricted navigation,
+blocked edits, mandatory password change, recovery URL, and mobile layout.
+Local PostgreSQL-compatible tests passed: migration install and rerun, RLS denial,
+authorized writes, stock-action restrictions, protected linked history, password
+change enforcement, disabled/unknown-user denial, and accounting trigger isolation.
+Live Supabase migration, Edge Function deployment, real email delivery and hosted
+cross-workspace navigation have NOT been performed in this delivery.
+
+Existing staged POS limitations remain: automatic customer website orders and direct
+inventory/consignment/temporary POS products are not implemented by this update.
