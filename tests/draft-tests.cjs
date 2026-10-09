@@ -49,6 +49,7 @@ async function main(){
  await db.query("select set_config('test.uid',$1,false)",[admin]);
  const prior=await stocks();await db.query('select restaurant_reverse_waste124($1,$2,$3)',['20202020-2020-4020-8020-202020202020',waste,'Entry error, not physically discarded']);const corrected=await stocks();ok('Waste correction restores stock with a negative cost audit',corrected[cooked]===prior[cooked]+.5);
  await db.query('select restaurant_reverse_waste124($1,$2,$3)',['21212121-2121-4121-8121-212121212121',waste,'Repeated correction']);ok('Repeated waste correction restores stock only once',(await stocks())[cooked]===corrected[cooked]);
+ await require('./priority-db125.cjs')({db,root,ok,rejects,admin,staff,raw,cooked,ing,data,stocks,menu,order});
  await db.close();
  const context={window:{menuStore108:{esc:String,fmt:String}},document:{readyState:'loading',addEventListener(){}},Intl,Number,Date,Error,Set,Promise};vm.createContext(context);vm.runInContext(fs.readFileSync(root+'/scripts/preparation-waste124.js','utf8'),context);const math=context.window.kitchen124.math;
  const p=math.calculate([{quantity:1.5,unitCost:100},{quantity:.1,unitCost:400}],2,{mode:'actual',minutes:30,hourlyRate:120,energy:20,otherCost:10});ok('Browser and server cost calculations agree',p.full===280&&p.fullUnitCost===140);ok('Half-kilo and 500-gram calculations agree',math.wasteMath(p,.5,'kg','kg').fullLoss===math.wasteMath(p,500,'g','kg').fullLoss);

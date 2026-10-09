@@ -9,7 +9,7 @@ await page.addInitScript(()=>{const owner='11111111-1111-4111-8111-111111111111'
 await page.goto('http://127.0.0.1:8765/');await page.waitForFunction(()=>!!window.restaurantAccounting124&&document.querySelector('#restaurantApp')?.hidden===false&&document.body.classList.contains('tablet118'));
 const results=[];
 for(const [w,h,label] of [[834,1194,'ipad-portrait'],[1194,834,'ipad-landscape'],[1366,1024,'ipad-pro-landscape'],[1280,800,'tablet-landscape'],[800,1280,'tablet-portrait']]){
- await page.setViewportSize({width:w,height:h});await page.evaluate(()=>{switchTab('pos118');pos118.state.tab='Sales';pos118.state.sub='New Order';pos118.render()});
+ await page.setViewportSize({width:w,height:h});await page.evaluate(async()=>{await switchTab('pos118');pos118.state.tab='Sales';pos118.state.sub='New Order';pos118.render()});
  await page.waitForFunction(()=>document.querySelector('#tabletMenu118')?.parentElement?.classList.contains('pos-main-tabs118'));
  assert.equal(await page.locator('.module-header').isVisible(),false);checks++;
  assert.equal(await page.locator('#tabletMenu118').count(),1);checks++;
@@ -33,7 +33,7 @@ for(const [w,h,label] of [[834,1194,'ipad-portrait'],[1194,834,'ipad-landscape']
  await page.evaluate(()=>switchTab('restaurant-settings'));await page.waitForFunction(()=>document.querySelector('#tabletMenu118')?.parentElement?.classList.contains('settings-tabs121'));checks++;
  await page.evaluate(()=>switchTab('restaurant-overview'));await page.waitForFunction(()=>document.querySelector('#tabletMenu118')?.parentElement?.classList.contains('restaurant-home-tabs124'));checks++;
 }
-await page.evaluate(()=>{bannerRows.brand={theme:'dark'};applyBrand121();settingsTab121='branding';switchTab('restaurant-settings')});assert.equal(await page.locator('[name=theme]').count(),0);assert.equal(await page.evaluate(()=>document.body.classList.contains('restaurant-dark121')),false);checks+=2;
+await page.evaluate(async()=>{bannerRows.brand={theme:'dark'};applyBrand121();settingsTab121='branding';await switchTab('restaurant-settings')});assert.equal(await page.locator('[name=theme]').count(),0);assert.equal(await page.evaluate(()=>document.body.classList.contains('restaurant-dark121')),false);checks+=2;
 assert.deepEqual(errors,[]);checks++;
 fs.writeFileSync(require('path').join(__dirname,'results','accounting-layout-results.json'),JSON.stringify({checks,status:'passed',results},null,2));console.log(checks+' Accounting palette and tablet navigation checks passed');await browser.close();server.close()}
 main().catch(e=>{console.error(e);server.close();process.exit(1)});

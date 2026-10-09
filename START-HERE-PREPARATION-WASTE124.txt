@@ -7,6 +7,8 @@ Source update for Restaurant Back Office. Updating the repository does not apply
 the SQL to Supabase. Apply migration 09 below to enable preparation and waste
 storage. This is not a complete offline release.
 Public orders, device push and automatic WhatsApp alerts remain planned work.
+For the newer lazy workspaces, fast POS and staff tab grants, see
+START-HERE-POS-PRIORITY125.txt and migrations 10–11.
 
 INCLUDED
 Inventory > Preparation & Costs: all ingredient quantities, usable cooked output,
@@ -75,7 +77,8 @@ reverse only one of its movements; linked preparation/waste movements are blocke
 from the generic Reverse action. Waste corrections have their own audited workflow.
 This is an operational loss report. Allocated payroll/fuel are existing expenses;
 do not post the full loss on top of them as another cash expense automatically.
-List/history downloads and POS snapshots still need bounded queries and pagination.
+Inventory/kitchen list-history downloads still need pagination. POS snapshot and
+receipt/report paging have been improved in update 125 (apply migrations 10–11).
 Offline POS replay still validates against current recipes; recipe-version review
 and reconciliation after changes need strengthening before daily offline operation.
 Separate devices can oversell while disconnected; use one offline selling till or

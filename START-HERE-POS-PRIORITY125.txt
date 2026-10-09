@@ -1,0 +1,88 @@
+RESTAURANT WORKSPACE PRIORITY & STAFF ACCESS — UPDATE 125
+
+One repository and one website; POS remains a tab in Restaurant Back Office.
+POS, Inventory, Menu, Preparation/Waste and Settings load their working scripts
+when opened. Opening POS does not start an Inventory history download. Leaving
+Inventory/Preparation cancels outstanding history reads; committed writes and
+durable offline captures are preserved. Cached static assets are primed once
+for offline use; optional module code is not executed during initial startup.
+
+Initial local JavaScript: 193,728 bytes before; 52,621 bytes after (about 73% less).
+This excludes the Supabase library, fonts, CSS, images and the selected module's
+code. It measures source size, not a promised load time on a physical iPad.
+
+DATABASE SETUP
+Keep the existing Supabase project and installed Restaurant migrations 01–08.
+If preparation/waste migration 09 is not installed, apply it first.
+Then apply sql/10-pos-priority125.sql followed by sql/11-restaurant-tabs125.sql.
+The source push does not install these SQL files. Do not rerun older migrations
+afterward. Migration 11 expects the installed 09 functions and 10 endpoints.
+Existing accounts, roles, journals, Accounting permissions, recipes and sales
+remain. The existing payment function keeps its transaction locks, server prices,
+order-version checks and idempotent stock deductions. Authorization is extended.
+
+Without 10, POS uses the old full snapshot and displays a setup notice. Staff
+tab permissions cannot be saved until 11's server readiness check passes.
+
+FAST POS
+The new snapshot includes current catalog, current stock balances, active unpaid
+orders, the signed-in worker's current shift and 100 receipts for the selected day.
+It excludes stock movement history and old closed sales. Unchanged catalog data
+is omitted from background refresh. Show more loads older receipts in 100-row
+pages. Today/shift totals are calculated on the server across all relevant sales.
+Listed-receipt amounts describe the listed records; they are not full-day totals.
+Large exports load only when explicitly requested, in 250-row pages, for a period
+of up to one year. They are not restricted to the recent receipt snapshot.
+
+Confirmed payments update the local order/stock view and create the receipt
+without waiting for a full snapshot. New Order stays ready for the next customer.
+Foreground POS refresh runs about every 8 seconds and on focus/reconnect. It stops
+when POS is hidden or another workspace is active. It preserves the current draft,
+focused fields and scroll while refreshing New Order. Older paginated receipt
+views remain stable until manual refresh or another sales view is opened.
+Requests have deadlines; uncertain payments retain the same order ID for replay.
+
+STAFF ACCESS
+Settings > Users & Access has module actions and Allowed tabs. POS has main
+Overview/Sales/Management access, with separate New Order/Open Orders/Receipts/
+Online Orders grants. Inventory includes Preparation & Costs and Wastage.
+Settings tabs are selectable; adding users and granting access remain admin-only.
+Existing staff without a tabs map keep their previous module/action grants until
+edited. Newly edited grants allow only checked tabs. Shared supporting records
+remain available for authorized workflows: this is not per-item stock assignment
+or confidential-field segregation within an allowed workflow.
+
+Role presets are editable starting points:
+Cashier: POS sales, own shift, receipts, online orders and password/recovery.
+Head cook: inventory viewing, stock in, preparation, wastage and recipe viewing.
+Assistant cook: inventory/recipe viewing and wastage; no batch recording by default.
+Waste recorder: Wastage and password/recovery; no generic stock issue or adjustment.
+Cooking output stock items and ingredient links are set up by an administrator.
+Preparation authorization allows its internal stock/cost updates without granting
+general catalog editing. Waste corrections require the separate Adjust grant.
+
+MULTIPLE IPADS
+Use a separate Restaurant login for each worker. Online payments are accepted by
+the shared server. A stale edit is rejected instead of overwriting a newer order;
+repeating a payment returns its original receipt and does not consume stock again.
+Stock is checked and locked before commitment. Local availability can lag another
+iPad until refresh, so the server makes the final availability decision.
+
+Two disconnected iPads cannot coordinate remaining stock. Avoid concurrent offline
+selling of scarce stock until per-device stock allocations are implemented. Reopen
+and load each area online before relying on local capture, and open shifts online.
+Full offline cold login/startup and recipe-version reconciliation remain follow-up
+work. Browser print dialogs are still used; silent printer integration is unchanged.
+Public-order intake and automatic device/WhatsApp alerts are not implemented here.
+
+VALIDATION
+Isolated PostgreSQL-compatible tests cover frozen cooking/waste costs, retries,
+version conflicts, last-unit stock rejection, grants/revocation, RLS and migration
+reruns. A fixture with 3,000 old sales verifies bounded POS payloads. Two independent
+browser storage contexts exercise ten customer sales and preserve a receipt/draft
+while a delayed snapshot is in flight. Asset cache/deadline checks and desktop,
+iPad portrait/landscape, tablet and phone layout fixtures are included.
+These are fixtures, not a live Supabase load test or physical two-printer test.
+
+Before daily use: apply SQL in order, create individual staff logins, verify their
+tabs, then test one sale/refund/stock deduction and actual printing on each iPad.

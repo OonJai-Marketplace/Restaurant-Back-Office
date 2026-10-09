@@ -224,3 +224,13 @@ html body.shell113 #restaurantApp .restaurant-home-tabs124>button:not(#tabletMen
 html body.shell113.tablet118 #restaurantApp .main-content-area {margin-left:0!important; width:100%!important}
 @media(min-width:768px) {html body.shell113 #restaurantApp .module-header {display:none!important}}
 @media print {html body.shell113 #restaurantApp .restaurant-home-tabs124 {display:none!important}}
+
+.permission-tabs125 {margin-top:8px;border-top:1px solid #ccd8d1;padding-top:6px}
+.permission-tabs125 summary {font-size:12px;cursor:pointer;margin-bottom:6px}
+.pos-priority-warning125 {font-size:11px;color:#855b18;max-width:240px}
+.module-loading125 {font-size:12px;padding:8px;background:#e7f0e9;color:#174b39}
+
+.permission-tabs125[open] {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 8px}
+.permission-tabs125 summary {grid-column:1/-1}
+.permission-tabs125 label {min-width:0;align-items:center;margin:0!important;font-size:12px!important}
+@media(max-width:600px){.permission-tabs125[open]{grid-template-columns:1fr}}

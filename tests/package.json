@@ -7,7 +7,9 @@
     "test:browser": "node browser.cjs",
     "test:layout": "node compact-browser.cjs",
     "test:accounting": "node accounting-browser.cjs",
-    "test:layout:touch": "node -e \"process.env.COMPACT_TOUCH='1';require('./compact-browser.cjs')\""
+    "test:layout:touch": "node -e \"process.env.COMPACT_TOUCH='1';require('./compact-browser.cjs')\"",
+    "test:priority": "node priority-browser125.cjs",
+    "test:runtime": "node priority-runtime125.cjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
