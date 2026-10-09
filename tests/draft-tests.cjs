@@ -1,0 +1,57 @@
+require('fs').mkdirSync(require('path').join(__dirname,'results'),{recursive:true});
+const {PGlite}=require('@electric-sql/pglite'),fs=require('fs'),assert=require('assert'),vm=require('vm');
+const root=require('path').resolve(__dirname,'..');let count=0;
+const ok=(name,pass)=>{assert(pass,name);console.log('PASS '+name);count++};
+async function rejects(fn,match,name){let found=false;try{await fn()}catch(e){found=match.test(e.message)}ok(name,found)}
+async function main(){
+ const db=new PGlite();const admin='11111111-1111-4111-8111-111111111111',staff='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+ await db.exec(`create role anon;create role authenticated;create role supabase_admin;create role service_role;create role authenticator;create schema auth;
+ create table auth.users(id uuid primary key,encrypted_password text);
+ create function auth.uid() returns uuid language sql as $$select coalesce(nullif(current_setting('test.uid',true),''),'${admin}')::uuid$$;
+ create table profiles(id uuid primary key,full_name text,role text,status text);insert into profiles values('${admin}','Admin','admin','active'),('${staff}','Staff','sub_user','active');
+ create table user_permissions(user_id uuid,modules jsonb,assigned_fund_account_ids jsonb);
+ create function public.is_admin() returns boolean language sql as $$select exists(select 1 from profiles where id=auth.uid() and role='admin' and status='active')$$;
+ create table payroll_runs(id uuid primary key,data jsonb,version integer);create table payroll_employees(id uuid primary key,data jsonb,version integer);create table payroll_leave_records(id uuid primary key,data jsonb,version integer);create table operational_reports(id uuid primary key,data jsonb,version integer);create table company_documents105(id uuid primary key,data jsonb,version integer);`);
+ for(const file of ['01-inventory-menu.sql','02-menu-record-actions.sql','03-pos-core.sql','04-pos-offline-guard.sql','05-pos-customization.sql','07-restaurant-access-appearance.sql','08-workspace-separation123.sql','09-preparation-waste124.sql'])await db.exec(fs.readFileSync(root+'/sql/'+file,'utf8'));
+ ok('Draft installs after current permission and workspace gates',true);
+ await db.exec(fs.readFileSync(root+'/sql/09-preparation-waste124.sql','utf8'));ok('Migration rerun preserves data and policies',true);
+ const raw='22222222-2222-4222-8222-222222222222',oil='99999999-9999-4999-8999-999999999999',cooked='88888888-8888-4888-8888-888888888888';
+ const ing='33333333-3333-4333-8333-333333333333',oilIng='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',prepIng='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+ const batch='44444444-4444-4444-8444-444444444444',waste='55555555-5555-4555-8555-555555555555';
+ for(const [id,code,name,unit,cost] of [[raw,'R','Dry ingredient','kg',100],[oil,'O','Added oil','L',400],[cooked,'C','Cooked taco filling','kg',0]]){await db.query('insert into inventory_items104(id,data) values($1,$2)',[id,{code,name,unit,cost,currency:'LAK',active:true}]);if(id!==cooked)await db.query('insert into inventory_movements104(data) values($1)',[{itemId:id,kind:'in',quantity:10,cost,reference:'Receipt'}])}
+ for(const [id,item,code,name,unit,cost] of [[ing,raw,'RI','Dry ingredient','kg',100],[oilIng,oil,'OI','Added oil','L',400],[prepIng,cooked,'CI','Cooked filling','g',1]])await db.query('insert into menu_ingredients105(id,data) values($1,$2)',[id,{code,name,unit,cost,purchaseQuantity:1,purchasePrice:cost,currency:'LAK',active:true,inventoryItemId118:item,inventoryFactor118:unit==='g'?.001:1}]);
+ const data={outputItemId:cooked,name:'Taco filling batch',date:'2026-10-09',outputQuantity:2,costMode:'actual',minutes:30,hourlyRate:120,energy:20,otherCost:10,inputs:[{ingredientId:ing,version:1,quantity:1.5},{ingredientId:oilIng,version:1,quantity:.1}]};
+ const b=(await db.query('select restaurant_prepare124($1,$2) as b',[batch,data])).rows[0].b;
+ ok('Added ingredients are included',Number(b.data.ingredientTotal)===190);
+ ok('Worker minutes, fuel and other cooking cost are included',Number(b.data.fullTotal)===280);
+ ok('Cooked unit cost follows actual output quantity',Number(b.data.fullUnitCost)===140);
+ let stocks=async()=>Object.fromEntries((await db.query('select id,restaurant_stock124(id) as q from inventory_items104')).rows.map(r=>[r.id,Number(r.q)]));let st=await stocks();ok('Cooking consumes raw ingredients and creates cooked stock atomically',st[raw]===8.5&&st[oil]===9.9&&st[cooked]===2);
+ await db.query('select restaurant_prepare124($1,$2)',[batch,data]);st=await stocks();ok('Retrying a batch does not repeat stock changes',st[raw]===8.5&&st[cooked]===2);
+ const linked=(await db.query('select data from menu_ingredients105 where id=$1',[prepIng])).rows[0].data;ok('Recipe cost stays ingredient-only and full cooked cost is separate',Number(linked.cost)===.095&&Number(linked.fullPreparedCost124)===.14);
+ const w=(await db.query('select restaurant_record_waste124($1,$2) as w',[waste,{itemId:cooked,batchId:batch,date:'2026-10-09',quantity:500,unit:'g',reason:'Spoiled cooked filling'}])).rows[0].w;
+ ok('500 grams of cooked waste costs 70 including cooking',Number(w.data.fullLoss)===70&&Number(w.data.ingredientLoss)===47.5&&Number(w.data.cookingLoss)===22.5);
+ await db.query('select restaurant_record_waste124($1,$2)',[waste,{itemId:cooked,batchId:batch,date:'2026-10-09',quantity:500,unit:'g',reason:'Repeated request'}]);st=await stocks();ok('Retrying waste does not repeat deduction',st[cooked]===1.5);
+ const menu='dddddddd-dddd-4ddd-8ddd-dddddddddddd',order='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';await db.query('insert into menu_items104(id,data) values($1,$2)',[menu,{code:'TACO',name:'Taco',price:1000,currency:'LAK',recipe:[{itemId:prepIng,quantity:100}]}]);await db.query("select pos_manage118('open','{\"amount\":10000}',0)");
+ await db.query("select pos_order118($1,0,'pay',$2)",[order,{lines:[{menuId:menu,quantity:2}],service:'Dine in',payment:'Cash',confirmed:true,tendered:2000}]);st=await stocks();ok('Selling two tacos consumes cooked filling without consuming raw inputs again',st[cooked]===1.3&&st[raw]===8.5);
+ const pack=(await db.query('select restaurant_record_waste124($1,$2) as w',['ffffffff-ffff-4fff-8fff-ffffffffffff',{itemId:cooked,batchId:batch,date:'2026-10-09',quantity:1,unit:'pack',packQuantity:.25,reason:'Pack spoiled'}])).rows[0].w;ok('Waste by declared pack size is converted',Number(pack.data.stockQuantity)===.25&&Number(pack.data.fullLoss)===35);
+ await rejects(()=>db.query('select restaurant_record_waste124($1,$2)',['12121212-1212-4212-8212-121212121212',{itemId:cooked,batchId:batch,date:'2026-10-09',quantity:2,unit:'kg',reason:'Too much'}]),/exceeds current/, 'Waste cannot exceed stock after POS sales');
+ await rejects(()=>db.query('select restaurant_record_waste124($1,$2)',['13131313-1313-4313-8313-131313131313',{itemId:cooked,date:'2026-10-09',quantity:1,unit:'kg',reason:'No batch'}]),/Choose the cooking batch/, 'Cooked waste requires its batch');
+ await rejects(()=>db.query("select restaurant_unit124('L','kg')"),/Units do not match/,'Weight and volume cannot be silently mixed');
+ const before=await stocks();await rejects(()=>db.query('select restaurant_prepare124($1,$2)',['14141414-1414-4414-8414-141414141414',{...data,inputs:[...data.inputs,{ingredientId:oilIng,version:1,quantity:100}]}]),/Insufficient stock/,'Failed preparation rolls back earlier ingredient deductions');ok('Failed batch preserves all quantities',JSON.stringify(before)===JSON.stringify(await stocks()));
+ await rejects(()=>db.query('select restaurant_prepare124($1,$2)',['15151515-1515-4515-8515-151515151515',{...data,inputs:[{...data.inputs[0],version:0}]}]),/changed/,'Offline ingredient-price changes require review');
+ const estimated=(await db.query('select restaurant_prepare124($1,$2) as b',['16161616-1616-4616-8616-161616161616',{...data,costMode:'estimate',surchargePercent:20,minutes:999,hourlyRate:999,energy:999,otherCost:999}])).rows[0].b;ok('Estimated surcharge does not also charge actual cooking costs',Number(estimated.data.fullTotal)===228&&estimated.data.costMode==='estimate');
+ await db.query('insert into restaurant_members121(user_id,permissions) values($1,$2)',[staff,{inventory:{view:true,stock_out:true}}]);await db.query("select set_config('test.uid',$1,false)",[staff]);
+ await db.query("select set_config('request.path','/rest/v1/restaurant_batches124',false)");await db.query('select check_workspace_request123()');ok('Restaurant staff can reach the new endpoint through workspace gate',true);
+ await db.query("select set_config('request.path','/rest/v1/journals',false)");await rejects(()=>db.query('select check_workspace_request123()'),/cannot access Accounting/,'New endpoint gate does not allow Accounting access');
+ await rejects(()=>db.query('select restaurant_prepare124($1,$2)',['17171717-1717-4717-8717-171717171717',data]),/Administrator access/,'Staff cannot create a cooking batch without administrator access');
+ await db.query('select restaurant_record_waste124($1,$2)',['18181818-1818-4818-8818-181818181818',{itemId:raw,date:'2026-10-09',quantity:.1,unit:'kg',reason:'Raw spoilage'}]);ok('Stock-out staff permission allows raw waste with current guards',true);
+ await db.query('update restaurant_members121 set enabled=false where user_id=$1',[staff]);await rejects(()=>db.query('select restaurant_record_waste124($1,$2)',['19191919-1919-4919-8919-191919191919',{itemId:raw,date:'2026-10-09',quantity:.1,unit:'kg',reason:'Disabled account'}]),/access required/,'Disabled staff cannot record waste');
+ await db.query("select set_config('test.uid',$1,false)",[admin]);
+ const prior=await stocks();await db.query('select restaurant_reverse_waste124($1,$2,$3)',['20202020-2020-4020-8020-202020202020',waste,'Entry error, not physically discarded']);const corrected=await stocks();ok('Waste correction restores stock with a negative cost audit',corrected[cooked]===prior[cooked]+.5);
+ await db.query('select restaurant_reverse_waste124($1,$2,$3)',['21212121-2121-4121-8121-212121212121',waste,'Repeated correction']);ok('Repeated waste correction restores stock only once',(await stocks())[cooked]===corrected[cooked]);
+ await db.close();
+ const context={window:{menuStore108:{esc:String,fmt:String}},document:{readyState:'loading',addEventListener(){}},Intl,Number,Date,Error,Set,Promise};vm.createContext(context);vm.runInContext(fs.readFileSync(root+'/scripts/preparation-waste124.js','utf8'),context);const math=context.window.kitchen124.math;
+ const p=math.calculate([{quantity:1.5,unitCost:100},{quantity:.1,unitCost:400}],2,{mode:'actual',minutes:30,hourlyRate:120,energy:20,otherCost:10});ok('Browser and server cost calculations agree',p.full===280&&p.fullUnitCost===140);ok('Half-kilo and 500-gram calculations agree',math.wasteMath(p,.5,'kg','kg').fullLoss===math.wasteMath(p,500,'g','kg').fullLoss);
+ console.log(count+' checks passed');fs.writeFileSync(require('path').join(__dirname,'results','draft-results.json'),JSON.stringify({checks:count,status:'passed'}));
+}
+main().catch(e=>{console.error(e.message);process.exit(1)});

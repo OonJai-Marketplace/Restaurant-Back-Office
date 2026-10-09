@@ -1,0 +1,226 @@
+/* Restaurant working density, using Accounting design-system-v58 / layout14256.
+   Loaded last: compact typography and spacing, with larger touch controls. */
+body.shell113 {
+  --oj-title-main:20px; --oj-title-module:16px; --oj-text-body:13px;
+  --oj-text-subtitle:12.5px; --oj-text-label:12px; --oj-text-tab:11.5px;
+  --oj-text-helper:11.5px; --oj-button-height:36px;
+  --restaurant-font124:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  --restaurant-heading-font124:Georgia,"Playfair Display",serif;
+  --restaurant-workspace124:#f3f4ef; --restaurant-paper124:#fff;
+  --restaurant-ink124:#253d32; --restaurant-heading124:#214b37;
+  --restaurant-line124:#ccd8d1; --restaurant-green124:#24634c;
+  --restaurant-input124:#fffcf6; --restaurant-input-ink124:#214737;
+  --restaurant-input-line124:#b8cbbb; --restaurant-primary124:#19523c;
+  font-family:var(--restaurant-font124); font-size:var(--oj-text-body); line-height:1.4;
+}
+html body.shell113 #restaurantApp .workspace-scroll {
+  min-height:0!important; padding:0 58px 24px 0!important; overflow-anchor:none;
+}
+html body.shell113 #restaurantApp .tab-content {padding:10px 12px!important; min-width:0}
+html body.shell113 #restaurantApp .module-header {height:auto!important; min-height:48px!important; flex:0 0 auto!important; padding:6px 12px!important; gap:8px}
+html body.shell113 #restaurantApp .module-header-title {font-size:14px; line-height:1.3}
+html body.shell113 #restaurantApp .workspace-scroll :is(h1,h2,h3,h4) {
+  font-family:var(--restaurant-heading-font124)!important; font-weight:700!important;
+  line-height:1.25!important; letter-spacing:0!important;
+}
+html body.shell113 #restaurantApp .workspace-scroll h1 {font-size:var(--oj-title-main)!important; margin:0 0 6px!important}
+html body.shell113 #restaurantApp .workspace-scroll h2 {font-size:18px!important; margin:0 0 6px!important}
+html body.shell113 #restaurantApp .workspace-scroll h3 {font-size:16px!important; margin:0 0 6px!important}
+html body.shell113 #restaurantApp .workspace-scroll h4 {font-size:13px!important}
+html body.shell113 #restaurantApp .workspace-scroll :is(p,label,button,input,select,textarea,table,th,td,span,small,strong,output) {
+  font-family:var(--restaurant-font124)!important; letter-spacing:0!important;
+}
+html body.shell113 #restaurantApp .workspace-scroll p {font-size:12px!important; line-height:1.45!important}
+html body.shell113 #restaurantApp .workspace-scroll label {font-size:12px!important; line-height:1.35!important}
+html body.shell113 #restaurantApp .workspace-scroll small {font-size:11.5px!important}
+html body.shell113 #restaurantApp .workspace-scroll :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea) {
+  font-size:12px!important; min-height:36px!important; padding:6px 9px!important; line-height:1.35!important;
+}
+html body.shell113 #restaurantApp .workspace-scroll select {padding-right:28px!important}
+html body.shell113 #restaurantApp .workspace-scroll button:not(.pos-product118):not(.header-icon112) {
+  font-size:12.5px!important; line-height:1.25!important; min-height:36px!important;
+  padding:6px 10px!important; white-space:normal; border-radius:6px;
+}
+html body.shell113 #restaurantApp .workspace-scroll table {font-size:13px!important; line-height:1.3!important}
+html body.shell113 #restaurantApp .workspace-scroll th {font-size:11px!important; padding:5px 6px!important; line-height:1.3!important}
+html body.shell113 #restaurantApp .workspace-scroll td {font-size:13px!important; padding:3px 9px!important; line-height:1.35!important}
+html body.shell113 #restaurantApp .workspace-scroll :is(td,th) :is(button,input,select) {min-height:30px!important; padding:4px 7px!important; font-size:12px!important}
+html body.shell113 #restaurantApp .area-banner113 {
+  height:96px!important; min-height:96px!important; padding:0!important;
+  margin:0 0 10px!important; border-radius:8px;
+}
+html body.shell113 #restaurantApp .banner-copy113 {padding:12px 16px!important; max-width:55%}
+html body.shell113 #restaurantApp .banner-copy113>small {font-size:9px!important; letter-spacing:.06em!important}
+html body.shell113 #restaurantApp .banner-copy113 h1 {margin:4px 0!important}
+html body.shell113 #restaurantApp :is(.panel113,.restaurant-card,.pos-card118) {
+  padding:12px!important; margin-bottom:10px; border-radius:8px; box-shadow:none;
+}
+html body.shell113 #restaurantApp :is(.panel113,.pos-card118)>header {gap:8px; margin-bottom:8px}
+html body.shell113 #restaurantApp :is(.form121,.kitchen-fields124,.form113) {gap:10px; margin:10px 0}
+html body.shell113 #restaurantApp .form121 :is(input,select,textarea) {margin-top:4px}
+html body.shell113 #restaurantApp :is(.restaurant-overview-grid,.pos-overview118,.pos-management118,.pos-grid118) {gap:10px}
+html body.shell113 #restaurantApp :is(.restaurant-metrics,.pos-metrics118) {gap:8px; margin:10px 0}
+html body.shell113 #restaurantApp .restaurant-metrics>div {padding:10px 8px}
+html body.shell113 #restaurantApp :is(.restaurant-metrics,.pos-metric118) strong {font-size:20px!important; line-height:1.25; overflow-wrap:anywhere}
+html body.shell113 #restaurantApp .pos-metric118 {gap:9px}
+html body.shell113 #restaurantApp .pos-metric118>span {width:36px; height:36px; flex:none; font-size:18px}
+html body.shell113 #restaurantApp .restaurant-quick {margin-top:10px}
+html body.shell113 #restaurantApp :is(.settings-tabs121,.pos-main-tabs118,.pos-subtabs118) {gap:4px; margin-bottom:10px; flex-wrap:wrap}
+html body.shell113 #restaurantApp :is(.category-tab,.pos-main-tabs118 button,.pos-subtabs118 button) {font-size:13px!important}
+html body.shell113 #restaurantApp #categoryTabShell {height:38px!important; min-height:38px!important; max-height:38px!important; padding:0 10px!important}
+html body.shell113 #restaurantApp #categoryTabs {height:37px!important}
+html body.shell113 #restaurantApp .category-tab {height:37px!important; min-height:37px!important; padding:0 10px!important; white-space:nowrap!important}
+html body.shell113 #restaurantApp #pos118 {font:13px/1.4 var(--restaurant-font124)!important}
+html body.shell113 #restaurantApp .pos-top118 {gap:8px; margin-bottom:8px}
+html body.shell113 #restaurantApp .pos-mode118 {gap:6px; flex-wrap:wrap}
+html body.shell113 #restaurantApp .pos-catalog118 {gap:8px}
+html body.shell113 #restaurantApp .pos-product118 {font:13px/1.35 var(--restaurant-font124)!important; padding:0!important; min-width:0}
+html body.shell113 #restaurantApp .pos-product118 :is(strong,small) {font-size:12.5px!important; line-height:1.3!important; padding:5px 8px}
+html body.shell113 #restaurantApp .pos-product118 small {white-space:nowrap}
+html body.shell113 #restaurantApp .pos-product118 .pos-photo118 {aspect-ratio:1.8}
+html body.shell113 #restaurantApp .pos-line118 {grid-template-columns:44px minmax(0,1fr); gap:8px; padding:8px 0}
+html body.shell113 #restaurantApp .pos-line118 .pos-line-name118 {font-size:13px}
+html body.shell113 #restaurantApp .pos-line118 .muted {margin-top:4px}
+html body.shell113 #restaurantApp .pos-qty118 {margin-top:5px}
+html body.shell113 #restaurantApp .pos-qty118 button {min-width:32px; min-height:30px!important; padding:4px 7px!important}
+html body.shell113 #restaurantApp .pos-line-name118 button {min-width:30px; min-height:30px!important; padding:3px!important}
+html body.shell113 #restaurantApp .pos-order-meta118 {flex-wrap:wrap; margin:8px 0}
+html body.shell113 #restaurantApp :is(.pos-order-note118,.pos-custom118) {margin:8px 0}
+html body.shell113 #restaurantApp .pos-discount118 {padding:8px 0; flex-wrap:wrap}
+html body.shell113 #restaurantApp .pos-totals118 .total {font-size:18px; padding:8px; gap:8px; flex-wrap:wrap}
+html body.shell113 #restaurantApp .pos-actions118 {gap:6px; margin-top:10px}
+html body.shell113 #restaurantApp .pos-custom118 {padding:10px}
+html body.shell113 #restaurantApp .pos-custom118 header {font-size:14px; margin-bottom:8px}
+html body.shell113 #restaurantApp .pos-custom118 footer {gap:10px; padding-top:8px; margin-top:8px; flex-wrap:wrap}
+html body.shell113 #restaurantApp .pos-table-footer118 {margin-top:12px; padding-top:10px}
+html body.shell113 #restaurantApp .pos-status-pill118 {font-size:11px}
+html body.shell113 #restaurantApp .pos-grid118>.pos-card118>.pos-pills118 {margin:6px 0 10px}
+html body.shell113 #restaurantApp .pos-sync118 {white-space:normal; font-size:11.5px}
+html body.shell113 #restaurantApp :is(.kitchen-top124,.kitchen-input124) {gap:8px; margin:10px 0}
+html body.shell113 #restaurantApp :is(.kitchen-fields124,.kitchen-input124) :is(input,select) {border:1px solid #b9cfbe; border-radius:5px; background:#fffcf6; color:#183f31}
+html body.shell113 #restaurantApp :is(#batchPreview124,#wastePreview124) {padding:10px; margin-top:10px; font-size:13px; line-height:1.5}
+html body.shell113 #restaurantApp .banner-preview113 {height:120px!important; min-height:120px!important; margin-top:12px}
+html body.shell113 #restaurantApp .permission-grid121 {gap:10px; margin-top:10px}
+html body.shell113 :is(.restaurant-dialog,.ui-dialog108) {font:13px/1.4 var(--restaurant-font124)}
+html body.shell113 :is(.restaurant-dialog,.ui-dialog108) :is(h2,h3) {font:700 16px/1.25 var(--restaurant-heading-font124)!important}
+html body.shell113 :is(.restaurant-dialog,.ui-dialog108) :is(p,label,button,input,select,textarea) {font-family:var(--restaurant-font124)!important; font-size:13px!important}
+html body.shell113 :is(.restaurant-dialog,.ui-dialog108)>:is(header,footer),html body.shell113 .restaurant-dialog-body {padding:10px 12px!important}
+html body.shell113 :is(.restaurant-dialog,.ui-dialog108) button {min-height:36px; padding:6px 10px!important}
+html body.shell113 .restaurant-login form {width:min(360px,100%); padding:22px; border-radius:10px}
+html body.shell113 .restaurant-login h1 {font-size:22px; line-height:1.3}
+html body.shell113 .restaurant-login img {width:52px; height:52px}
+@media(max-width:1024px) {
+  html body.shell113 #restaurantApp .workspace-scroll {padding:0 56px 20px 0!important}
+}
+@media(min-width:701px) and (max-width:1024px) {
+  html body.shell113 #restaurantApp .pos-catalog118 {grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:700px) {
+  html body.shell113 #restaurantApp .main-content-area {padding-bottom:calc(58px + env(safe-area-inset-bottom,0px)); box-sizing:border-box}
+  html body.shell113 #restaurantApp .workspace-scroll {padding:0 0 16px!important}
+  html body.shell113 #workspaceTools108 {
+    right:0!important; bottom:0!important; width:100%; flex-direction:row!important; justify-content:flex-end;
+    border-radius:0!important; padding:6px 12px calc(6px + env(safe-area-inset-bottom,0px))!important;
+    border-width:1px 0 0!important; box-shadow:none!important;
+  }
+  html body.shell113 #workspaceTools108>button {width:44px!important; height:44px!important; min-height:44px!important}
+  html body.shell113 :is(#workspaceApps122,#headerNotices104) {bottom:64px; right:8px; width:min(340px,calc(100vw - 16px))}
+  html body.shell113 #restaurantApp .tab-content {padding:8px!important}
+  html body.shell113 #restaurantApp .area-banner113 {height:76px!important; min-height:76px!important}
+  html body.shell113 #restaurantApp .banner-copy113 {padding:10px 12px!important; max-width:100%}
+  html body.shell113 #restaurantApp .area-banner113 blockquote {display:none!important}
+  html body.shell113 #restaurantApp .restaurant-overview-grid {grid-template-columns:1fr}
+  html body.shell113 #restaurantApp :is(.pos-metrics118,.pos-management118,.pos-overview118) {grid-template-columns:repeat(2,minmax(0,1fr))}
+  html body.shell113 #restaurantApp :is(.pos-management118,.pos-overview118) {grid-template-columns:minmax(0,1fr)}
+  html body.shell113 #restaurantApp .pos-grid118 {grid-template-columns:minmax(0,1fr)}
+  html body.shell113 #restaurantApp .pos-grid118>.pos-card118.gold {max-height:none!important}
+  html body.shell113 #restaurantApp .pos-catalog118 {grid-template-columns:repeat(3,minmax(0,1fr))}
+  html body.shell113 #restaurantApp .pos-metric118 strong {font-size:18px!important}
+  html body.shell113 #restaurantApp .pos-filter118 {gap:6px}
+  html body.shell113 #restaurantApp .pos-filter118 input {width:100%; flex-basis:100%}
+  html body.shell113 #restaurantApp .pos-popular118 {grid-template-columns:repeat(3,minmax(0,1fr))}
+  html body.shell113 #restaurantApp :is(.pos-main-tabs118,.pos-subtabs118) {gap:2px}
+  html body.shell113 #restaurantApp .pos-subtabs118 button {flex:1 1 40%}
+  html body.shell113 #restaurantApp .pos-pills118 {gap:4px}
+  html body.shell113 #restaurantApp :is(.im-card104,.panel113) header {flex-wrap:wrap}
+  html body.shell113 #restaurantApp .pos-top118 .pos-mode118 {width:100%}
+  html body.shell113 .pos-dialog118 .option-grid118 {grid-template-columns:repeat(2,minmax(0,1fr))}
+  html body.shell113 #restaurantApp :is(input:not([type=checkbox]):not([type=radio]),select,textarea),html body.shell113 :is(.restaurant-login,.restaurant-dialog) :is(input,select,textarea) {font-size:16px!important}
+}
+@media(pointer:coarse) {
+  html body.shell113 #restaurantApp .workspace-scroll button:not(.pos-product118):not(.header-icon112),
+  html body.shell113 #restaurantApp .workspace-scroll :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select),
+  html body.shell113 :is(.restaurant-dialog,.ui-dialog108) button {min-height:44px!important}
+  html body.shell113 #restaurantApp :is(.pos-qty118 button,.pos-line-name118 button) {min-width:44px!important}
+  html body.shell113 #restaurantApp .category-tab {height:44px!important; min-height:44px!important}
+  html body.shell113 #restaurantApp #categoryTabShell {height:45px!important; min-height:45px!important; max-height:45px!important}
+  html body.shell113 #restaurantApp #categoryTabs {height:44px!important}
+}
+@media print {
+  html body.shell113 #restaurantApp .workspace-scroll {padding:0!important}
+  html body.shell113 #restaurantApp .receipt118 {font:13px/1.5 Georgia,serif!important}
+}
+
+/* Values checked against Accounting's deployed desktop14245.css cascade. */
+html body.shell113 {background:#eef2ed!important; color:#203c32}
+html body.shell113 #restaurantApp :is(.main-content-area,.workspace-scroll),html body.shell113 #restaurantApp #pos118 {
+  background:var(--restaurant-workspace124)!important; color:var(--restaurant-ink124)!important;
+}
+html body.shell113 #restaurantApp :is(.panel113,.restaurant-card,.pos-card118,.im-card104) {
+  background:var(--restaurant-paper124)!important; color:var(--restaurant-ink124)!important;
+  border-color:var(--restaurant-line124)!important; border-top-color:var(--restaurant-green124)!important;
+}
+html body.shell113 #restaurantApp .workspace-scroll :is(h1,h2,h3,h4) {color:var(--restaurant-heading124)!important}
+html body.shell113 #restaurantApp .workspace-scroll .im-card104>header h3 {font:700 15px/1.3 var(--restaurant-font124)!important; color:#174f3d!important}
+html body.shell113 #restaurantApp .workspace-scroll :is(p,label,td) {color:var(--restaurant-ink124)}
+html body.shell113 #restaurantApp .workspace-scroll :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea) {
+  background:var(--restaurant-input124)!important; color:var(--restaurant-input-ink124)!important;
+  border:1px solid var(--restaurant-input-line124)!important; border-radius:5px;
+}
+html body.shell113 #restaurantApp .workspace-scroll th {background:#008563!important; color:#fff!important; border-color:#26866b!important}
+html body.shell113 #restaurantApp .workspace-scroll td {border-color:#d5dfd5!important}
+html body.shell113 #restaurantApp :is(.pos118 .primary,.panel113 button[type=submit],.restaurant-quick button) {
+  background:var(--restaurant-primary124)!important; border-color:var(--restaurant-primary124)!important; color:#fff!important;
+}
+html body.shell113 #restaurantApp :is(.pos118 button,.panel113 button,.im-card104 button):not(.primary):not([type=submit]):not(.danger):not(.pos-product118):not(.active) {
+  background:#fffcf6; color:#214737; border-color:#b8cbbb;
+}
+html body.shell113 #restaurantApp :is(.pos-main-tabs118,.pos-subtabs118,.restaurant-home-tabs124) button.active,html body.shell113 #restaurantApp .category-tab.active {
+  background:#e7f0e9!important; color:#174b39!important; border-bottom-color:#24634c!important;
+}
+html body.shell113 #restaurantApp .pos-pills118 button.active {background:#19523c!important; color:#fff!important}
+html body.shell113 #restaurantApp .pos-order-footer118 {background:#fff!important}
+html body.shell113 #restaurantApp .category-tab-shell {background:#fffbf3!important; border-color:#d9cbb6!important}
+html body.shell113 #restaurantApp .banner-copy113 h1 {color:#71381d!important}
+html body.shell113 :is(.restaurant-dialog,.ui-dialog108) {background:#fff; color:#253d32; border-color:#ccd8d1; border-top-color:#24634c}
+html body.shell113 #restaurantApp #categoryTabShell {height:46px!important; min-height:46px!important; max-height:46px!important}
+html body.shell113 #restaurantApp #categoryTabs {height:45px!important}
+html body.shell113 #restaurantApp .category-tab {height:45px!important; min-height:45px!important}
+
+/* The same tablet trigger location and drawer logic as Accounting, in both orientations. */
+html body.shell113.tablet118 #appSidebar {
+  display:flex!important; position:fixed!important; inset:0 auto 0 0!important; z-index:1300!important;
+  width:240px!important; min-width:240px!important; max-width:240px!important;
+  transform:translateX(-105%)!important; transition:transform .18s ease!important;
+}
+html body.shell113.tablet118.restaurant-nav-open #appSidebar {transform:translateX(0)!important}
+html body.shell113.tablet118.restaurant-nav-open #sidebarScrim {display:block!important; position:fixed; inset:0; z-index:1290; background:#102a2255; width:100%; height:100%; border:0}
+html body.shell113 #restaurantApp #tabletMenu118 {
+  display:flex!important; flex:0 0 46px!important; width:46px!important; height:46px!important; min-height:46px!important;
+  align-items:center; justify-content:center; padding:4px!important; margin:0 8px 0 0!important;
+  background:#fffdf5!important; color:#173c2d!important; border:1px solid #d1dac9!important; border-radius:6px!important;
+}
+html body.shell113 #tabletMenu118[hidden] {display:none!important}
+html body.shell113 #tabletMenu118 img {width:34px; height:34px; object-fit:contain}
+html body.shell113.tablet118 #restaurantApp .module-header {display:none!important}
+html body.shell113.tablet118 #restaurantApp #categoryTabShell {display:flex!important; align-items:center; height:50px!important; min-height:50px!important; max-height:50px!important}
+html body.shell113.tablet118 #restaurantApp #categoryTabShell[hidden] {display:none!important}
+html body.shell113.tablet118 #restaurantApp #categoryTabs {flex:1; min-width:0; height:49px!important}
+html body.shell113.tablet118 #restaurantApp .category-tab {height:49px!important; min-height:49px!important}
+html body.shell113.tablet118 #restaurantApp :is(.pos-main-tabs118,.settings-tabs121) {align-items:center}
+html body.shell113 #restaurantApp .restaurant-home-tabs124 {display:none; align-items:center; gap:4px; margin-bottom:10px; border-bottom:1px solid #d9cbb6}
+html body.shell113.tablet118 #restaurantApp .restaurant-home-tabs124 {display:flex}
+html body.shell113 #restaurantApp .restaurant-home-tabs124>button:not(#tabletMenu118) {background:#e7f0e9; color:#174b39; border:0; border-bottom:3px solid #24634c}
+html body.shell113.tablet118 #restaurantApp .main-content-area {margin-left:0!important; width:100%!important}
+@media(min-width:768px) {html body.shell113 #restaurantApp .module-header {display:none!important}}
+@media print {html body.shell113 #restaurantApp .restaurant-home-tabs124 {display:none!important}}

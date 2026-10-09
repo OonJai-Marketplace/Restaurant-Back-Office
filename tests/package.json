@@ -1,0 +1,16 @@
+{
+  "name": "restaurant-draft-validation",
+  "private": true,
+  "scripts": {
+    "test:db": "node draft-tests.cjs",
+    "test:pos": "node pos-draft-tests.cjs",
+    "test:browser": "node browser.cjs",
+    "test:layout": "node compact-browser.cjs",
+    "test:accounting": "node accounting-browser.cjs",
+    "test:layout:touch": "node -e \"process.env.COMPACT_TOUCH='1';require('./compact-browser.cjs')\""
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "playwright": "1.62.1"
+  }
+}

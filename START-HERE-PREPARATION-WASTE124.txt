@@ -1,0 +1,129 @@
+RESTAURANT BACK OFFICE — PREPARATION & WASTE UPDATE 124
+Prepared 9 October 2026. Base repository commit:
+1963f9f8fe04e36545e6e2236fba646084bc50e4
+
+STATUS
+Source update for Restaurant Back Office. Updating the repository does not apply
+the SQL to Supabase. Apply migration 09 below to enable preparation and waste
+storage. This is not a complete offline release.
+Public orders, device push and automatic WhatsApp alerts remain planned work.
+
+INCLUDED
+Inventory > Preparation & Costs: all ingredient quantities, usable cooked output,
+total worker minutes, hourly labor cost, fuel/electricity and other cooking costs.
+A separate estimated percentage mode does not also add the actual cooking costs.
+Inventory > Wastage: raw or cooked food, grams/kilograms, milliliters/liters,
+the item's own stock unit, or packs with declared contents. Cooked waste uses the
+selected batch's full cost. The ledger separates ingredient loss from cooking loss.
+Correcting a mistaken waste entry adds an audited negative waste record and restores
+stock once. It is for recording errors, not for reclaiming food actually discarded.
+Cooking batches consume raw Inventory and add cooked Inventory in one transaction.
+Existing POS ingredient links then consume the cooked stock when a menu is paid.
+POS pending offline payments reserve local ingredient quantities. Late account
+responses are rejected, and permission errors cannot turn into offline fallback.
+
+DATABASE PREREQUISITES
+Use the existing shared Supabase project and currently installed Restaurant
+migrations 01–08. If they are already installed, apply only:
+sql/09-preparation-waste124.sql
+Do not rerun older migrations after 09; older guards/gates predate these endpoints.
+The new SQL preserves the installed POS order function and Accounting data.
+It adds two restaurant tables, functions, indexes and five specific workspace-gate
+endpoints. It also adds the tables to the existing backup registry if present.
+Test in a staging database first. Review the current database function definitions
+if they have changed independently from this repository.
+
+SETUP OF COOKED FOOD
+1. Create a separate Inventory item for cooked filling/sauce/etc. Choose its stock
+   unit, e.g. kg. Do not use the raw ingredient's Inventory item as cooked output.
+2. Link every raw ingredient to Inventory in POS Management > Ingredient links.
+   Recipe g to Inventory kg uses factor 0.001.
+3. In Preparation & Costs record the raw and added ingredients, cooking costs and
+   actual usable output. Use all worker minutes (two people x 30 minutes = 60).
+4. Create/link the cooked ingredient to that cooked Inventory item, and use it in
+   the menu recipe. Existing linked ingredient records receive the batch's
+   ingredient-only cost and a separate full cooking cost. If creating the cooked
+   ingredient AFTER the first batch, enter its ingredient cost and link first;
+   the next recorded batch refreshes the stored costs. Do not copy labor-inclusive
+   cost into an ingredient-only margin calculation.
+5. A 100 g portion linked to stock in kg uses quantity 100 and factor 0.001.
+6. Record actual cooked waste against its actual batch. The batch's prices are
+   frozen even if future ingredient prices change. Sale prices are not changed.
+
+OFFLINE CAPTURE
+Open and successfully load POS and Preparation & Waste online on each device.
+Open the cashier shift online before going offline. A successful local save means
+the IndexedDB transaction committed. Pending records remain until server receipt.
+Keep the same account. Reconnect and use Refresh & sync to submit preparation/waste.
+Changed ingredient versions, insufficient stock or lost permissions stop replay;
+they do not silently discard the captured record. After reconnecting, Remove local
+capture first checks whether it was already recorded on the server. A failed local
+capture can then be removed and re-entered with reviewed information.
+
+LIMITATIONS TO RESOLVE BEFORE DAILY RELEASE
+The existing sign-in still needs the server after a cold offline reload. This draft
+does NOT add an offline sign-in bypass. Cached, already-established sessions can
+capture locally. Full offline cold start, essential asset verification and weak
+network deadlines are part of the next phase.
+Cooked stock is pooled across batches; the operator identifies the discarded batch.
+Sales do not yet allocate lots by FIFO/expiry. Prepared-input costs use the saved
+full cost on the ingredient record, so exact lot costing for nested preparations
+requires batch allocation. Latest batch costs refresh recipe costing; historic
+batch waste costs remain frozen.
+Preparation batch corrections do not yet have an atomic reversal workflow. Do not
+reverse only one of its movements; linked preparation/waste movements are blocked
+from the generic Reverse action. Waste corrections have their own audited workflow.
+This is an operational loss report. Allocated payroll/fuel are existing expenses;
+do not post the full loss on top of them as another cash expense automatically.
+List/history downloads and POS snapshots still need bounded queries and pagination.
+Offline POS replay still validates against current recipes; recipe-version review
+and reconciliation after changes need strengthening before daily offline operation.
+Separate devices can oversell while disconnected; use one offline selling till or
+implement per-device stock allocations. An offline phone cannot see a new order.
+
+ORDER NOTIFICATIONS — NEXT PHASE
+Save the public order once on the server. Commit an alert outbox with that order.
+Deliver independently to POS, phone web push and opted-in WhatsApp recipients.
+Store delivery attempts separately from order state. Order accepted by staff is
+an explicit action shared by all devices, not a synonym for message delivered/read.
+Use server retries and show unacknowledged orders. Keep public product IDs and POS
+menu/choice IDs mapped, validate prices on the server, and prevent duplicate orders.
+An internet-connected phone on mobile data can serve as backup for weak restaurant
+Wi-Fi. Automatic WhatsApp alerts need Business Platform setup, a sender, applicable
+templates, consented recipients, credentials and delivery webhooks. No messages
+were sent and no phone recipients were assumed in this draft.
+
+REPOSITORY RECOMMENDATION
+Keep Restaurant Back Office in its existing repository. Add a lightweight /pos/
+entry and its own asset loading path. Repository count does not determine runtime
+speed. Do not clone ingredient/menu records into a second POS database.
+
+
+COMPACT RESTAURANT LAYOUT
+Accounting reference: OonJai-Marketplace/Accounting at
+5f583b197f5f28ef48ba6f919cfe975dfdf3e90c.
+Font families, computed colors and control sizes follow the current Accounting
+desktop14245.css cascade. Tablet navigation follows final-v118/TeamHome14227.
+The existing Accounting navigation remains the shared shell.
+
+styles/restaurant-compact124.css loads last. It standardizes overview, inventory,
+recipes/pricing/engineering, cooking/waste, POS and settings:
+20 px page titles; 18 px section headings; Georgia/Playfair heading font,
+Plus Jakarta Sans working text at 12–13 px; compact tables,
+cards, forms and tabs. Desktop buttons are 36 px. Coarse-pointer actions remain
+at least 44 px, including quantity/remove controls. Phone form inputs use 16 px
+to avoid focus zoom. Phone tools dock below the content instead of covering it.
+Tablet POS uses three product columns; desktop four. Receipt printing keeps its
+independent paper stylesheet. Live decorative quotations cap at 16 px and hide
+on phones. Quote appearance controls remain available; stored quote sizes are retained.
+The workspace uses Accounting’s light palette.
+
+Touch tablets use the navigation drawer in portrait and landscape. Its logo
+control sits in the active tab row, as in Accounting. No separate empty header
+occupies space above the cashier screen. Phone navigation remains available.
+
+Menu Engineering now reuses its existing panel/tab instead of adding duplicate IDs.
+Service-worker shell cache version advances to 124 so the updated assets are
+discovered on online installation. This is not a full cold-offline startup fix.
+Browser fixtures cover all working screens at desktop/iPad/phone widths, normal
+and coarse pointers, plus fullscreen cashier mode. No live account was modified.
