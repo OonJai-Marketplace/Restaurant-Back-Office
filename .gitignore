@@ -1,0 +1,5 @@
+supabase/.temp/
+tests/results/
+node_modules/
+playwright-report/
+test-results/

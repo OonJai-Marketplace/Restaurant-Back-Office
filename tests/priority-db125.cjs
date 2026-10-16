@@ -1,9 +1,11 @@
-module.exports=async function({db,root,ok,rejects,admin,staff,raw,cooked,ing,data,stocks,menu,order}){
+module.exports=async function({db,root,ok,rejects,admin,staff,raw,cooked,ing,data,stocks,menu,order,standalone=false}){
  const fs=require('fs'),crypto=require('crypto');
+ if(!standalone){
  for(const file of ['10-pos-priority125.sql','11-restaurant-tabs125.sql'])await db.exec(fs.readFileSync(root+'/sql/'+file,'utf8'));
  ok('Priority and tab migrations install after preparation',true);
  for(const file of ['10-pos-priority125.sql','11-restaurant-tabs125.sql'])await db.exec(fs.readFileSync(root+'/sql/'+file,'utf8'));
  ok('Priority/tab migrations can be rerun safely',true);
+ }
  const snapshot=(await db.query('select pos_cashier_snapshot125() as s')).rows[0].s;
  ok('POS snapshot excludes stock movement history',snapshot.schema125&&snapshot.moves.length===0&&snapshot.stock.length===0);
  const balances=await stocks();ok('POS balances agree with full stock ledger',Object.entries(snapshot.balances125).every(([id,q])=>Number(q)===balances[id]));
