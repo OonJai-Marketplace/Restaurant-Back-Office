@@ -1,6 +1,6 @@
 // Deploy with: supabase functions deploy restaurant-users
 // SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY are server-side secrets.
-import { createClient } from 'npm:@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2.118.0';
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,x-client-info,apikey,content-type','Access-Control-Allow-Methods':'POST,OPTIONS'};
 const reply=(status:number,data:unknown)=>new Response(JSON.stringify(data),{status,headers:{...cors,'Content-Type':'application/json'}});
 Deno.serve(async(req:Request)=>{
@@ -17,7 +17,7 @@ Deno.serve(async(req:Request)=>{
   const schema:Record<string,string[]>={inventory:['view','edit','stock_in','stock_out','adjust','delete'],menu:['view','edit','sales','delete'],pos:['view','sell','void','refund','manage'],settings:['view','appearance']};
   const permissions=Object.fromEntries(Object.entries(schema).map(([s,actions])=>[s,Object.fromEntries(actions.map(a=>[a,input.permissions?.[s]?.view===true&&input.permissions?.[s]?.[a]===true]))]));
   const service=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
-  // Auth rejects duplicates: never reset an existing accounting user's password here.
+  // Auth rejects duplicates: never reset an existing user's password here.
   const created=await service.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{full_name:name}});
   if(created.error||!created.data.user)return reply(400,{error:created.error?.message||'Could not create user'});
   const id=created.data.user.id;
@@ -26,7 +26,7 @@ Deno.serve(async(req:Request)=>{
    const found=await service.from('profiles').select('id').eq('id',id).maybeSingle();if(found.error)throw found.error;
    if(!found.data){const p=await service.from('profiles').insert({id,email,full_name:name,role:'submitter'});if(p.error)throw p.error;}
    const grant=await service.from('restaurant_members121').insert({user_id:id,email,display_name:name,enabled:input.enabled!==false,permissions,must_change_password:true});if(grant.error)throw grant.error;
-  }catch(e){const cleanup=await service.auth.admin.deleteUser(id);return reply(500,{error:cleanup.error?'User created but access setup failed. Review this user in Supabase Auth before retrying.':'Access setup failed; account creation was rolled back. Check migration 07 and the profiles schema.'});}
+  }catch(e){const cleanup=await service.auth.admin.deleteUser(id);return reply(500,{error:cleanup.error?'User created but access setup failed. Review this user in Supabase Auth before retrying.':'Access setup failed; account creation was rolled back. Check the Restaurant database setup.'});}
   return reply(200,{user_id:id,created:true});
  }catch{return reply(500,{error:'Account creation failed. Check the server configuration.'});}
 });

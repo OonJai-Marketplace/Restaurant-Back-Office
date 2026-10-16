@@ -9,22 +9,30 @@ Prepared 17 October 2026 (Asia/Vientiane). This branch is a preparation checkpoi
 - Added a repeatable foundation generator and database verification suite. All 55 local checks passed, including anonymous access denial, staff permission boundaries, inactive users, stock correctness, idempotency, and rollback.
 - Inspected the existing cross-project dependencies. No Accounting records, live application configuration, or production repository branches have been changed by this checkpoint.
 
-## Paused before migration and release
+## Authentication and database copy verified
 
-The connected Supabase tools do not expose Auth URL configuration. Completing that setting requires the Supabase dashboard; switching to browser control requires user permission under the available browser-access rules. The user requested stopping when personal login or permission is needed, without repeated waiting or retries.
-
-In the **Restaurant** project, Authentication > URL Configuration needs:
+On 17 October 2026 the administrator completed dashboard sign-in. The Restaurant Site URL and exact password-recovery redirect were saved and verified:
 
 - Site URL: `https://oonjai-marketplace.github.io/Restaurant-Back-Office/`
-- Allowed recovery redirect: `https://oonjai-marketplace.github.io/Restaurant-Back-Office/?password-recovery=1`
+- Recovery redirect: `https://oonjai-marketplace.github.io/Restaurant-Back-Office/?password-recovery=1`
 
-These settings have **not** been applied. No passwords, authentication tokens, or business-record exports are stored in this repository.
+The standalone foundation and guard-hardening migrations are applied to Restaurant. One administrator identity, its email sign-in, and the minimal profile were copied with the existing password hash. Accounting sessions and unrelated users were not copied. All copied fields matched exactly; no user references were broken. The new project keeps its own signing keys.
 
-## Resume sequence
+The copy contains 78 active restaurant records and preserves 6 legacy records in a private archive; the minimal migrated profile is also archived. Recipes, staff profiles and the staff-management function reject anonymous requests. No Accounting data has been removed yet.
 
-1. Configure and verify Restaurant Auth URLs. Keep Accounting Auth unchanged.
-2. Apply only the new standalone foundation to the new Restaurant project. Historical `sql/` migrations assume a shared Accounting installation and must not be applied directly to the new project.
-3. Copy the restaurant administrator identity and restaurant business records securely, preserving identifiers and password hashes without copying Accounting sessions or unrelated users. Archive legacy restaurant records privately. Verify source and target counts and checksums before any removal.
+The application changes use Restaurant-only authentication and project-scoped offline POS storage. Previous offline queues remain on the device and are flagged for export and review, without automatic replay. The release loader waits for the new service worker before loading configuration. The existing layout and business calculations remain intact.
+
+Validation: 57 local database checks, 38 cashier/permission checks, 13 separation checks in Chromium and 13 in WebKit, and 5 real service-worker upgrade/offline reload checks passed. Physical iPhone testing and recovery-email delivery have not been performed.
+
+Security advisors: trigger-function execution and mutable search paths were corrected. The remaining SECURITY DEFINER notices concern deliberately exposed, permission-checked restaurant RPCs covered by the permission tests. Leaked-password protection is not enabled on this project.
+
+No passwords, authentication tokens, or business-record exports are stored in this repository.
+
+## Remaining cutover sequence
+
+1. Publish and verify the prepared Restaurant application cutover.
+2. Historical `sql/` migrations assume a shared Accounting installation and must not be applied directly to the new project.
+3. Re-check source records against the verified copy immediately before removing restaurant records from Accounting. Stop if either side changed.
 4. Replace shared Accounting sign-in behavior with independent Restaurant authentication, remove Accounting navigation, scope offline POS storage to its project, and update the service-worker cache. Preserve the existing layout and business logic.
 5. Deploy the staff-management function, verify permissions and browser behavior, then publish the restaurant cutover.
 6. Re-read current Accounting source and database definitions before a narrowly scoped cleanup. Accounting is being edited separately; do not overwrite concurrent changes. Preserve financial records, shared audit functions, admin user access, and request hooks. Remove restaurant dependencies only after a verified migration; do not use broad cascading drops.

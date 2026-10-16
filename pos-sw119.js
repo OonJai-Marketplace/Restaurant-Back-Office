@@ -1,15 +1,13 @@
 /* Cache static working code independently from private API data and authentication. */
-const CACHE='oonjai-pos-shell125';
-const MODULES=['styles/pos-v118.css','styles/inventory-menu-v104.css','styles/preparation-waste124.css',
- 'scripts/pos-offline-v119.js','scripts/pos-performance125.js','scripts/pos-v118.js',
- 'scripts/restaurant-settings125.js','scripts/inventory-menu-v104.js','scripts/item-icons-v109.js','scripts/menu-v108.js','scripts/preparation-waste124.js'];
+const CACHE='oonjai-pos-shell126-restaurant';
+const MODULES=["vendor/supabase-2.118.0.js", "scripts/supabase-config.js?v=126", "scripts/workspace-config123.js?v=126", "scripts/restaurant-auth123.js?v=126", "scripts/restaurant-backoffice.js?v=126", "scripts/restaurant-permissions125.js?v=126", "scripts/restaurant-modules125.js?v=126", "scripts/restaurant-shell122.js?v=126", "scripts/workspace-links123.js?v=126", "scripts/restaurant-accounting124.js?v=126", "styles/pos-v118.css", "styles/inventory-menu-v104.css", "styles/preparation-waste124.css", "scripts/pos-offline-v119.js", "scripts/pos-performance125.js", "scripts/pos-v118.js", "scripts/restaurant-settings125.js", "scripts/inventory-menu-v104.js", "scripts/item-icons-v109.js", "scripts/menu-v108.js", "scripts/preparation-waste124.js"];
 const external=['cdn.jsdelivr.net','i.postimg.cc','fonts.googleapis.com','fonts.gstatic.com'];
 self.addEventListener('install',event=>event.waitUntil((async()=>{
  const cache=await caches.open(CACHE),root=new URL('./',self.registration.scope),page=await fetch(root,{cache:'reload'});
  if(!page.ok)throw Error('App shell unavailable');const html=await page.clone().text();await cache.put(root,page);
  const files=[...html.matchAll(/(?:src|href)="([^"]+)"/g)].map(m=>m[1].replaceAll('&amp;','&')).filter(v=>!v.startsWith('data:'));
  files.push(...MODULES,'assets/pos/reference-menu118.png','assets/brand/oonjai-logo.png');
- const queue=[...new Set(files)];
+ const queue=[...new Set(files.map(v=>/^(scripts|styles)\/.*\.(js|css)$/.test(v)?v+'?v=126':v))];
  async function worker(){while(queue.length){const url=new URL(queue.shift(),root);if(url.origin!==root.origin&&!external.includes(url.hostname))continue;
   try{const result=await fetch(url,url.origin===root.origin?{}:{mode:'no-cors'});if(result.ok||result.type==='opaque')await cache.put(url,result);else if(url.origin===root.origin)throw Error('Missing application asset')}
   catch(e){if(url.origin===root.origin)throw e}
@@ -25,7 +23,7 @@ self.addEventListener('fetch',event=>{
  if(local&&!url.pathname.startsWith(new URL(self.registration.scope).pathname))return;
  const staticAsset=!local||/\.(?:css|js|png|jpg|jpeg|webp|svg|woff2?|webmanifest)$/i.test(url.pathname);
  event.respondWith((async()=>{
-  const cache=await caches.open(CACHE),hit=await cache.match(request,{ignoreSearch:true});
+  const cache=await caches.open(CACHE),hit=await cache.match(request,{ignoreSearch:false});
   if(staticAsset&&hit)return hit;
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),4000);
   try{const response=await fetch(request,{signal:controller.signal});if(response.ok||response.type==='opaque')await cache.put(request,response.clone());return response}

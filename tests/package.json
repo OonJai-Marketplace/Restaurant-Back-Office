@@ -9,10 +9,13 @@
     "test:accounting": "node accounting-browser.cjs",
     "test:layout:touch": "node -e \"process.env.COMPACT_TOUCH='1';require('./compact-browser.cjs')\"",
     "test:priority": "node priority-browser125.cjs",
-    "test:runtime": "node priority-runtime125.cjs"
+    "test:runtime": "node priority-runtime125.cjs",
+    "test:standalone": "node standalone-db.cjs",
+    "test:separation": "node separation-browser126.cjs",
+    "test:cache-upgrade": "node cache-upgrade126.cjs"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.5.8",
+    "@electric-sql/pglite": "0.5.8",
     "playwright": "1.62.1"
   }
 }

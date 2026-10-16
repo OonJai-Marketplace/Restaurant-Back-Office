@@ -1,12 +1,16 @@
-/* Durable, account-scoped POS queue. Never acknowledge a local sale before IDB commits. */
+/* Durable POS queue, isolated by Supabase project and signed-in account. */
 (function(){'use strict';
-const dbName='oonjai-pos-offline119';
+const project=new URL(OJM_SUPABASE_URL).hostname.split('.')[0];
+const dbName='oonjai-pos-'+project+'-offline126',legacyName='oonjai-pos-offline119',legacyChecked=new Set();
 function open(){return new Promise((resolve,reject)=>{const req=indexedDB.open(dbName,1);req.onupgradeneeded=()=>{const db=req.result;db.createObjectStore('snapshots',{keyPath:'owner'});const q=db.createObjectStore('queue',{keyPath:'key'});q.createIndex('owner','owner')};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 async function transact(store,mode,fn){const db=await open();return new Promise((resolve,reject)=>{const tx=db.transaction(store,mode),request=fn(tx.objectStore(store));let result;request.onsuccess=()=>{result=request.result};tx.oncomplete=()=>{db.close();resolve(result)};tx.onerror=()=>{db.close();reject(tx.error||Error('Local storage failed'))};tx.onabort=()=>{db.close();reject(tx.error||Error('Local storage was interrupted'))}})}
 const get=(store,key)=>transact(store,'readonly',s=>s.get(key));
 const put=(store,value)=>transact(store,'readwrite',s=>s.put(value));
 const remove=(store,key)=>transact(store,'readwrite',s=>s.delete(key));
-async function queue(owner){return (await transact('queue','readonly',s=>s.index('owner').getAll(owner))).sort((a,b)=>a.savedAt-b.savedAt)}
-window.posOffline119={getSnapshot:owner=>get('snapshots',owner),saveSnapshot:(owner,data)=>put('snapshots',{owner,data,savedAt:Date.now()}),queue,save:(owner,order,action,data)=>put('queue',{key:owner+':'+order.id,owner,order,action,data,savedAt:Date.now()}),remove:(owner,id)=>remove('queue',owner+':'+id)};
-if('serviceWorker'in navigator&&(location.protocol==='https:'||['localhost','127.0.0.1'].includes(location.hostname)))navigator.serviceWorker.register('pos-sw119.js',{scope:'./'}).catch(()=>{});
+function legacy(owner,countOnly=false){return new Promise((resolve,reject)=>{let absent=false;const req=indexedDB.open(legacyName);req.onupgradeneeded=()=>{absent=true;req.transaction.abort()};req.onerror=()=>absent?resolve(countOnly?0:[]):reject(req.error);req.onsuccess=()=>{const db=req.result;if(!db.objectStoreNames.contains('queue')){db.close();resolve(countOnly?0:[]);return}const tx=db.transaction('queue','readonly'),index=tx.objectStore('queue').index('owner'),q=countOnly?index.count(owner):index.getAll(owner);let rows=countOnly?0:[];q.onsuccess=()=>{rows=q.result};tx.oncomplete=()=>{db.close();resolve(rows)};tx.onerror=()=>{db.close();reject(tx.error)}}})}
+async function inspectLegacy(owner){if(legacyChecked.has(owner))return;legacyChecked.add(owner);try{const count=await legacy(owner,true);window.restaurantLegacyQueue126={owner,count};if(count)window.restaurantShell122?.sync()}catch{legacyChecked.delete(owner)}}
+async function exportLegacy(owner){if(typeof liveProfile==='undefined'||owner!==liveProfile?.id)throw Error('Sign in to the matching Restaurant account.');const records=await legacy(owner);if(!records.length)return;const blob=new Blob([JSON.stringify({source:'previous-restaurant-setup',owner,exportedAt:new Date().toISOString(),orders:records},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='restaurant-previous-orders.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+async function queue(owner){await inspectLegacy(owner);return (await transact('queue','readonly',s=>s.index('owner').getAll(owner))).sort((a,b)=>a.savedAt-b.savedAt)}
+window.posOffline119={getSnapshot:owner=>get('snapshots',owner),saveSnapshot:(owner,data)=>put('snapshots',{owner,data,savedAt:Date.now()}),queue,save:(owner,order,action,data)=>put('queue',{key:owner+':'+order.id,owner,order,action,data,savedAt:Date.now()}),remove:(owner,id)=>remove('queue',owner+':'+id),exportLegacy};
+if('serviceWorker'in navigator&&(location.protocol==='https:'||['localhost','127.0.0.1'].includes(location.hostname)))navigator.serviceWorker.register('restaurant-sw126.js',{scope:'./',updateViaCache:'none'}).catch(()=>{});
 })();
