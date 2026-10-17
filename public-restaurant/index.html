@@ -940,6 +940,7 @@
 
 <script src="../scripts/supabase-config.js?v=127"></script>
 <script src="storefront127.js?v=127"></script>
+<script src="../scripts/public-menu-rules131.js?v=131"></script>
 <script>
 const App = (function() {
   'use strict';
@@ -967,7 +968,7 @@ const App = (function() {
 
   let PHONE_NUMBER = "8562057048174";
   let MESSENGER_USERNAME = "oon.jai.laos";
-  const EXTRA_ADDON_PRICE = 7000;
+  const EXTRA_ADDON_PRICE = restaurantPublicRules131.extraPrice;
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw82CgCvJ6vcNC4IZ86-gDOkn9--L2w-DYVD-txuZ3rqzjmcDeHftf9KSjgYS2USezn/exec";
 
   // Local image variants keep thumbnails small and galleries sharp.
@@ -976,13 +977,7 @@ const App = (function() {
 
   const defaultDummyImages = ["assets/images/placeholder-oon-jai-dish.3506877ebc.svg"];
 
-  const commonChoices = {
-    veggies: ['Grilled mushrooms', 'Grilled bell peppers', 'Grilled eggplant', 'Caramelized onion', 'Microgreens', 'Avocado', 'Lettuce', 'Tomatoes', 'Onions', 'Carrots', 'Olives', 'Corn'],
-    proteins: ['Beans', 'Sautéed tofu', 'Lemon chicken', 'Ground meat', 'Spicy sausage', 'Regular sausage', 'Falafel'],
-    sandwichProteins: ['Sautéed tofu', 'Lemon chicken', 'Ground meat', 'Spicy sausage', 'Regular sausage'],
-    sauces: ['Garlic mayo', 'Basil mayo', 'Chili mayo', 'Tahini sauce', 'Hummus', 'Cheese sauce'],
-    wellnessDrinks: ['Summer in My Heart', 'Wish Upon a Heart', 'Heartwarmer', 'Red Heart']
-  };
+  const commonChoices = Object.fromEntries(Object.entries(restaurantPublicRules131.choices).map(([key,options]) => [key === 'wellness' ? 'wellnessDrinks' : key, options.map(o => o.name)]));
 
   const menuData = {
     burgers: [
