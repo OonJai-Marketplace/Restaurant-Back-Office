@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Oon Jai Marketplace</title>
-  <meta name="app-version" content="2026-10-17-public-127" />
+  <meta name="app-version" content="2026-10-17-access-128" />
 
   <!-- ========================================== -->
   <!--                SEO & SEARCH LOGO           -->
@@ -1949,7 +1949,7 @@ const App = (function() {
     executeWA: function() {
       const msg = this._buildOrderMsg();
       const url = `https://api.whatsapp.com/send?phone=${PHONE_NUMBER}&text=${encodeURIComponent(msg)}`;
-      window.location.href = url;
+      if(window.self!==window.top)window.open(url,'_blank','noopener,noreferrer');else window.location.href = url;
     },
 
     executeMessenger: async function() {
@@ -2027,6 +2027,7 @@ const App = (function() {
       button.disabled = false;
       // A real, directly tapped cross-domain link preserves Safari's native app handoff.
       // Do not replace this with window.open after an await or a timed App Store fallback.
+      link.target=window.self!==window.top?'_blank':'_self';link.rel='noopener noreferrer';
       link.href = `https://m.me/${MESSENGER_USERNAME}`;
       link.removeAttribute('aria-disabled');
       if (!copied) { orderText.focus(); orderText.select(); }

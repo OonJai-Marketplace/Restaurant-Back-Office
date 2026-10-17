@@ -10,11 +10,7 @@ async function main(){
  create function auth.uid() returns uuid language sql as $$select nullif(current_setting('test.uid',true),'')::uuid$$;
  grant usage on schema auth to authenticated;
  `);
- const foundation=fs.readdirSync(root+'/supabase/migrations').find(f=>f.endsWith('_standalone_restaurant_foundation.sql'));
- await db.exec(fs.readFileSync(root+'/supabase/migrations/'+foundation,'utf8'));
- const hardening=fs.readdirSync(root+'/supabase/migrations').find(f=>f.endsWith('_restaurant_guard_hardening.sql'));
- await db.exec(fs.readFileSync(root+'/supabase/migrations/'+hardening,'utf8'));
- const publicContent=fs.readdirSync(root+'/supabase/migrations').find(f=>f.endsWith('_public_storefront127.sql'));if(publicContent)await db.exec(fs.readFileSync(root+'/supabase/migrations/'+publicContent,'utf8'));
+ for(const migration of fs.readdirSync(root+'/supabase/migrations').filter(f=>f.endsWith('.sql')).sort())await db.exec(fs.readFileSync(root+'/supabase/migrations/'+migration,'utf8'));
  ok('Trigger routines cannot be called by signed-in clients',(await db.query("select count(*)::int n from pg_proc where pronamespace='public'::regnamespace and prorettype='trigger'::regtype and has_function_privilege('authenticated',oid,'execute')")).rows[0].n===0);
  ok('All public routines have a fixed search path',(await db.query("select count(*)::int n from pg_proc where pronamespace='public'::regnamespace and not coalesce(proconfig::text like '%search_path%',false)")).rows[0].n===0);
  await db.query('insert into auth.users(id,email) values($1,$2),($3,$4)',[admin,'admin@example.test',staff,'staff@example.test']);
