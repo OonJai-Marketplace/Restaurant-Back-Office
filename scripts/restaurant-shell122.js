@@ -1,13 +1,14 @@
 /* Restaurant navigation, account controls and POS notifications. */
 (()=>{'use strict';
 const $=id=>document.getElementById(id);let focus=false,nativeOwned=false,queued=false;
+function hidden(node,value){if(node&&node.hidden!==value)node.hidden=value}
 function closePanels(){for(const id of ['workspaceApps122','headerNotices104'])$(id)?.remove();$('upcomingBell101')?.setAttribute('aria-expanded','false')}
-function sync(){queued=false;const signed=!!liveProfile&&!$('restaurantApp').hidden;$('workspaceTools108').hidden=!signed;$('switchAccount110').hidden=!signed||liveProfile?.role!=='admin';if(!signed){closePanels();if(focus)leaveFocus();return}
+function sync(){queued=false;const signed=!!liveProfile&&!$('restaurantApp').hidden;hidden($('workspaceTools108'),!signed);hidden($('switchAccount110'),!signed||liveProfile?.role!=='admin');if(!signed){closePanels();if(focus)leaveFocus();return}
  const pos=document.querySelector('#pos118.active'),area=pos?(window.pos118?.state.tab==='Sales'&&pos118.state.sub==='Online Orders'?'online':'pos'):(document.querySelector('.tab-content.active')?.dataset.module||'dashboard');
  for(const cat of document.querySelectorAll('#appSidebar .nav-category')){const selected=cat.dataset.module===area;cat.classList.toggle('current-module136',selected);cat.classList.toggle('active-category',selected);if(cat.classList.contains('module-active121'))cat.classList.remove('module-active121');const h=cat.querySelector('.nav-header');if(selected)h.setAttribute('aria-current','page');else h.removeAttribute('aria-current')}
- $('posFullscreen122').hidden=!pos||!restaurantTabCan125('pos','pos-sales-new');if(!pos&&focus)leaveFocus();
+ hidden($('posFullscreen122'),!pos||!restaurantTabCan125('pos','pos-sales-new'));if(!pos&&focus)leaveFocus();
  if(pos&&!pos.querySelector('.pos-focus-bar122')){const bar=document.createElement('div');bar.className='pos-focus-bar122';bar.innerHTML='<strong>Point of Sale · Current Order</strong><button type="button" data-exit-focus122>Exit fullscreen</button>';bar.lastChild.onclick=leaveFocus;pos.prepend(bar)}
- const count=notices().length,badge=$('headerNoticeBadge104');badge.hidden=!count;badge.textContent=count>99?'99+':String(count);$('upcomingBell101').setAttribute('aria-label',count+' notifications');
+ const count=notices().length,badge=$('headerNoticeBadge104');hidden(badge,!count);const badgeText=count>99?'99+':String(count);if(badge.textContent!==badgeText)badge.textContent=badgeText;$('upcomingBell101').setAttribute('aria-label',count+' notifications');
 }
 function queue(){if(!queued){queued=true;requestAnimationFrame(sync)}}
 function brand(){const tile=document.querySelector('.logo-tile113'),d=bannerRows.brand||{};if(tile){tile.style.backgroundColor=({Ivory:'#fffaf1',Gold:'#ecce88',Green:'#17553e',Brown:'#694b34'})[d.background]||'#fffaf1';tile.disabled=!restaurantCan('settings','appearance')}}
