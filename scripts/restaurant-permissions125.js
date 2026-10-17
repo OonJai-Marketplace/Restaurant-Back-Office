@@ -8,7 +8,7 @@ window.restaurantTabs125={
 };
 permissionOptions121.inventory.prepare='Record cooking batches';
 function restaurantTabCan125(scope,tab,action='view'){
- if(!restaurantCan(scope,action))return false;
+ if(!Object.hasOwn(window.restaurantTabs125[scope]||{},tab)||!restaurantCan(scope,action))return false;
  if(isAdmin121())return true;
  const tabs=restaurantMember?.permissions?.[scope]?.tabs;
  return !tabs||tabs[tab]===true;
@@ -20,7 +20,7 @@ window.restaurantFirstTab125=scope=>Object.keys(restaurantTabs125[scope]||{}).fi
 window.restaurantStart125=()=>{
  if(isAdmin121())return 'restaurant-overview';
  if(restaurantFirstTab125('pos'))return 'pos118';
- return restaurantFirstTab125('inventory')||restaurantFirstTab125('menu')||(restaurantFirstTab125('settings')?'restaurant-settings':'restaurant-overview');
+ return restaurantFirstTab125('inventory')||restaurantFirstTab125('menu')||(restaurantFirstTab125('settings')?'restaurant-settings':'restaurant-no-access');
 };
 const oldPermissionForm125=permissionForm121;
 permissionForm121=function(p={}){
@@ -56,3 +56,20 @@ catalogCan121=function(kind,action='edit',data={}){
  if(kind==='items')return restaurantTabCan125('inventory','inv-items',action);
  const tab={ingredients:'menu-ingredients',categories:'menu-categories',menu:'menu-recipe',sales:'menu-engineering108'}[kind];return !tab||restaurantTabCan125('menu',tab,kind==='sales'&&action==='edit'?'sales':action);
 };window.catalogCan121=catalogCan121;
+
+/* One route gate for navigation, saved locations, deep links and lazy loading. */
+function restaurantRouteAllowed128(id){
+ if(!liveProfile||liveProfile.status!=='active')return false;
+ if(id==='restaurant-no-access')return true;
+ if(id==='restaurant-overview'||id==='restaurant-website')return isAdmin121();
+ if(id==='pos118')return !!restaurantFirstTab125('pos');
+ if(id==='restaurant-settings')return !!restaurantFirstTab125('settings');
+ if(typeof id!=='string')return false;
+ const scope=scopes121(id),tab=restaurantTabId125(id);
+ return ['inventory','menu'].includes(scope)&&restaurantTabCan125(scope,tab);
+}
+window.restaurantRouteAllowed128=restaurantRouteAllowed128;
+window.restaurantPosMode128=()=>{
+ if(!isAdmin121())return 'live';
+ try{return localStorage.getItem('ojm_pos_mode119_'+liveProfile.id)==='sample'?'sample':'live'}catch{return 'live'}
+};

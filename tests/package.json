@@ -14,7 +14,10 @@
     "test:separation": "node separation-browser126.cjs",
     "test:cache-upgrade": "node cache-upgrade126.cjs",
     "test:public": "node public-storefront127.cjs",
-    "test:public-runtime": "node public-runtime127.cjs"
+    "test:public-runtime": "node public-runtime127.cjs",
+    "test:access": "node access-db128.cjs",
+    "test:access-runtime": "node access-runtime128.cjs",
+    "test:worker-runtime": "node worker-runtime128.cjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.8",

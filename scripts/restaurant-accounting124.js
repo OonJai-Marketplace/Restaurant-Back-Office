@@ -10,6 +10,8 @@ function sync(){queued=false;const yes=tablet();if(yes!==lastTablet){lastTablet=
  if(!yes){if(button.parentElement!==document.body)document.body.append(button);return}
  const active=document.querySelector('.tab-content.active');let target;
  if(active?.id==='pos118')target=active.querySelector('.pos-main-tabs118');
+ else if(active?.id==='restaurant-website')target=active.querySelector('.restaurant-website-tools128');
+ else if(active?.id==='restaurant-no-access')target=active;
  else if(active?.id==='restaurant-settings')target=active.querySelector('.settings-tabs121');
  else if(active?.id==='restaurant-overview'){
   target=active.querySelector('.restaurant-home-tabs124');if(!target){target=document.createElement('nav');target.className='restaurant-home-tabs124';target.setAttribute('aria-label','Restaurant sections');const tab=document.createElement('button');tab.type='button';tab.className='active';tab.textContent='Overview';tab.setAttribute('aria-current','page');tab.onclick=()=>switchTab('restaurant-overview');target.append(tab);active.prepend(target)}

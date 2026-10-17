@@ -1,0 +1,7 @@
+/* Public page styles stay inside its document, preserving the customer website. */
+#restaurant-website.active{display:flex;flex-direction:column;gap:8px;padding:0;min-width:0}
+.restaurant-website-tools128{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px;background:#fffaf1;border:1px solid #ded5c4;border-radius:8px}
+.restaurant-website-tools128 strong{margin-right:auto;color:#174c38}
+.restaurant-website-tools128 button,.restaurant-website-tools128 a{font:inherit;padding:7px 10px;border:1px solid #b6c9bb;border-radius:5px;background:white;color:#174c38;text-decoration:none;cursor:pointer}
+.restaurant-website-frame128{display:block;width:100%;height:calc(100vh - 140px);height:calc(100dvh - 140px);min-height:420px;border:0;background:#fdf9f1;border-radius:8px}
+@media(max-width:700px){.restaurant-website-tools128{gap:6px}.restaurant-website-tools128 strong{width:100%}.restaurant-website-frame128{height:calc(100dvh - 155px);min-height:360px}}

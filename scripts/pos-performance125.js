@@ -66,7 +66,7 @@
   if(owner===liveProfile?.id&&epoch===sessionEpoch121)schedule(200);
  }
  function allowed(tab,sub){return restaurantTabCan125('pos',restaurantPosTab125(tab,sub))}
- function clamp(s){if(s.sample||allowed(s.tab,s.sub))return;
+ function clamp(s){if(allowed(s.tab,s.sub))return;
   for(const [tab,sub] of [['Sales','New Order'],['Sales','Open Orders'],['Sales','Receipts'],['Sales','Online Orders'],['Overview','New Order'],['Management','New Order']])if(allowed(tab,sub)){s.tab=tab;s.sub=sub;return}
  }
  function overview(s){const m=v=>new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(Number(v)||0)+' LAK',esc=shell113.esc,summary=s.summary125||{},shift=s.shifts.find(x=>x.cashier===liveProfile.id&&!x.closed_at),button=(title,a)=>`<button type="button" data-pos118="${a}">${title}</button>`;
@@ -91,6 +91,10 @@
   if(['settings','options','links','seed','export','export-pdf'].includes(a))return allowed('Management','New Order');
   if(['open-shift','close-shift','cash','shift-view'].includes(a))return allowed('Overview','New Order');
   if(a==='refund')return allowed('Sales','Receipts');
+  if(a==='resume')return allowed('Sales','New Order');
+  if(a==='menu')return restaurantRouteAllowed128('menu-recipe');
+  if(a==='categories')return restaurantRouteAllowed128('menu-categories');
+  if(a==='inventory')return restaurantRouteAllowed128('inv-overview');
   return true;
  };
  window.posPerformance125={rpc,load,accepted,allowed,clamp,overview,report,moreReceipts,schedule,network};
