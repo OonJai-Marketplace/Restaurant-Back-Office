@@ -1,0 +1,346 @@
+{
+  "burgers": [
+    {
+      "id": "b1",
+      "name": "Burger Combo",
+      "price": 199000,
+      "desc": "The Classic Burger + Mint Pineapple Refresher + Lemon Oat Cookie.",
+      "images": [
+        "assets/images/burger-combo-1-full.d9dca0b9e9.webp"
+      ]
+    },
+    {
+      "id": "b2",
+      "name": "The Classic",
+      "price": 120000,
+      "desc": "Meaty patty, lettuce, tomato, onion, pickles, garlic mayo, and cheese sauce. Served with a portion of fries.",
+      "images": [
+        "assets/images/classic-1-full.a7893f03e0.webp"
+      ]
+    },
+    {
+      "id": "b3",
+      "name": "The Cheeser",
+      "price": 110000,
+      "desc": "Meaty patty, tomato, garlic mayo, and cheese sauce. Served with a portion of fries.",
+      "images": [
+        "https://i.postimg.cc/v87p8m4T/cheeser.webp"
+      ]
+    },
+    {
+      "id": "b4",
+      "name": "The Bougie",
+      "price": 130000,
+      "desc": "Meaty patty, microgreens, tomato, caramelized onion, sautéed mushroom, grilled pineapple, and basil mayo. Served with a portion of fries.",
+      "images": [
+        "assets/images/bougie-1-full.69f1d28ecd.webp"
+      ]
+    },
+    {
+      "id": "b5",
+      "name": "French Fries",
+      "price": 60000,
+      "desc": "Crispy golden French fries with seasoning.",
+      "images": [
+        "assets/images/placeholder-french-fries.56d2c70569.svg"
+      ]
+    }
+  ],
+  "sandwiches": [
+    {
+      "id": "s1",
+      "name": "Sandwich Combo",
+      "price": 180000,
+      "desc": "Chickelicious sandwich + Paradise Point Refresher + Brownie.",
+      "images": [
+        "assets/images/chickelious-1-full.89a0d01486.webp"
+      ]
+    },
+    {
+      "id": "s2",
+      "name": "Mediterranean",
+      "price": 105000,
+      "desc": "Falafel, hummus, tahini sauce, tomato, pickles, mint, and cilantro.",
+      "images": [
+        "assets/images/mediteranian-1-full.0b58ddcbc9.webp"
+      ]
+    },
+    {
+      "id": "s3",
+      "name": "Italian",
+      "price": 105000,
+      "desc": "Grilled tofu, sautéed veggies, tomato, lettuce, onion, and basil mayo.",
+      "images": [
+        "assets/images/italian-1-full.849cf0670b.webp"
+      ]
+    },
+    {
+      "id": "s4",
+      "name": "Chickelicious",
+      "price": 110000,
+      "desc": "Plant-based chicken, caramelized onion, olives, microgreens, tomato, cheese sauce, and basil mayo.",
+      "images": [
+        "assets/images/chickelious-1-full.89a0d01486.webp"
+      ]
+    },
+    {
+      "id": "s5",
+      "name": "Build Your Own Sandwich",
+      "price": 110000,
+      "desc": "Customizable sandwich. Choose your sauces, veggies, and protein.",
+      "isCustom": true,
+      "maxSauces": 2,
+      "maxVeggies": 3,
+      "maxProteins": 1,
+      "specificProteins": "sandwichProteins",
+      "images": [
+        "assets/images/placeholder-byo-sandwich.dfbb1b0122.svg"
+      ]
+    }
+  ],
+  "texmex": [
+    {
+      "id": "tx1",
+      "name": "Tex-Mex Combo",
+      "price": 210000,
+      "desc": "Tacos + Quesadilla + Mint Pineapple Refresher.",
+      "images": [
+        "assets/images/tex-mex-combo-1-full.3be46349e4.webp"
+      ]
+    },
+    {
+      "id": "tx2",
+      "name": "Quesadilla",
+      "price": 85000,
+      "desc": "Flour tortilla with cheese sauce, ground meat, and pico de gallo.",
+      "images": [
+        "assets/images/review-3-full.447f2d1f52.webp"
+      ]
+    },
+    {
+      "id": "tx3",
+      "name": "Tacos",
+      "price": 99000,
+      "desc": "Two soft shell tacos filled with ground meat or black beans, grilled bell pepper, avocado, pico de gallo, and cheese sauce.",
+      "images": [
+        "assets/images/review-3-full.447f2d1f52.webp"
+      ]
+    }
+  ],
+  "pasta": [
+    {
+      "id": "p1",
+      "name": "Miso-Seaweed",
+      "price": 110000,
+      "desc": "Herb, fresh, vibrant, and aromatic miso-seaweed fusion.",
+      "images": [
+        "assets/images/miso-pasta-1-full.52d03c78fc.webp"
+      ]
+    },
+    {
+      "id": "p2",
+      "name": "Carbonara",
+      "price": 110000,
+      "desc": "Rich and creamy pasta made with peanut butter and coconut milk.",
+      "images": [
+        "assets/images/carbonara-1-full.5a711363e4.webp"
+      ]
+    },
+    {
+      "id": "p3",
+      "name": "Spaghetti",
+      "price": 110000,
+      "desc": "Classic spaghetti packed with fresh, bright tomato goodness.",
+      "images": [
+        "assets/images/spaghetti-1-full.ceeb5d7c53.webp"
+      ]
+    },
+    {
+      "id": "p4",
+      "name": "Pesto Pasta",
+      "price": 110000,
+      "desc": "Herb, fresh, vibrant, and aromatic basil pesto.",
+      "images": [
+        "assets/images/pesto-1-full.ab8b99c070.webp"
+      ]
+    }
+  ],
+  "bowl": [
+    {
+      "id": "bw1",
+      "name": "Bowl Combo",
+      "price": 160000,
+      "desc": "Protein pack + Wellness drink of your choice + Banana bread.",
+      "isCustom": true,
+      "maxSauces": 2,
+      "maxVeggies": 4,
+      "maxProteins": 2,
+      "needsWellnessChoice": true,
+      "images": [
+        "assets/images/bowl-combo-full.4bf98ebc33.webp"
+      ]
+    },
+    {
+      "id": "bw2",
+      "name": "Veggie Pack",
+      "price": 110000,
+      "desc": "Includes 2 sauces, 5 veggies, and 1 protein. Additional choices (+7,000 Kip each).",
+      "isCustom": true,
+      "maxSauces": 2,
+      "maxVeggies": 5,
+      "maxProteins": 1,
+      "images": [
+        "assets/images/build-your-own-full.0ec7dfadd3.webp"
+      ]
+    },
+    {
+      "id": "bw3",
+      "name": "Protein Pack",
+      "price": 115000,
+      "desc": "Includes 2 sauces, 4 veggies, and 2 proteins. Additional choices (+7,000 Kip each).",
+      "isCustom": true,
+      "maxSauces": 2,
+      "maxVeggies": 4,
+      "maxProteins": 2,
+      "images": [
+        "assets/images/build-your-own-full.0ec7dfadd3.webp"
+      ]
+    },
+    {
+      "id": "bw4",
+      "name": "Mini Pack",
+      "price": 99000,
+      "desc": "Includes 1 sauce, 3 veggies, and 1 protein. Additional choices (+7,000 Kip each).",
+      "isCustom": true,
+      "maxSauces": 1,
+      "maxVeggies": 3,
+      "maxProteins": 1,
+      "images": [
+        "assets/images/build-your-own-full.0ec7dfadd3.webp"
+      ]
+    }
+  ],
+  "smoothies": [
+    {
+      "id": "sm1",
+      "name": "Kickstart",
+      "price": 70000,
+      "desc": "Banana, pineapple, and spinach. No ice or sugar added, sweetened by dates.",
+      "images": [
+        "assets/images/kickstart-full.c0755e222e.webp"
+      ]
+    },
+    {
+      "id": "sm2",
+      "name": "Fruitopia",
+      "price": 70000,
+      "desc": "Mango, strawberry, and pineapple. No ice or sugar added, sweetened by dates.",
+      "images": [
+        "assets/images/fruitopia-full.986656e2a8.webp"
+      ]
+    },
+    {
+      "id": "sm3",
+      "name": "Paradise Point",
+      "price": 70000,
+      "desc": "Passion fruit and pineapple. No ice or sugar added, sweetened by dates.",
+      "images": [
+        "assets/images/paradise-point-1-full.63d58ed0c9.webp"
+      ]
+    },
+    {
+      "id": "sm4",
+      "name": "Mary Jane",
+      "price": 80000,
+      "desc": "Strawberry, mulberry, and banana. No ice or sugar added, sweetened by dates.",
+      "images": [
+        "assets/images/mary-jane-1-full.654593f767.webp"
+      ]
+    },
+    {
+      "id": "sm5",
+      "name": "Reese's Cup",
+      "price": 70000,
+      "desc": "Banana, peanut butter, and cocoa powder. No ice or sugar added, sweetened by dates.",
+      "images": [
+        "assets/images/reese-s-cup-1-full.d7bf35bcaf.webp"
+      ]
+    }
+  ],
+  "refreshers": [
+    {
+      "id": "r1",
+      "name": "Mint Pineapple",
+      "price": 45000,
+      "desc": "Fresh mint and pineapple.",
+      "images": [
+        "assets/images/placeholder-mint-pineapple.09a8c35c73.svg"
+      ]
+    },
+    {
+      "id": "r2",
+      "name": "Strawberry Lemonade",
+      "price": 50000,
+      "desc": "Strawberry and lime.",
+      "images": [
+        "assets/images/placeholder-strawberry-lemonade.129947a09b.svg"
+      ]
+    },
+    {
+      "id": "r3",
+      "name": "Sparkling Lime",
+      "price": 45000,
+      "desc": "Sparkling water and fresh lime.",
+      "images": [
+        "assets/images/placeholder-sparkling-lime.110fc22dab.svg"
+      ]
+    },
+    {
+      "id": "r4",
+      "name": "Honey Passion",
+      "price": 45000,
+      "desc": "Passion fruit and honey.",
+      "images": [
+        "assets/images/placeholder-honey-passion.7a30702f9a.svg"
+      ]
+    }
+  ],
+  "wellness": [
+    {
+      "id": "w1",
+      "name": "Summer in My Heart",
+      "price": 47000,
+      "desc": "Pineapple juice and coconut water.",
+      "images": [
+        "assets/images/summer-1-full.49e8ec999d.webp"
+      ]
+    },
+    {
+      "id": "w2",
+      "name": "Wish Upon a Heart",
+      "price": 47000,
+      "desc": "Green apple, basil cordial, lemon juice, and tapioca pearls.",
+      "images": [
+        "assets/images/wish-1-full.28e6039506.webp"
+      ]
+    },
+    {
+      "id": "w3",
+      "name": "Heartwarmer",
+      "price": 47000,
+      "desc": "Ginger and turmeric tea, lemon juice, honey, and chia seeds.",
+      "images": [
+        "assets/images/heartwarmer-1-full.d805be1e7a.webp"
+      ]
+    },
+    {
+      "id": "w4",
+      "name": "Red Heart",
+      "price": 47000,
+      "desc": "Lemongrass cordial, lemon, beetroot, and apple.",
+      "images": [
+        "assets/images/red-heart-1-full.f39a86f461.webp"
+      ]
+    }
+  ]
+}

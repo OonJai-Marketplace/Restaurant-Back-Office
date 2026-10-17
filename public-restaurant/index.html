@@ -1,0 +1,2105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Oon Jai Marketplace</title>
+  <meta name="app-version" content="2026-10-17-public-127" />
+
+  <!-- ========================================== -->
+  <!--                SEO & SEARCH LOGO           -->
+  <!-- ========================================== -->
+  <link rel="icon" type="image/png" href="assets/images/logo-png-favicon.3dff595a20.png">
+  <link rel="apple-touch-icon" href="assets/images/logo-png-apple.f57033ea2d.png">
+  <meta name="description" content="Oon Jai Marketplace is a mission-driven, plant-based restaurant in Vientiane, Laos. Discover wholesome food, words of hope, and community." />
+  <meta name="keywords" content="Oon Jai, vegetarian restaurant Vientiane, vegan Laos, healthy food" />
+  <meta name="google-site-verification" content="JQeFEz6GzEbk9Y_ClL8xRTrtCU3w2IFNkz4Zzu2-FDA" />
+  <meta property="og:site_name" content="Oon Jai Marketplace" />
+  <meta property="og:title" content="Oon Jai Marketplace" />
+  <meta property="og:image" content="https://oonjai-marketplace.github.io/Restaurant-Back-Office/public-restaurant/assets/images/logo-png-social.ef8bf90176.png" />
+  <meta property="og:image:width" content="500" />
+  <meta property="og:image:height" content="500" />
+  <meta property="og:type" content="restaurant.restaurant" />
+  <meta property="og:description" content="Oon Jai Marketplace is a mission-driven, plant-based restaurant in Vientiane, Laos offering wholesome food and community." />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    "name": "Oon Jai Marketplace",
+    "image": "https://oonjai-marketplace.github.io/Restaurant-Back-Office/public-restaurant/assets/images/logo-png-social.ef8bf90176.png",
+    "url": "https://oonjai-marketplace.github.io/Restaurant-Back-Office/public-restaurant/",
+    "telephone": "+8562057048174",
+    "servesCuisine": "Plant-based, Vegetarian, Vegan, Healthy",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Rue Bourichane, Phonsinuan Village",
+      "addressLocality": "Vientiane",
+      "addressCountry": "LA"
+    },
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday"],
+        "opens": "11:00",
+        "closes": "14:00"
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday"],
+        "opens": "16:00",
+        "closes": "18:30"
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": "Friday",
+        "opens": "11:00",
+        "closes": "14:00"
+      }
+    ]
+  }
+  </script>
+
+  <!-- ========================================== -->
+  <!--                   GOOGLE FONTS             -->
+  <!-- ========================================== -->
+  <link rel="preload" as="image" href="assets/images/banner-full.12b9cbe236.webp" fetchpriority="high">
+  <link rel="preconnect" href="https://i.postimg.cc">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- ========================================== -->
+  <!--                   CSS STYLESHEET           -->
+  <!-- ========================================== -->
+  <style>
+    /* --- 1. THEME COLORS & VARIABLES --- */
+    :root {
+      --bg-dark: #010c0a; --bg-gradient: radial-gradient(circle at 85% 15%, #083c33 0%, #041f1a 60%, #010c0a 100%);
+      --card-bg: rgba(2, 18, 15, 0.75); --border-color: #1e4d40; --accent-green: #4ade80;
+      --wa-color: #25D366; --msgr-color: #0084FF; --text-bright: #ffffff;
+      --text-muted: #94a3b8; --text-subhead: #cbd5e1; --border-radius-main: 14px; --border-radius-sm: 10px;
+      --page-gutter: clamp(6px, 1vw, 12px); --mobile-nav-height: 50px;
+      --menu-image-outline: #a7f3d0; /* UPDATED: Constant hex light color for menu item image outlines */
+    }
+
+    /* ERADICATE BLUE TAP HIGHLIGHT */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    }
+    img, button, a, div, span {
+      -webkit-tap-highlight-color: transparent !important;
+    }
+
+    html, body { width: 100%; min-height: 100vh; background: var(--bg-dark); color: var(--text-bright); overflow-x: hidden; touch-action: auto; }
+    body { background: var(--bg-gradient); background-attachment: fixed; }
+
+    /* HARD SCROLL LOCK FOR MODALS */
+    html.modal-open, body.modal-open {
+      overflow: hidden !important;
+      height: 100vh !important;
+      overscroll-behavior: none !important;
+    }
+    body.modal-open { position: fixed; left: 0; right: 0; width: 100%; }
+
+    /* --- 2. TOP NAVIGATION --- */
+    .top-nav { position: fixed; top: 0; left: 0; right: 0; height: 60px; background: rgba(1, 12, 10, 0.95); border-bottom: 1px solid var(--border-color); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 1000; }
+
+    /* Logo now acts as home button visually */
+    .nav-left { display: flex; align-items: center; gap: 12px; cursor: pointer; transition: opacity 0.2s ease; }
+    .nav-left:active { opacity: 0.6; }
+
+    .nav-small-logo { height: 36px; width: 36px; border-radius: 50%; object-fit: cover; border: 1px solid var(--accent-green); }
+    .nav-brand { font-family: 'Georgia', serif; font-size: 18px; color: var(--accent-green); font-weight: bold; }
+
+    .nav-links { display: none; gap: 24px; } /* Hidden on mobile by default */
+    .nav-tab { background: none; border: none; color: var(--text-bright); font-size: 14px; font-weight: 600; cursor: pointer; padding: 8px 0; position: relative; transition: color 0.2s; }
+    .nav-tab:hover, .nav-tab.active { color: var(--accent-green); }
+    .nav-tab.active::after { content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 2px; background: var(--accent-green); border-radius: 2px; }
+
+    /* --- 2.5. BOTTOM NAVIGATION (MOBILE ONLY) --- */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; height: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom));
+      background: rgba(1, 12, 10, 0.95); border-top: 1px solid var(--border-color);
+      backdrop-filter: blur(10px); display: flex; justify-content: space-around; align-items: center;
+      z-index: 1000; padding-bottom: env(safe-area-inset-bottom); /* iOS support */
+    }
+    .bottom-nav-tab {
+      background: none; border: none; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; height: 100%; min-height: 44px; justify-content: center; cursor: pointer; transition: color 0.2s;
+    }
+    .bottom-nav-tab.active { color: var(--accent-green); }
+    .bottom-nav-tab svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .bottom-nav-tab span { font-size: 10px; font-weight: 600; }
+
+    @media (min-width: 768px) {
+      .nav-links { display: flex; }
+      .bottom-nav { display: none; } /* Hide bottom nav on desktop */
+    }
+
+    /* --- 3. MAIN APP LAYOUT & TABS --- */
+    .app-container { width: 100%; min-height: 100vh; padding: 68px max(var(--page-gutter), env(safe-area-inset-right)) 12px max(var(--page-gutter), env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 10px; margin: 0 auto; position: relative; }
+    .tab-pane { display: none; flex-direction: column; flex-grow: 1; padding-bottom: 20px; animation: fadeIn 0.3s ease; }
+    .tab-pane.active { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* --- 4. GLOBAL OUTLINE & BANNER STYLES --- */
+    .tab-hero-banner { width: 100%; min-height: 220px; background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; border: 1px solid var(--border-color); flex-shrink: 0; border-radius: var(--border-radius-main) var(--border-radius-main) 0 0; border-bottom: none; }
+    .tab-hero-banner::before { content: ''; position: absolute; inset: 0; background: rgba(1, 12, 10, 0.7); }
+    .tab-content-wrapper { background: rgba(2, 18, 15, 0.6); padding: 30px 20px; border-radius: 0 0 var(--border-radius-main) var(--border-radius-main); border: 1px solid var(--border-color); border-top: none; display: flex; flex-direction: column; flex-grow: 1; }
+    @media (max-width: 600px) { .tab-content-wrapper { padding: 20px 10px; } }
+
+    .banner-wrapper { width: 100%; display: flex; justify-content: center; align-items: center; position: relative; z-index: 2; }
+    .banner-container { text-align: center; padding: 6px 10px; width: 100%; max-width: 750px; font-family: 'Montserrat', sans-serif; box-sizing: border-box; transform-origin: center center; }
+    .banner-badge { font-size: 10px; color: #D4AF37; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px; text-shadow: 0 2px 6px rgba(0,0,0,0.6); }
+    .banner-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.8rem; font-weight: 500; color: #f7f9f6; margin: 0 0 6px 0; letter-spacing: 1px; line-height: 1.1; text-shadow: 0 4px 14px rgba(0, 0, 0, 0.7); }
+    .banner-divider { width: 50px; height: 1px; background: linear-gradient(90deg, transparent, #D4AF37, transparent); margin: 0 auto 8px auto; }
+    .banner-subtitle { font-size: 0.95rem; font-style: italic; font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; color: #d1e2d3; margin: 0; line-height: 1.25; letter-spacing: 0.3px; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7); }
+    .banner-subtitle-menu { font-style: normal; font-size: 13px; font-family: 'Segoe UI', sans-serif; }
+    .banner-location-link { color: var(--accent-green); text-decoration: none; font-weight: 600; display: inline-block; margin-top: 6px; }
+
+    @media (max-width: 600px) { .tab-hero-banner { min-height: 140px; } .banner-badge { font-size: 9px; margin-bottom: 4px; } .banner-title { font-size: 1.35rem; margin-bottom: 4px; } .banner-subtitle { font-size: 0.85rem; } }
+    @media (max-width: 500px) { .banner-container { transform: scale(0.9); width: 110%; } }
+    @media (max-width: 380px) { .banner-container { transform: scale(0.85); width: 115%; } }
+
+    /* --- GLOBAL FOOTER & SHARED UI --- */
+    .tab-description-block { border-bottom: 1px dashed var(--border-color); padding-bottom: 20px; margin-bottom: 20px; text-align: center; }
+    .tab-description-text { color: var(--text-subhead); font-size: 13px; line-height: 1.6; }
+    .tab-description-text.menu-italic { font-size: 14px; font-style: italic; font-family: 'Georgia', serif; }
+
+    .quotation-wrapper { margin-top: auto; padding-top: 20px; }
+    .quotation-block { text-align: center; max-width: 600px; margin: 0 auto 10px auto; padding-top: 20px; }
+    .quotation-text { font-style: italic; color: var(--text-subhead); font-size: 15px; line-height: 1.6; font-family: 'Georgia', serif; }
+    .quotation-author { font-weight: 700; color: var(--accent-green); display: block; margin-top: 12px; font-size: 13px; letter-spacing: 0.5px; }
+
+    .global-footer-wrapper { margin-top: 10px; width: 100%; }
+    .app-footer { border-top: 1px dashed var(--border-color); padding-top: 20px; text-align: center; margin-bottom: 10px; }
+    .footer-brand { color: var(--accent-green); font-weight: 700; font-family: 'Georgia', serif; font-size: 16px; margin-bottom: 6px; }
+    .footer-text { color: var(--text-muted); font-size: 12px; line-height: 1.6; }
+    .footer-copyright { margin-top: 15px; opacity: 0.6; }
+
+    /* --- 5. HOME TAB SPECIFIC STYLES --- */
+    .home-intro { text-align: center; margin-bottom: 25px; padding: 0 15px; }
+    .home-intro h3 { color: var(--accent-green); font-size: 18px; margin-bottom: 8px; font-family: 'Segoe UI', sans-serif; }
+    .home-intro p { color: var(--text-subhead); font-size: 13px; line-height: 1.5; }
+    .home-cards-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 30px; padding: 0 10px; }
+    @media (min-width: 768px) { .home-cards-grid { grid-template-columns: repeat(3, 1fr); padding: 0; } }
+
+    .home-card { cursor: pointer; border-radius: 12px; overflow: hidden; transition: transform 0.2s ease, box-shadow 0.2s ease; display: flex; flex-direction: column; background: var(--card-bg); border: 1px solid var(--border-color); }
+    .home-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(74, 222, 128, 0.2); border-color: var(--accent-green); }
+    .home-card-slider { width: 100%; aspect-ratio: 16/9; position: relative; overflow: hidden; border-bottom: 1px solid var(--border-color); border-radius: 12px 12px 0 0; background: var(--bg-dark); }
+    .home-card-slider img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; opacity: 0; transition: opacity 1.5s ease-in-out; pointer-events: none; }
+    .home-card-slider img.active { opacity: 1; }
+    .home-card-btn { color: var(--text-bright); font-weight: 700; font-size: 14px; text-align: center; padding: 12px; transition: color 0.2s ease; }
+    .home-card:hover .home-card-btn { color: var(--accent-green); }
+
+    .about-us-section { text-align: center; padding: 30px 15px 0 15px; border-top: 1px dashed var(--border-color); }
+    .about-us-section h3 { color: var(--text-bright); font-size: 20px; margin-bottom: 15px; font-family: 'Segoe UI', sans-serif; font-weight: 700; }
+    .about-us-section p { font-size: 13px; color: var(--text-subhead); line-height: 1.6; margin-bottom: 12px; max-width: 900px; margin-left: auto; margin-right: auto; }
+    .about-link { color: var(--accent-green); text-decoration: none; font-weight: bold; }
+
+    /* --- 6. MENU TAB SPECIFIC STYLES --- */
+    #tab-menu .tab-hero-banner { min-height: 0; padding: 12px 10px 10px; }
+    #tab-menu .banner-container { width: 100%; max-width: none; padding: 0; transform: none; }
+    #tab-menu .banner-badge { font-size: 9px; letter-spacing: 2px; margin-bottom: 4px; }
+    #tab-menu .banner-title { font-size: clamp(22px, 2.5vw, 26px); margin-bottom: 4px; }
+    #tab-menu .banner-divider { margin-bottom: 6px; }
+    #tab-menu .banner-subtitle-menu { display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: 2px 12px; font-size: 12px; line-height: 1.4; }
+    #tab-menu .menu-hours, #tab-menu .banner-location-link { white-space: nowrap; }
+    #tab-menu .banner-location-link { margin-top: 0; }
+    #tab-menu > .tab-content-wrapper { padding: 10px 10px 16px; }
+    #tab-menu .tab-description-block { padding-bottom: 8px; margin-bottom: 8px; }
+    #tab-menu .menu-italic { display: block; max-width: 720px; margin: 0 auto; font-size: 12px; line-height: 1.45; }
+    #tab-menu .categories-nav { padding: 5px; gap: 4px; }
+    #tab-menu .nav-header { background: none; border: 0; border-radius: 0; font-size: 10px; line-height: 1.2; padding: 2px 4px; margin-bottom: 0; }
+    #tab-menu .categories-nav .cat-btn { padding: 5px 3px; }
+    @media (min-width: 768px) {
+      #tab-menu > .tab-content-wrapper { padding: 12px 14px 18px; }
+      #tab-menu .menu-content-layout { grid-template-columns: 200px minmax(0, 1fr); gap: 12px; }
+      #tab-menu .categories-nav { padding: 8px; }
+      #tab-menu .sidebar-logo { width: 48px; height: 48px; margin-bottom: 4px; }
+      #tab-menu .nav-header { font-size: 11px; padding: 4px; }
+      #tab-menu .categories-nav .cat-btn { padding: 6px 10px; min-height: 32px; font-size: 12px; }
+      #tab-menu .sidebar-bottom-actions { padding-top: 10px; gap: 6px; }
+    }
+    @media (hover: none) and (pointer: coarse) {
+      #tab-menu .categories-nav .cat-btn { min-height: 44px; }
+    }
+    .menu-content-layout { display: flex; flex-direction: column; gap: 10px; flex: 1; margin-bottom: 15px; }
+    .sidebar-logo { display: none; }
+    .categories-nav { flex-shrink: 0; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius-main); padding: 6px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; backdrop-filter: blur(10px); }
+    .nav-header { grid-column: 1 / -1; background: rgba(74, 222, 128, 0.15); color: var(--accent-green); text-transform: uppercase; font-size: 12px; font-weight: 800; letter-spacing: 1px; text-align: center; padding: 8px; border-radius: var(--border-radius-sm); margin-bottom: 2px; border: 1px solid rgba(74, 222, 128, 0.3); }
+    .sidebar-bottom-actions { display: none; }
+
+    @media (min-width: 768px) {
+      .menu-content-layout { display: grid; grid-template-columns: 220px 1fr; gap: 18px; align-items: flex-start; }
+      .sidebar-logo { display: block; margin: 0 auto 15px auto; width: 114px; height: 114px; border-radius: 50%; border: 2px solid var(--accent-green); object-fit: cover; }
+      .categories-nav { position: sticky; top: 75px; max-height: calc(100vh - 90px); overflow-y: auto; display: flex; flex-direction: column; justify-content: flex-start; padding: 15px 10px 10px 10px; gap: 8px; }
+      .nav-header { font-size: 13px; padding: 10px; margin-bottom: 6px; }
+      .sidebar-bottom-actions { display: flex; flex-direction: column; gap: 8px; margin-top: auto; padding-top: 18px; border-top: 1px dashed var(--border-color); }
+    }
+
+    .cat-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-subhead); padding: 6px 2px; border-radius: var(--border-radius-sm); font-size: 10px; font-weight: 600; text-align: center; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; min-height: 34px; line-height: 1.1; }
+    @media (min-width: 768px) { .cat-btn { padding: 10px 12px; font-size: 13px; text-align: left; justify-content: flex-start; min-height: auto; } }
+    .cat-btn:hover, .cat-btn.active { background: rgba(30, 77, 64, 0.5); border-color: var(--accent-green); color: var(--accent-green); }
+
+    .main-content { display: flex; flex-direction: column; gap: 14px; }
+    .menu-section { display: flex; flex-direction: column; gap: 10px; }
+    .section-title { font-family: 'Georgia', serif; font-size: 16px; color: var(--accent-green); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; }
+    .products-grid { display: flex; flex-direction: column; gap: 10px; }
+    .product-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius-main); padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; transition: border-color 0.2s ease; }
+    .product-card:hover { border-color: rgba(74, 222, 128, 0.4); }
+    @media (min-width: 600px) { .product-card { flex-direction: row; justify-content: space-between; align-items: center; } }
+
+    /* Product Image Thumbnails */
+    .product-image {
+      width: 75px;
+      height: 75px;
+      border-radius: var(--border-radius-sm);
+      object-fit: cover;
+      border: 1px solid var(--menu-image-outline); /* Updated to light constant color */
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      background: rgba(74, 222, 128, 0.05);
+    }
+    .product-image:hover { transform: scale(1.04); border-color: var(--accent-green); }
+
+    .product-info { flex: 1; }
+    .product-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+    .product-desc { font-size: 12px; color: var(--text-muted); line-height: 1.3; }
+    .product-action { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
+    @media (min-width: 600px) { .product-action { margin-top: 0; justify-content: flex-end; min-width: 180px; } }
+    .price { font-size: 13px; font-weight: 700; color: var(--accent-green); white-space: nowrap; }
+    .btn-wrapper { display: flex; align-items: center; gap: 8px; }
+    .add-btn { background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); color: white; border: none; padding: 7px 14px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s ease; }
+    .add-btn:active { transform: scale(0.95); }
+    .item-count-text { color: #ef4444; font-size: 12px; font-weight: 800; }
+
+    /* --- RESPONSIVE CART MODAL WRAPPER --- */
+    /* Mobile: Cart is a floating modal */
+    @media (max-width: 767px) {
+      #cartModalWrapper {
+        position: fixed; inset: 0; background: rgba(0, 0, 0, 0.88); backdrop-filter: blur(8px);
+        z-index: 2050; display: none; justify-content: center; align-items: center; padding: 16px;
+        overscroll-behavior: contain;
+      }
+      #cartModalWrapper.active { display: flex; }
+      #cartSection {
+        width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
+        background: #041f1a; box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+        margin-top: 0; border: 1px solid var(--border-color);
+      }
+      .cart-close-btn { display: block; background: transparent; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; padding: 0 5px; }
+      .cart-title { border-bottom: 1px solid var(--border-color); }
+    }
+
+    /* Desktop: Cart is inline inside main content */
+    @media (min-width: 768px) {
+      #cartModalWrapper { display: block !important; position: static; background: transparent; backdrop-filter: none; padding: 0; z-index: auto; }
+      #cartSection { width: auto; max-width: none; max-height: none; overflow-y: visible; box-shadow: none; background: var(--card-bg); margin-top: 6px; border: 1px solid var(--border-color); }
+      .cart-close-btn { display: none; }
+    }
+
+    /* Cart Summary Base Styles */
+    .cart-summary {
+      border-radius: var(--border-radius-main);
+      padding: 14px; display: flex; flex-direction: column; gap: 12px;
+      transition: border-color 0.4s ease, box-shadow 0.4s ease;
+    }
+    .cart-summary.basket-highlight { animation: basketPulse 6s ease-out forwards; }
+    @keyframes basketPulse {
+      0% { border-color: #4ade80; box-shadow: 0 0 30px rgba(74, 222, 128, 0.75), inset 0 0 14px rgba(74, 222, 128, 0.3); }
+      30% { border-color: #22c55e; box-shadow: 0 0 20px rgba(74, 222, 128, 0.45), inset 0 0 8px rgba(74, 222, 128, 0.15); }
+      100% { border-color: var(--border-color); box-shadow: none; }
+    }
+
+    .cart-title { font-family: 'Georgia', serif; font-size: 16px; font-weight: 800; letter-spacing: 0.5px; color: var(--accent-green); display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; }
+    .cart-title-text { font-weight: 800; color: var(--accent-green); text-transform: uppercase; font-size: 14px; letter-spacing: 1px; }
+
+    .cart-items { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px; }
+    .empty-cart-msg { font-size: 12px; color: var(--text-muted); text-align: center; padding: 12px 0; }
+
+    .cart-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 8px; }
+    .cart-item-details { flex: 1; min-width: 0; word-break: break-word; }
+    .cart-item-name { font-size: 13px; font-weight: 700; color: #ffffff; line-height: 1.3; }
+    .cart-item-sub { font-size: 10.5px; color: var(--text-muted); margin-top: 3px; line-height: 1.4; }
+
+    .cart-item-edit-btn { display: inline-flex; align-items: center; gap: 3px; background: rgba(74, 222, 128, 0.12); border: 1px solid rgba(74, 222, 128, 0.35); color: var(--accent-green); font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; cursor: pointer; margin-top: 5px; transition: all 0.15s ease; }
+    .cart-item-edit-btn:hover { background: var(--accent-green); color: #010c0a; border-color: var(--accent-green); }
+
+    .cart-item-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; padding-top: 2px; }
+    .cart-item-price { font-size: 12.5px; font-weight: 700; color: var(--accent-green); white-space: nowrap; flex-shrink: 0; }
+
+    .cart-stepper { display: flex; align-items: center; gap: 4px; background: rgba(2, 18, 15, 0.9); padding: 2px 6px; border-radius: 20px; border: 1px solid var(--border-color); flex-shrink: 0; }
+    .cart-stepper-btn { background: none; border: none; color: var(--accent-green); font-size: 14px; font-weight: 800; cursor: pointer; padding: 0 4px; line-height: 1; transition: transform 0.1s ease; }
+    .cart-stepper-btn:active { transform: scale(0.85); }
+    .cart-stepper-btn.minus { color: #f87171; }
+    .cart-stepper-count { font-size: 12px; font-weight: 700; color: #ffffff; min-width: 16px; text-align: center; }
+
+    .order-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 4px; border-radius: var(--border-radius-sm); transition: border 0.2s ease; }
+    .order-options label { font-size: 12px; background: rgba(2, 18, 15, 0.75); border: 1px solid var(--border-color); padding: 8px; border-radius: var(--border-radius-sm); text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: all 0.2s ease; }
+    .order-options input[type="radio"] { accent-color: var(--accent-green); }
+    .order-options label:has(input:checked) { border-color: var(--accent-green); background: rgba(30, 77, 64, 0.5); color: var(--accent-green); font-weight: 700; }
+
+    .payment-note { font-size: 11px; color: #fbbf24; background: rgba(251, 191, 36, 0.1); padding: 8px 10px; border-radius: var(--border-radius-sm); border-left: 3px solid #fbbf24; line-height: 1.3; }
+    .cart-total { border-top: 1px solid var(--border-color); padding-top: 10px; display: flex; flex-direction: column; gap: 12px; }
+    .total-row { display: flex; justify-content: space-between; align-items: center; font-size: 15px; font-weight: 700; }
+    .action-buttons { display: flex; flex-direction: column; gap: 8px; }
+    @media (min-width: 600px) { .action-buttons { flex-direction: row; } }
+    .btn-wa, .btn-msgr { flex: 1; padding: 10px; color: white; border: none; border-radius: var(--border-radius-sm); font-weight: 600; font-size: 12px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 6px; transition: opacity 0.2s ease; }
+    .btn-wa { background: var(--wa-color); } .btn-msgr { background: var(--msgr-color); }
+    .btn-wa:hover, .btn-msgr:hover { opacity: 0.9; }
+
+    /* Permanent Floating Cart Button */
+    .floating-cart-btn {
+      position: fixed; bottom: max(16px, env(safe-area-inset-bottom)); right: max(12px, env(safe-area-inset-right)); width: 46px; height: 46px; border-radius: 50%;
+      background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); color: white; border: 2px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6), 0 0 10px rgba(74, 222, 128, 0.35); display: flex; align-items: center; justify-content: center;
+      cursor: pointer; z-index: 1500; transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease, bottom 0.3s ease;
+      opacity: 1; visibility: visible;
+    }
+    .floating-cart-btn:hover { transform: scale(1.08); }
+    .floating-cart-btn.cart-shake { animation: cartShake 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+    @keyframes cartShake { 10%, 90% { transform: scale(1.15) translate3d(-1px, 0, 0); } 20%, 80% { transform: scale(1.15) translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: scale(1.2) translate3d(-3px, 0, 0); } 40%, 60% { transform: scale(1.2) translate3d(3px, 0, 0); } }
+
+    .floating-cart-icon { width: 24px; height: 24px; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5)); }
+    .floating-cart-badge { position: absolute; top: -3px; right: -3px; background: #ef4444; color: white; font-size: 10px; font-weight: 800; min-width: 18px; height: 18px; padding: 0 3px; border-radius: 9px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg-dark); box-shadow: 0 2px 6px rgba(0,0,0,0.5); }
+
+    /* Flying Ball Particle Animation */
+    .flying-cart-item { position: fixed; width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%); box-shadow: 0 0 16px rgba(74, 222, 128, 0.9), 0 0 8px #ffffff; pointer-events: none; z-index: 9999; transition: all 0.75s cubic-bezier(0.18, 0.89, 0.32, 1.28); opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+    /* Action Buttons Sidebar */
+    .btn-review-action { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: #ffffff; color: #1a73e8; padding: 10px 12px; border-radius: var(--border-radius-sm); font-size: 11px; font-weight: 700; text-decoration: none; transition: all 0.2s ease; border: 1px solid #1a73e8; cursor: pointer; text-align: center; line-height: 1.2; }
+    .btn-review-action:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(26, 115, 232, 0.3); }
+    .btn-hope-action { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: linear-gradient(135deg, #10b981 0%, #047857 100%); color: #ffffff; padding: 10px 12px; border-radius: var(--border-radius-sm); font-size: 11px; font-weight: 700; border: 1px solid var(--accent-green); cursor: pointer; transition: all 0.2s ease; text-align: center; line-height: 1.2; }
+    .btn-hope-action:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(74, 222, 128, 0.3); }
+
+    /* --- 7. MODALS --- */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.88); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; padding: 16px; z-index: 2100; overscroll-behavior: contain; }
+    .modal-overlay.active { display: flex; }
+    .modal-box { background: #041f1a; border: 1px solid var(--border-color); border-radius: var(--border-radius-main); max-width: 480px; width: 100%; max-height: 90%; overflow-y: auto; padding: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.8); position: relative; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .modal-title { font-family: 'Georgia', serif; font-size: 16px; color: var(--accent-green); }
+    .close-modal { background: transparent; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; }
+    .builder-section { margin-bottom: 12px; }
+    .builder-section h4 { font-size: 11px; text-transform: uppercase; color: var(--text-subhead); margin-bottom: 6px; }
+    .builder-options { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .option-label { background: rgba(2, 18, 15, 0.75); border: 1px solid var(--border-color); padding: 6px 8px; border-radius: var(--border-radius-sm); font-size: 11px; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .option-label:has(input:checked) { border-color: var(--accent-green); background: rgba(30, 77, 64, 0.5); color: var(--accent-green); font-weight: 700; }
+    .modal-subtitle { font-size: 11px; color: var(--accent-green); margin-bottom: 10px; background: rgba(74, 222, 128, 0.1); padding: 6px 10px; border-radius: var(--border-radius-sm); }
+
+    /* ======================================================= */
+    /*           IMAGE GALLERY & DIRECT ORDER MODAL            */
+    /* ======================================================= */
+    .gallery-modal-box { padding: 0; background: #041f1a; border: 1px solid var(--border-color); border-radius: var(--border-radius-main); max-width: 440px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9); position: relative; }
+    .gallery-header-section { padding: 20px 20px 16px 20px; text-align: center; position: relative; background: rgba(1, 12, 10, 0.6); border-bottom: 1px solid var(--border-color); }
+    .gallery-badge { font-size: 10px; color: var(--accent-green); letter-spacing: 2px; text-transform: uppercase; font-weight: 700; margin-bottom: 6px; }
+    .gallery-title { font-family: 'Georgia', serif; color: var(--text-bright); font-size: 22px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .gallery-divider { width: 40px; height: 2px; background: var(--accent-green); margin: 0 auto 10px auto; border-radius: 2px; }
+    .gallery-desc { color: var(--text-subhead); font-size: 13px; font-style: italic; font-family: 'Georgia', serif; line-height: 1.5; padding: 0 10px; }
+    .square-carousel { aspect-ratio: 1/1 !important; border: none; border-radius: 0; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); position: relative; background: var(--bg-dark); }
+    .square-carousel .carousel-img { object-fit: cover; }
+    .gallery-close-btn { position: absolute; top: 12px; right: 12px; z-index: 25; background: rgba(1, 12, 10, 0.8); color: var(--text-muted); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 15px; border: 1px solid var(--border-color); backdrop-filter: blur(8px); cursor: pointer; transition: all 0.2s ease; }
+    .gallery-close-btn:hover { background: var(--accent-green); color: #010c0a; }
+    .gallery-dots { position: absolute; bottom: 12px; left: 0; right: 0; margin: 0; z-index: 20; }
+    .gallery-dots .dot { background: rgba(255, 255, 255, 0.35); box-shadow: 0 2px 5px rgba(0,0,0,0.8); width: 7px; height: 7px; }
+    .gallery-dots .dot.active { background: var(--accent-green); transform: scale(1.3); }
+    .gallery-order-bar { padding: 15px 20px; background: #041f1a; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .gallery-price-tag { font-size: 16px; font-weight: 700; color: var(--accent-green); }
+    .gallery-order-bar .add-btn { padding: 9px 20px; font-size: 13px; }
+
+    /* --- 8. SHARED CAROUSEL STYLES --- */
+    .gallery-col { display: flex; flex-direction: column; align-items: center; width: 100%; }
+    .gallery-col-title { margin-top: 0; margin-bottom: 4px; font-size: 18px; font-weight: 600; color: #ffffff; text-align: center; font-family: 'Georgia', serif; }
+    .gallery-col-title span { color: #4ade80; font-size: 13px; vertical-align: middle; }
+    .gallery-col-subtitle { margin: 0 0 15px 0; font-size: 11px; color: #94a3b8; text-align: center; }
+
+    .carousel-container { position: relative; width: 100%; max-width: 100%; margin: 0 auto; border-radius: var(--border-radius-main); overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 8px 24px rgba(0,0,0,0.5); aspect-ratio: 16/9; }
+    @media (min-width: 480px) { .carousel-container { max-width: 480px; } }
+    .carousel-track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; height: 100%; }
+    .carousel-track.no-smooth { scroll-behavior: auto !important; }
+    .carousel-track::-webkit-scrollbar { display: none; }
+    .carousel-img { flex: 0 0 100%; width: 100%; height: 100%; object-fit: contain; background: var(--bg-dark); scroll-snap-align: center; user-select: none; pointer-events: none; }
+    .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(2, 18, 15, 0.75); color: white; border: 1px solid var(--border-color); padding: 12px; cursor: pointer; border-radius: 50%; z-index: 10; transition: all 0.2s ease; }
+    .carousel-btn:hover { background: var(--accent-green); color: var(--bg-dark); }
+    .carousel-btn.prev { left: 10px; } .carousel-btn.next { right: 10px; }
+    .carousel-dots { display: flex; justify-content: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .dot { width: 8px; height: 8px; background: var(--border-color); border-radius: 50%; cursor: pointer; transition: background 0.3s ease, transform 0.2s ease; }
+    .dot.active { background: var(--accent-green); }
+
+    /* --- 9. WORDS OF HOPE TAB SPECIFIC --- */
+    .hope-split-layout { display: grid; grid-template-columns: 1fr; gap: 30px; padding: 15px 0 30px 0; }
+    .hope-split-layout > div { min-width: 0; max-width: 100%; }
+    @media (min-width: 768px) { .hope-split-layout { grid-template-columns: 1fr 1fr; align-items: center; } }
+    .message-form-card { font-family: 'Georgia', 'Times New Roman', serif; max-width: 480px; width: 100%; min-height: 252px; margin: 0 auto; padding: 28px 20px; border-radius: 16px; background: radial-gradient(circle at 85% 15%, #083c33 0%, #041f1a 60%, #010c0a 100%); border: 1px solid rgba(56, 161, 105, 0.25); box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; color: #ffffff; }
+    .form-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .form-label-primary { font-weight: 600; color: #cbd5e1; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+    .form-input { width: 100%; padding: 11px 12px; background-color: rgba(2, 18, 15, 0.75); border: 1px solid #1e4d40; border-radius: 8px; font-size: 13px; font-family: 'Segoe UI', sans-serif; color: #f8fafc; box-sizing: border-box; outline: none; }
+
+    /* --- 10. REVIEW TAB SPECIFIC --- */
+    .review-top-split { display: grid; grid-template-columns: 1fr; gap: 20px; padding: 10px; justify-items: center; }
+    .review-top-split > div { min-width: 0; max-width: 100%; }
+    @media (min-width: 768px) { .review-top-split { grid-template-columns: 1fr 1fr; align-items: flex-start; justify-items: stretch; } }
+    .reviews-vertical-wrapper { width: 100%; max-width: 100%; margin: 0 auto; position: relative; aspect-ratio: 16/9; border-radius: var(--border-radius-main); overflow: hidden; border: 1px solid var(--border-color); background: rgba(2, 18, 15, 0.4); }
+    @media (min-width: 480px) { .reviews-vertical-wrapper { max-width: 480px; } }
+    .reviews-vertical-carousel { height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding: 25px 15px; -ms-overflow-style: none; scrollbar-width: none; }
+    .reviews-vertical-carousel::-webkit-scrollbar { display: none; }
+    .vertical-review-card { flex-shrink: 0; height: auto; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius-main); padding: 18px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+    .review-stars { color: #fbbf24; font-size: 15px; letter-spacing: 2px; }
+    .review-text { font-style: italic; font-size: 13.5px; color: var(--text-subhead); line-height: 1.5; flex-grow: 1; font-family: 'Georgia', serif;}
+    .review-author { font-weight: 700; font-size: 12px; color: var(--accent-green); text-align: right; letter-spacing: 0.5px; }
+
+    /* Bottom Full Width Row for Review Links */
+    .review-bottom-full { max-width: 900px; margin: 30px auto 10px auto; text-align: center; padding: 25px 20px 0 20px; border-top: 1px dashed var(--border-color); }
+    .review-encouragement { font-size: 14px; color: var(--text-subhead); line-height: 1.6; margin-bottom: 15px; }
+    .google-review-btn { display:inline-block; padding: 14px 28px; background: #ffffff; color: #1a73e8; text-decoration: none; font-weight: bold; border-radius: var(--border-radius-sm); font-size: 14px; box-shadow: 0 4px 12px rgba(26,115,232,0.2); transition: all 0.2s ease; margin-bottom: 25px; border: 1px solid #1a73e8; }
+    .google-review-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(26,115,232,0.3); }
+
+    .delivery-section { display: flex; flex-direction: column; gap: 10px; }
+    .delivery-title { font-size: 11px; font-weight: 700; color: var(--text-subhead); text-transform: uppercase; letter-spacing: 0.5px; text-align: center; }
+    .platform-link { background: rgba(2, 18, 15, 0.75); border: 1px solid var(--border-color); padding: 8px 6px; border-radius: var(--border-radius-sm); font-size: 11px; font-weight: 700; text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
+    .platform-link.foodpanda { color: #D70F64; border-color: #D70F64; } .platform-link.foodpanda:hover { background: rgba(215, 15, 100, 0.15); }
+    .platform-link.egets { color: #FF8200; border-color: #FF8200; } .platform-link.egets:hover { background: rgba(255, 130, 0, 0.15); }
+    .platform-link.chompa { color: #00A651; border-color: #00A651; } .platform-link.chompa:hover { background: rgba(0, 166, 81, 0.15); }
+    .platform-link.guru { color: #E53935; border-color: #E53935; } .platform-link.guru:hover { background: rgba(229, 57, 53, 0.15); }
+    .platform-link.facebook { color: #1877F2; border-color: #1877F2; } .platform-link.facebook:hover { background: rgba(24, 119, 242, 0.15); }
+    .platform-link.tripadvisor { color: #34E0A1; border-color: #34E0A1; } .platform-link.tripadvisor:hover { background: rgba(52, 224, 161, 0.15); }
+    .review-bottom-full .delivery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    @media (min-width: 500px) { .review-bottom-full .delivery-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 900px) { .review-bottom-full .delivery-grid { grid-template-columns: repeat(6, 1fr); } }
+
+    /* Adjustments for mobile bottom padding & floating cart layout */
+    @media (max-width: 767px) {
+      .app-container { padding-bottom: calc(var(--mobile-nav-height) + 12px + env(safe-area-inset-bottom)); }
+      .floating-cart-btn { bottom: calc(var(--mobile-nav-height) + 8px + env(safe-area-inset-bottom)); right: max(10px, env(safe-area-inset-right)); }
+    }
+
+    /* --- ONBOARDING SWIPE HINT --- */
+    .swipe-hint-overlay {
+      position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.6);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      opacity: 1; transition: opacity 0.5s ease, visibility 0.5s; pointer-events: none;
+    }
+    .swipe-hint-overlay.hidden { opacity: 0; visibility: hidden; }
+    .swipe-hand-container { animation: swipeAnim 2s infinite ease-in-out; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .swipe-hand { width: 50px; height: 50px; color: white; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
+    .swipe-text { color: white; font-size: 18px; font-weight: 600; font-family: 'Segoe UI', sans-serif; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(0,0,0,0.4); padding: 8px 16px; border-radius: 20px; }
+    @keyframes swipeAnim {
+      0% { transform: translateX(50px); opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { transform: translateX(-50px); opacity: 0; }
+    }
+    :focus-visible { outline: 2px solid var(--accent-green); outline-offset: 3px; }
+    #contentLayout, #mainContent { scroll-margin-top: 75px; }
+    .gallery-modal-box { width: 100%; max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); overflow-y: auto; }
+    .gallery-modal-box > * { flex-shrink: 0; }
+    .gallery-dots { position: static; padding: 10px; }
+    .modal-box, #cartSection { touch-action: pan-y pinch-zoom; }
+    .modal-box, .gallery-modal-box { overscroll-behavior: contain; }
+    .dot { border: 0; padding: 0; }
+    #notifMessage { white-space: pre-line; }
+    #notifMessage:has(#messengerOrderText) { white-space: normal; text-align: left; }
+    .messenger-checkout { display: grid; gap: 12px; }
+    .messenger-checkout .btn-msgr { text-decoration: none; min-height: 44px; }
+    .messenger-help { font-size: 12px; line-height: 1.5; }
+    .messenger-help summary { cursor: pointer; }
+    .messenger-help p { margin-top: 8px; }
+    [aria-disabled="true"] { opacity: 0.6; cursor: wait; }
+    @media (hover: none) and (pointer: coarse) {
+      .form-input { font-size: 16px; }
+      .option-label, .add-btn, .btn-wa, .btn-msgr, .cat-btn { min-height: 44px; }
+      .close-modal, .cart-close-btn, .gallery-close-btn { min-width: 44px; min-height: 44px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+
+
+
+  <!-- ========================================== -->
+  <!--                TOP NAVIGATION              -->
+  <!-- ========================================== -->
+  <nav class="top-nav" aria-label="Main Navigation">
+    <div class="nav-left" role="button" tabindex="0" onclick="App.switchMainTab('home')" aria-label="Go to Home Tab">
+      <img src="assets/images/logo-full.5c5ca87866.webp" class="nav-small-logo" alt="Oon Jai Logo" width="36" height="36" decoding="async" fetchpriority="high" />
+      <span class="nav-brand">Oon Jai Marketplace</span>
+    </div>
+    <div class="nav-links" role="tablist">
+      <button id="nav-home" class="nav-tab active" data-tab="home" onclick="App.switchMainTab('home')" role="tab" aria-selected="true" aria-controls="tab-home">Home</button>
+      <button id="nav-menu" class="nav-tab" data-tab="menu" onclick="App.switchMainTab('menu')" role="tab" aria-selected="false" aria-controls="tab-menu">Menu</button>
+      <button id="nav-hope" class="nav-tab" data-tab="hope" onclick="App.switchMainTab('hope')" role="tab" aria-selected="false" aria-controls="tab-hope">Words of Hope</button>
+      <button id="nav-review" class="nav-tab" data-tab="review" onclick="App.switchMainTab('review')" role="tab" aria-selected="false" aria-controls="tab-review">Reviews</button>
+    </div>
+  </nav>
+
+  <!-- ========================================== -->
+  <!--           BOTTOM NAVIGATION (MOBILE)       -->
+  <!-- ========================================== -->
+  <nav class="bottom-nav" role="tablist" aria-label="Mobile Navigation">
+    <button aria-controls="tab-home" class="bottom-nav-tab active" data-tab="home" onclick="App.switchMainTab('home')" role="tab" aria-selected="true">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      <span>Home</span>
+    </button>
+    <button aria-controls="tab-menu" class="bottom-nav-tab" data-tab="menu" onclick="App.switchMainTab('menu')" role="tab" aria-selected="false">
+      <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+      <span>Menu</span>
+    </button>
+    <button aria-controls="tab-hope" class="bottom-nav-tab" data-tab="hope" onclick="App.switchMainTab('hope')" role="tab" aria-selected="false">
+      <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+      <span>Hope</span>
+    </button>
+    <button aria-controls="tab-review" class="bottom-nav-tab" data-tab="review" onclick="App.switchMainTab('review')" role="tab" aria-selected="false">
+      <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+      <span>Reviews</span>
+    </button>
+  </nav>
+
+  <!-- PERMANENT FLOATING CART BUTTON -->
+  <button class="floating-cart-btn" id="floatingCartBtn" onclick="App.scrollToBasket()" aria-label="View Order Basket">
+    <svg class="floating-cart-icon" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="9" cy="21" r="1.5"></circle>
+      <circle cx="20" cy="21" r="1.5"></circle>
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+    </svg>
+    <span class="floating-cart-badge" id="floatingCartBadge">0</span>
+  </button>
+
+  <!-- ONBOARDING SWIPE HINT -->
+  <div class="swipe-hint-overlay hidden" id="swipeHint">
+    <div class="swipe-hand-container">
+      <svg class="swipe-hand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11V6a3 3 0 0 1 6 0v5"></path><path d="M19 12v3.7c0 2.2-1.2 4-3 5.3L15 22H9c-2.8 0-5-2.2-5-5v-6.5a2.5 2.5 0 0 1 5 0V11"></path></svg>
+      <div class="swipe-text">Swipe to change tabs</div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!--              MAIN APP CONTAINER            -->
+  <!-- ========================================== -->
+  <div class="app-container" id="appRoot">
+
+    <!-- ================== TAB: HOME ================== -->
+    <div id="tab-home" class="tab-pane active" role="tabpanel" aria-labelledby="nav-home">
+      <div class="tab-hero-banner" style="background-image: url('assets/images/banner-full.12b9cbe236.webp');">
+        <div class="banner-wrapper">
+          <div class="banner-container">
+            <div class="banner-badge">✦ Nourishing Body, Mind & Soul ✦</div>
+            <h1 class="banner-title">Welcome to Oon Jai Marketplace</h1>
+            <div class="banner-divider"></div>
+            <p class="banner-subtitle">"Where every meal supports hope, health, and community"</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content-wrapper">
+        <div class="home-intro">
+          <h3>Nourish - Inspire - Connect</h3>
+          <p>Discover what makes Oon Jai special — enjoy wholesome food, find encouragement through Words of Hope, and stay connected with our growing community.</p>
+        </div>
+
+        <div class="home-cards-grid">
+          <div class="home-card" role="button" tabindex="0" onclick="App.switchMainTab('menu')" aria-label="Go to Menu">
+            <div class="home-card-slider" id="homeSliderMenu"></div>
+            <div class="home-card-btn">Explore Menu</div>
+          </div>
+          <div class="home-card" role="button" tabindex="0" onclick="App.switchMainTab('hope')" aria-label="Go to Words of Hope">
+            <div class="home-card-slider" id="homeSliderHope"></div>
+            <div class="home-card-btn">Words of Hope</div>
+          </div>
+          <div class="home-card" role="button" tabindex="0" onclick="App.switchMainTab('review')" aria-label="Go to Reviews">
+            <div class="home-card-slider" id="homeSliderReview"></div>
+            <div class="home-card-btn">Customer Reviews</div>
+          </div>
+        </div>
+
+        <div class="about-us-section">
+          <h3>About Us</h3>
+          <p>Oon Jai Marketplace is a mission-driven, plant-based restaurant located in Vientiane, Laos. More than just a place to enjoy wholesome food, Oon Jai exists to promote healthy living, compassionate service, and meaningful relationships through plant-based meals and community engagement.</p>
+          <p>Every meal served and every person welcomed represents an opportunity to share kindness, care, and connection. Through food and hospitality, Oon Jai seeks to demonstrate that a simple meal can become a powerful expression of love, compassion, and service—nourishing not only the body but also the community.</p>
+          <p style="margin-top: 15px;">For more information about Oon Jai and our mission, please visit us at <a href="http://www.oonjai.org" target="_blank" class="about-link" rel="noopener">www.oonjai.org</a></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================== TAB: MENU ================== -->
+    <div id="tab-menu" class="tab-pane" role="tabpanel" aria-labelledby="nav-menu">
+      <div class="tab-hero-banner" style="background-image: url('assets/images/banner-full.12b9cbe236.webp');">
+        <div class="banner-wrapper">
+          <div class="banner-container">
+            <div class="banner-badge">✦ Fresh & Plant-Based ✦</div>
+            <h1 class="banner-title">Our Wholesome Menu</h1>
+            <div class="banner-divider"></div>
+            <p class="banner-subtitle banner-subtitle-menu">
+              <span class="menu-hours">🕒 Mon–Thu: 11:00 – 14:00, 16:00 – 18:30</span>
+              <span class="menu-hours">Fri: 11:00 – 14:00</span>
+              <a href="https://maps.app.goo.gl/YojE5Vj56rt93vGC6?g_st=aw" target="_blank" class="banner-location-link" rel="noopener">📍 Vientiane, Laos</a>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content-wrapper">
+        <div class="tab-description-block">
+          <span class="tab-description-text menu-italic">
+            "Select a category to explore our offerings and submit your orders"
+          </span>
+        </div>
+
+        <div class="menu-content-layout" id="contentLayout">
+          <aside class="categories-nav" id="categoryNav" aria-label="Menu Categories">
+            <img src="assets/images/logo-full.5c5ca87866.webp" class="sidebar-logo" alt="Oon Jai Logo" width="48" height="48" decoding="async" loading="lazy" />
+            <div class="nav-header">Menu Categories</div>
+            <button class="cat-btn active" data-category="burgers" onclick="App.switchCategory('burgers')">Burgers</button>
+            <button class="cat-btn" data-category="sandwiches" onclick="App.switchCategory('sandwiches')">Sandwiches</button>
+            <button class="cat-btn" data-category="texmex" onclick="App.switchCategory('texmex')">Tex-Mexican</button>
+            <button class="cat-btn" data-category="pasta" onclick="App.switchCategory('pasta')">Pasta</button>
+            <button class="cat-btn" data-category="bowl" onclick="App.switchCategory('bowl')">Build Your Bowl</button>
+            <button class="cat-btn" data-category="smoothies" onclick="App.switchCategory('smoothies')">Smoothies</button>
+            <button class="cat-btn" data-category="refreshers" onclick="App.switchCategory('refreshers')">Refreshers</button>
+            <button class="cat-btn" data-category="wellness" onclick="App.switchCategory('wellness')">Wellness Drinks</button>
+            <div class="sidebar-bottom-actions">
+              <a href="https://search.google.com/local/writereview?placeid=ChIJi5aMHuhnJDER7mdo7-eX_fM" target="_blank" rel="noopener noreferrer" class="btn-review-action">⭐ Leave us a Review</a>
+              <button class="btn-hope-action" onclick="App.switchMainTab('hope')">🌱 Words of Hope</button>
+            </div>
+          </aside>
+
+          <main class="main-content" id="mainContent">
+            <div class="menu-section">
+              <h2 class="section-title" id="categoryTitle">Burgers</h2>
+              <div class="products-grid" id="productsGrid" aria-live="polite"></div>
+            </div>
+
+            <!-- CART SECTION: Wraps as a modal on mobile, sits inline on desktop -->
+            <div id="cartModalWrapper" onclick="if(event.target === this && window.innerWidth < 768) App.closeCartModal()">
+              <div class="cart-summary" id="cartSection" aria-live="polite" aria-label="Your Order Basket">
+                <div class="cart-title">
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <span class="cart-title-text">Your Order Basket</span>
+                    <span id="cartCount" style="font-weight: 700; color: var(--accent-green);">(0 items)</span>
+                  </div>
+                  <button class="cart-close-btn" onclick="App.closeCartModal()" aria-label="Close cart">✕</button>
+                </div>
+                <div class="cart-items" id="cartItems">
+                  <p class="empty-cart-msg">Your basket is empty.</p>
+                </div>
+
+                <div class="order-options" id="orderOptionsBox">
+                  <label><input type="radio" name="orderType" value="Dine-In" onchange="App.saveCart()"> Dine-In</label>
+                  <label><input type="radio" name="orderType" value="Pick-Up" onchange="App.saveCart()"> Pick-Up</label>
+                </div>
+
+                <div class="payment-note"><strong>Note:</strong> A QR code will be sent to you for payment before your order is processed. This helps us verify and prevent fake orders. Thank you!</div>
+                <div class="cart-total">
+                  <div class="total-row">
+                    <span>Total:</span>
+                    <span id="totalPrice" class="price" style="font-size: 16px;">0 Kip</span>
+                  </div>
+                  <div class="action-buttons">
+                    <button class="btn-wa" onclick="App.handleCheckout('wa')">Order via WhatsApp</button>
+                    <button class="btn-msgr" onclick="App.handleCheckout('msgr')">Order via Messenger</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================== TAB: WORDS OF HOPE ================== -->
+    <div id="tab-hope" class="tab-pane" role="tabpanel" aria-labelledby="nav-hope">
+      <div class="tab-hero-banner" style="background-image: url('assets/images/banner-full.12b9cbe236.webp');">
+        <div class="banner-wrapper">
+          <div class="banner-container">
+            <div class="banner-badge">✦ Shared Kindness ✦</div>
+            <h1 class="banner-title">Words of Hope</h1>
+            <div class="banner-divider"></div>
+            <p class="banner-subtitle">"Read uplifting thoughts shared by our guests, or leave a gentle message of your own"</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content-wrapper">
+        <div class="tab-description-block">
+          <p class="tab-description-text">
+            Every message shared here has the power to brighten someone's day! Leave a word of encouragement, an inspiring quote, or a meaningful message—it may be featured on one of our next cards and bring hope to someone when they need it most.
+          </p>
+        </div>
+
+        <div class="hope-split-layout">
+          <div class="gallery-col">
+            <h3 class="gallery-col-title">
+              <span>✦</span> Featured Messages <span>✦</span>
+            </h3>
+            <p class="gallery-col-subtitle">We are grateful for every word of encouragement.</p>
+
+            <div class="carousel-container">
+              <button class="carousel-btn prev" onclick="App.scrollCarousel('hopeCarouselTrack', -1)" aria-label="Previous image">&#10094;</button>
+              <div class="carousel-track" id="hopeCarouselTrack" aria-label="Image gallery"></div>
+              <button class="carousel-btn next" onclick="App.scrollCarousel('hopeCarouselTrack', 1)" aria-label="Next image">&#10095;</button>
+            </div>
+            <div class="carousel-dots" id="hopeCarouselDots" aria-label="Words of Hope images"></div>
+          </div>
+
+          <div class="gallery-col" style="justify-content: flex-start;">
+            <div class="message-form-card">
+              <div>
+                <h3 class="gallery-col-title" style="font-size: clamp(16px, 4.5vw, 22px); font-weight: 400; letter-spacing: 0.5px;">
+                  <span style="margin-right: 4px;">✦</span> Message for a Stranger <span style="margin-left: 4px;">✦</span>
+                </h3>
+                <p class="gallery-col-subtitle" style="font-family: 'Segoe UI', sans-serif; line-height: 1.4; font-weight: 300; margin-bottom: 20px;">
+                  Leave an encouraging thought or quote to brighten someone's day.
+                </p>
+                <form id="customForm" autocomplete="off" style="font-family: 'Segoe UI', -apple-system, sans-serif;">
+                  <input type="hidden" id="device_token" name="device_token" />
+                  <div style="margin-bottom: 16px;">
+                    <div class="form-label-row">
+                      <label class="form-label-primary" for="message">Your Message</label>
+                      <span id="wordCounter" style="font-size: 11px; color: #64748b; font-weight: 500;">0 / 20-30 words</span>
+                    </div>
+                    <textarea class="form-input" id="message" name="message" rows="3" placeholder="Type your message here (20–30 words)..." required aria-required="true" style="resize: vertical;"></textarea>
+                  </div>
+                  <div style="margin-bottom: 20px;">
+                    <label class="form-label-primary" for="name" style="display: block; margin-bottom: 6px;">Name or Initials</label>
+                    <input class="form-input" type="text" id="name" name="sender_name" placeholder="e.g., Sarah V., S. Valdez, or Anonymous" />
+                  </div>
+                  <div style="display: flex; gap: 10px;">
+                    <button type="submit" id="submitBtn" style="flex: 2; padding: 11px 16px; background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); color: #ffffff; border: none; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; letter-spacing: 0.02em;">Submit Message</button>
+                    <button type="button" onclick="App.clearForm()" style="flex: 1; padding: 11px 16px; background-color: transparent; color: #94a3b8; border: 1px solid #1e4d40; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer;">Clear</button>
+                  </div>
+                </form>
+              </div>
+              <div id="statusMsg" role="status" aria-live="polite" style="margin-top: 10px; font-size: 12px; font-weight: 500; text-align: center; min-height: 18px; font-family: 'Segoe UI', sans-serif;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="quotation-wrapper">
+          <div class="quotation-block">
+            <p class="quotation-text">"A single act of kindness throws out roots in all directions, and the roots spring up and make new trees."</p>
+            <span class="quotation-author">— Amelia Earhart</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================== TAB: REVIEWS ================== -->
+    <div id="tab-review" class="tab-pane" role="tabpanel" aria-labelledby="nav-review">
+      <div class="tab-hero-banner" style="background-image: url('assets/images/banner-full.12b9cbe236.webp');">
+        <div class="banner-wrapper">
+          <div class="banner-container">
+            <div class="banner-badge">✦ Community Voices ✦</div>
+            <h1 class="banner-title">Share Your Experience</h1>
+            <div class="banner-divider"></div>
+            <p class="banner-subtitle">"Hear what our guests are saying, or leave us a review!"</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content-wrapper">
+        <div class="tab-description-block">
+          <p class="tab-description-text">
+            Every review shared here helps us grow and spread kindness! Leave a word about your favorite dish, an inspiring thought, or a meaningful experience—it may be featured on our page and bring hope to someone when they need it most.
+          </p>
+        </div>
+
+        <div class="review-top-split">
+          <div class="gallery-col">
+            <h3 class="gallery-col-title">
+              <span>✦</span> Community Gallery <span>✦</span>
+            </h3>
+            <p class="gallery-col-subtitle">Snapshots of joy shared by our guests.</p>
+
+            <div class="carousel-container">
+              <button class="carousel-btn prev" onclick="App.scrollCarousel('reviewCarouselTrack', -1)" aria-label="Previous image">&#10094;</button>
+              <div class="carousel-track" id="reviewCarouselTrack" aria-label="Review image gallery"></div>
+              <button class="carousel-btn next" onclick="App.scrollCarousel('reviewCarouselTrack', 1)" aria-label="Next image">&#10095;</button>
+            </div>
+            <div class="carousel-dots" id="reviewCarouselDots" aria-label="Guest photos"></div>
+          </div>
+
+          <div class="gallery-col">
+            <h3 class="gallery-col-title">
+              <span>✦</span> Guest Reviews <span>✦</span>
+            </h3>
+            <p class="gallery-col-subtitle">Real experiences from our Oon Jai family.</p>
+
+            <div class="reviews-vertical-wrapper">
+              <div class="reviews-vertical-carousel" id="verticalReviewsCarousel" aria-live="off"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-bottom-full">
+          <p class="review-encouragement">
+            Your feedback helps us grow and continue to spread kindness. If you enjoyed your time with us, please share your thoughts!
+          </p>
+          <a href="https://search.google.com/local/writereview?placeid=ChIJi5aMHuhnJDER7mdo7-eX_fM" target="_blank" rel="noopener noreferrer" class="google-review-btn">⭐ Leave your Review on Google</a>
+
+          <div class="delivery-section">
+            <div class="delivery-title">Find Us Online</div>
+            <div class="delivery-grid">
+              <a href="https://www.foodpanda.la/en/restaurant/d2l0/oon-jai-marketplace" target="_blank" rel="noopener" class="platform-link foodpanda">Food Panda</a>
+              <a href="https://ng-takeaway.e-gets.com/tw/2tSWa6" target="_blank" rel="noopener" class="platform-link egets">E-GetS</a>
+              <a href="https://chompa-delivery.com/restaurant?id=13&from_dine_in=false" target="_blank" rel="noopener" class="platform-link chompa">ChompA</a>
+              <a href="https://t.restaurantguru.com/Oon-Jai-Marketplace-Vientiane" target="_blank" rel="noopener" class="platform-link guru">Rest. Guru</a>
+              <a href="https://www.facebook.com/oon.jai.laos" target="_blank" rel="noopener" class="platform-link facebook">Facebook</a>
+              <a href="https://www.tripadvisor.com/Restaurant_Review-g293950-d24981368-Reviews-Oon_Jai_Marketplace-Vientiane_Vientiane_Prefecture.html" target="_blank" rel="noopener" class="platform-link tripadvisor">Tripadvisor</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UNIVERSAL FOOTER -->
+    <div class="global-footer-wrapper">
+      <footer class="app-footer">
+        <div class="footer-brand">Oon Jai Marketplace</div>
+        <div class="footer-text">Vientiane, Laos</div>
+        <div class="footer-text footer-copyright">© <span id="currentYear"></span> Oon Jai. All Rights Reserved.<br>Spreading kindness, one meal at a time.</div>
+      </footer>
+    </div>
+
+  </div> <!-- End App Container -->
+
+  <!-- CUSTOMIZATION MODAL -->
+  <div class="modal-overlay" id="customModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" onclick="if(event.target === this) App.closeCustomModal()">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">Build Your Own</h3>
+        <button class="close-modal" onclick="App.closeCustomModal()" aria-label="Close modal">✕</button>
+      </div>
+      <div id="standardBuilderBox">
+        <div class="modal-subtitle" id="modalRulesInfo"></div>
+        <div id="wellnessChoiceBox" class="builder-section" style="display: none;">
+          <h4>Choose Wellness Drink</h4>
+          <div class="builder-options" id="wellnessContainer"></div>
+        </div>
+        <div class="builder-section">
+          <h4>Sauces</h4>
+          <div class="builder-options" id="saucesContainer"></div>
+        </div>
+        <div class="builder-section">
+          <h4>Veggies</h4>
+          <div class="builder-options" id="veggiesContainer"></div>
+        </div>
+        <div class="builder-section">
+          <h4>Proteins</h4>
+          <div class="builder-options" id="proteinsContainer"></div>
+        </div>
+      </div>
+      <button class="btn-wa" id="customModalSubmitBtn" style="width:100%; margin-top: 10px; background: #22c55e;" onclick="App.addCustomItemToCart(this)">Add to Order</button>
+    </div>
+  </div>
+
+  <!-- THEMED NOTIFICATION MODALS -->
+  <div class="modal-overlay" id="notificationModal" style="z-index: 2200;" role="alertdialog" aria-modal="true" aria-labelledby="notifTitle" aria-describedby="notifMessage" onclick="if(event.target === this) App.closeNotification()">
+    <div class="modal-box" style="max-width: 320px; text-align: center; padding: 20px;">
+      <h3 class="modal-title" id="notifTitle" style="margin-bottom: 12px;">Notification</h3>
+
+      <div id="notifMessage" style="font-size: 13px; color: var(--text-subhead); margin-bottom: 20px; line-height: 1.5;"></div>
+
+      <div id="notifAlertAction">
+        <button class="add-btn" style="width: 100%;" onclick="App.closeNotification()">OK</button>
+      </div>
+
+      <div id="notifConfirmActions" style="display: none; gap: 10px;">
+        <button class="cat-btn" style="flex: 1; justify-content: center;" id="btnNotifCancel">Cancel</button>
+        <a class="add-btn" style="flex: 1; display:flex; align-items:center; justify-content:center; text-decoration:none; box-sizing:border-box;" id="btnNotifProceed" href="javascript:void(0)">Proceed</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ELEGANT IMAGE GALLERY & DIRECT ORDER MODAL -->
+  <div class="modal-overlay" id="galleryModal" role="dialog" aria-modal="true" aria-label="Image Gallery" onclick="if(event.target === this) App.closeGallery()">
+    <div class="gallery-modal-box">
+      <button class="gallery-close-btn" onclick="App.closeGallery()" aria-label="Close Gallery">✕</button>
+      <div class="gallery-header-section">
+        <div class="gallery-badge">✦ Oon Jai Specialty ✦</div>
+        <h3 class="gallery-title" id="galleryTitle"></h3>
+        <div class="gallery-divider"></div>
+        <p class="gallery-desc" id="galleryDesc"></p>
+      </div>
+      <div class="carousel-container square-carousel">
+        <div class="carousel-track" id="galleryCarouselTrack"></div>
+      </div>
+      <div class="carousel-dots gallery-dots" id="galleryCarouselDots" aria-label="Gallery images"></div>
+
+      <div class="gallery-order-bar">
+        <span class="gallery-price-tag" id="galleryPriceTag">0 Kip</span>
+        <div id="galleryActionContainer"></div>
+      </div>
+    </div>
+  </div>
+
+<script src="../scripts/supabase-config.js?v=127"></script>
+<script src="storefront127.js?v=127"></script>
+<script>
+const App = (function() {
+  'use strict';
+
+  // --- STATE & DATA ---
+  const carouselIntervals = {};
+  const carouselSizes = {};
+  const modalStack = [];
+  const storageFallback = new Map();
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let pendingConfirmation = null;
+  let customSubmitPending = false;
+  let formSubmitting = false;
+  let deviceToken = '';
+  let cartHome = null;
+  let lockedScrollY = 0;
+  let cart = [];
+  let currentActiveCustomItem = null;
+  let editingCartIndex = null;
+  let currentCategory = 'burgers';
+  let verticalScrollInterval;
+  let isVerticalHoveredOrDragged = false;
+  let touchStartX = 0, touchEndX = 0, touchStartY = 0, touchEndY = 0;
+  const mainTabs = ['home', 'menu', 'hope', 'review'];
+
+  let PHONE_NUMBER = "8562057048174";
+  let MESSENGER_USERNAME = "oon.jai.laos";
+  const EXTRA_ADDON_PRICE = 7000;
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw82CgCvJ6vcNC4IZ86-gDOkn9--L2w-DYVD-txuZ3rqzjmcDeHftf9KSjgYS2USezn/exec";
+
+  // Local image variants keep thumbnails small and galleries sharp.
+  const imageAssets = {"assets/images/classic-1-full.a7893f03e0.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/classic-1-thumb.477cdcb8d4.webp","width":225,"height":169}},"assets/images/review-5-full.dfaea519b2.webp":{"width":1080,"height":608},"assets/images/wish-1-full.28e6039506.webp":{"width":500,"height":366,"thumbnail":{"src":"assets/images/wish-1-thumb.ef561c5133.webp","width":225,"height":165}},"assets/images/kickstart-full.c0755e222e.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/kickstart-thumb.153702b687.webp","width":225,"height":169}},"assets/images/review-12-full.407fc4bf79.webp":{"width":1080,"height":607},"assets/images/7-full.693031d79e.webp":{"width":1050,"height":600},"assets/images/banner-full.12b9cbe236.webp":{"width":1050,"height":600},"assets/images/mary-jane-1-full.654593f767.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/mary-jane-1-thumb.e88f4b3dbc.webp","width":225,"height":169}},"assets/images/10-full.362290844c.webp":{"width":1050,"height":600},"assets/images/carbonara-1-full.5a711363e4.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/carbonara-1-thumb.875ef683ed.webp","width":225,"height":169}},"assets/images/3-full.98d46e26ae.webp":{"width":1050,"height":600},"assets/images/red-heart-1-full.f39a86f461.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/red-heart-1-thumb.05cd657fc6.webp","width":225,"height":169}},"assets/images/miso-pasta-1-full.52d03c78fc.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/miso-pasta-1-thumb.7d7dc94b53.webp","width":225,"height":169}},"assets/images/review-3-full.447f2d1f52.webp":{"width":1200,"height":675,"thumbnail":{"src":"assets/images/review-3-thumb.777490db3c.webp","width":225,"height":127}},"assets/images/logo-full.5c5ca87866.webp":{"width":240,"height":180},"assets/images/review-11-full.83f082cc17.webp":{"width":1080,"height":607},"assets/images/4-full.f6ff8b2ca3.webp":{"width":1050,"height":600},"assets/images/home-1-full.79d81d586f.webp":{"width":900,"height":498,"small":{"src":"assets/images/home-1-card.4a6d7dfbfe.webp","width":480,"height":266}},"assets/images/review-13-full.bb1dc8dc8b.webp":{"width":1080,"height":608},"assets/images/11-full.4d63bbcce7.webp":{"width":1050,"height":600},"assets/images/chickelious-1-full.89a0d01486.webp":{"width":500,"height":365,"thumbnail":{"src":"assets/images/chickelious-1-thumb.eec838a0ff.webp","width":225,"height":164}},"assets/images/italian-1-full.849cf0670b.webp":{"width":500,"height":365,"thumbnail":{"src":"assets/images/italian-1-thumb.b9f50aae29.webp","width":225,"height":164}},"assets/images/6-full.e439ce137b.webp":{"width":1050,"height":600},"assets/images/build-your-own-full.0ec7dfadd3.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/build-your-own-thumb.7bcc16723f.webp","width":225,"height":169}},"assets/images/logo-png-full.342a5ca342.webp":{"width":500,"height":500},"assets/images/bougie-1-full.69f1d28ecd.webp":{"width":500,"height":365,"thumbnail":{"src":"assets/images/bougie-1-thumb.f9b85c1b42.webp","width":225,"height":164}},"assets/images/mediteranian-1-full.0b58ddcbc9.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/mediteranian-1-thumb.fab1e4a47f.webp","width":225,"height":169}},"assets/images/paradise-point-1-full.63d58ed0c9.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/paradise-point-1-thumb.eb010b0383.webp","width":225,"height":169}},"assets/images/reese-s-cup-1-full.d7bf35bcaf.webp":{"width":500,"height":365,"thumbnail":{"src":"assets/images/reese-s-cup-1-thumb.9d7954b9e1.webp","width":225,"height":164}},"assets/images/review-8-full.de8f5ee3cd.webp":{"width":1080,"height":608},"assets/images/5-full.b0b9a73e95.webp":{"width":1050,"height":600},"assets/images/review-2-full.9127b4c13e.webp":{"width":1200,"height":675},"assets/images/review-10-full.91bc362188.webp":{"width":1011,"height":569},"assets/images/pesto-1-full.ab8b99c070.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/pesto-1-thumb.a776e2f39b.webp","width":225,"height":169}},"assets/images/bowl-combo-full.4bf98ebc33.webp":{"width":500,"height":365,"thumbnail":{"src":"assets/images/bowl-combo-thumb.e66a1dcbe5.webp","width":225,"height":164}},"assets/images/burger-combo-1-full.d9dca0b9e9.webp":{"width":500,"height":365,"thumbnail":{"src":"assets/images/burger-combo-1-thumb.b30186a453.webp","width":225,"height":164}},"assets/images/spaghetti-1-full.ceeb5d7c53.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/spaghetti-1-thumb.2bfaed0921.webp","width":225,"height":169}},"assets/images/9-full.70d783dc76.webp":{"width":1050,"height":600},"assets/images/summer-1-full.49e8ec999d.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/summer-1-thumb.0413b84748.webp","width":225,"height":169}},"assets/images/12-full.37c8c9a346.webp":{"width":1050,"height":600},"assets/images/tex-mex-combo-1-full.3be46349e4.webp":{"width":500,"height":366,"thumbnail":{"src":"assets/images/tex-mex-combo-1-thumb.9d7ec786c8.webp","width":225,"height":165}},"assets/images/fruitopia-full.986656e2a8.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/fruitopia-thumb.ea44dc8cea.webp","width":225,"height":169}},"assets/images/heartwarmer-1-full.d805be1e7a.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/heartwarmer-1-thumb.45fca4b4b4.webp","width":225,"height":169}},"assets/images/placeholder-byo-sandwich.dfbb1b0122.svg":{"width":400,"height":400},"assets/images/placeholder-french-fries.56d2c70569.svg":{"width":400,"height":400},"assets/images/placeholder-honey-passion.7a30702f9a.svg":{"width":400,"height":400},"assets/images/placeholder-mint-pineapple.09a8c35c73.svg":{"width":400,"height":400},"assets/images/placeholder-oon-jai-dish.3506877ebc.svg":{"width":400,"height":400},"assets/images/placeholder-sparkling-lime.110fc22dab.svg":{"width":400,"height":400},"assets/images/placeholder-strawberry-lemonade.129947a09b.svg":{"width":400,"height":400}};
+  const imageFallback = "assets/images/image-unavailable.1afb1ada4a.svg";
+
+  const defaultDummyImages = ["assets/images/placeholder-oon-jai-dish.3506877ebc.svg"];
+
+  const commonChoices = {
+    veggies: ['Grilled mushrooms', 'Grilled bell peppers', 'Grilled eggplant', 'Caramelized onion', 'Microgreens', 'Avocado', 'Lettuce', 'Tomatoes', 'Onions', 'Carrots', 'Olives', 'Corn'],
+    proteins: ['Beans', 'Sautéed tofu', 'Lemon chicken', 'Ground meat', 'Spicy sausage', 'Regular sausage', 'Falafel'],
+    sandwichProteins: ['Sautéed tofu', 'Lemon chicken', 'Ground meat', 'Spicy sausage', 'Regular sausage'],
+    sauces: ['Garlic mayo', 'Basil mayo', 'Chili mayo', 'Tahini sauce', 'Hummus', 'Cheese sauce'],
+    wellnessDrinks: ['Summer in My Heart', 'Wish Upon a Heart', 'Heartwarmer', 'Red Heart']
+  };
+
+  const menuData = {
+    burgers: [
+      { id: 'b1', name: 'Burger Combo', price: 199000, desc: 'The Classic Burger + Mint Pineapple Refresher + Lemon Oat Cookie.', images: ["assets/images/burger-combo-1-full.d9dca0b9e9.webp"] },
+      { id: 'b2', name: 'The Classic', price: 120000, desc: 'Meaty patty, lettuce, tomato, onion, pickles, garlic mayo, and cheese sauce. Served with a portion of fries.', images: ["assets/images/classic-1-full.a7893f03e0.webp"] },
+      { id: 'b3', name: 'The Cheeser', price: 110000, desc: 'Meaty patty, tomato, garlic mayo, and cheese sauce. Served with a portion of fries.', images: ["https://i.postimg.cc/v87p8m4T/cheeser.webp"] },
+      { id: 'b4', name: 'The Bougie', price: 130000, desc: 'Meaty patty, microgreens, tomato, caramelized onion, sautéed mushroom, grilled pineapple, and basil mayo. Served with a portion of fries.', images: ["assets/images/bougie-1-full.69f1d28ecd.webp"] },
+      { id: 'b5', name: 'French Fries', price: 60000, desc: 'Crispy golden French fries with seasoning.', images: ["assets/images/placeholder-french-fries.56d2c70569.svg"] }
+    ],
+    sandwiches: [
+      { id: 's1', name: 'Sandwich Combo', price: 180000, desc: 'Chickelicious sandwich + Paradise Point Refresher + Brownie.', images: ["assets/images/chickelious-1-full.89a0d01486.webp"] },
+      { id: 's2', name: 'Mediterranean', price: 105000, desc: 'Falafel, hummus, tahini sauce, tomato, pickles, mint, and cilantro.', images: ["assets/images/mediteranian-1-full.0b58ddcbc9.webp"] },
+      { id: 's3', name: 'Italian', price: 105000, desc: 'Grilled tofu, sautéed veggies, tomato, lettuce, onion, and basil mayo.', images: ["assets/images/italian-1-full.849cf0670b.webp"] },
+      { id: 's4', name: 'Chickelicious', price: 110000, desc: 'Plant-based chicken, caramelized onion, olives, microgreens, tomato, cheese sauce, and basil mayo.', images: ["assets/images/chickelious-1-full.89a0d01486.webp"] },
+      { id: 's5', name: 'Build Your Own Sandwich', price: 110000, desc: 'Customizable sandwich. Choose your sauces, veggies, and protein.', isCustom: true, maxSauces: 2, maxVeggies: 3, maxProteins: 1, specificProteins: 'sandwichProteins', images: ["assets/images/placeholder-byo-sandwich.dfbb1b0122.svg"] }
+    ],
+    texmex: [
+      { id: 'tx1', name: 'Tex-Mex Combo', price: 210000, desc: 'Tacos + Quesadilla + Mint Pineapple Refresher.', images: ["assets/images/tex-mex-combo-1-full.3be46349e4.webp"] },
+      { id: 'tx2', name: 'Quesadilla', price: 85000, desc: 'Flour tortilla with cheese sauce, ground meat, and pico de gallo.', images: ["assets/images/review-3-full.447f2d1f52.webp"] },
+      { id: 'tx3', name: 'Tacos', price: 99000, desc: 'Two soft shell tacos filled with ground meat or black beans, grilled bell pepper, avocado, pico de gallo, and cheese sauce.', images: ["assets/images/review-3-full.447f2d1f52.webp"] }
+    ],
+    pasta: [
+      { id: 'p1', name: 'Miso-Seaweed', price: 110000, desc: 'Herb, fresh, vibrant, and aromatic miso-seaweed fusion.', images: ["assets/images/miso-pasta-1-full.52d03c78fc.webp"] },
+      { id: 'p2', name: 'Carbonara', price: 110000, desc: 'Rich and creamy pasta made with peanut butter and coconut milk.', images: ["assets/images/carbonara-1-full.5a711363e4.webp"] },
+      { id: 'p3', name: 'Spaghetti', price: 110000, desc: 'Classic spaghetti packed with fresh, bright tomato goodness.', images: ["assets/images/spaghetti-1-full.ceeb5d7c53.webp"] },
+      { id: 'p4', name: 'Pesto Pasta', price: 110000, desc: 'Herb, fresh, vibrant, and aromatic basil pesto.', images: ["assets/images/pesto-1-full.ab8b99c070.webp"] }
+    ],
+    bowl: [
+      { id: 'bw1', name: 'Bowl Combo', price: 160000, desc: 'Protein pack + Wellness drink of your choice + Banana bread.', isCustom: true, maxSauces: 2, maxVeggies: 4, maxProteins: 2, needsWellnessChoice: true, images: ["assets/images/bowl-combo-full.4bf98ebc33.webp"] },
+      { id: 'bw2', name: 'Veggie Pack', price: 110000, desc: 'Includes 2 sauces, 5 veggies, and 1 protein. Additional choices (+7,000 Kip each).', isCustom: true, maxSauces: 2, maxVeggies: 5, maxProteins: 1, images: ["assets/images/build-your-own-full.0ec7dfadd3.webp"] },
+      { id: 'bw3', name: 'Protein Pack', price: 115000, desc: 'Includes 2 sauces, 4 veggies, and 2 proteins. Additional choices (+7,000 Kip each).', isCustom: true, maxSauces: 2, maxVeggies: 4, maxProteins: 2, images: ["assets/images/build-your-own-full.0ec7dfadd3.webp"] },
+      { id: 'bw4', name: 'Mini Pack', price: 99000, desc: 'Includes 1 sauce, 3 veggies, and 1 protein. Additional choices (+7,000 Kip each).', isCustom: true, maxSauces: 1, maxVeggies: 3, maxProteins: 1, images: ["assets/images/build-your-own-full.0ec7dfadd3.webp"] }
+    ],
+    smoothies: [
+      { id: 'sm1', name: 'Kickstart', price: 70000, desc: 'Banana, pineapple, and spinach. No ice or sugar added, sweetened by dates.', images: ["assets/images/kickstart-full.c0755e222e.webp"] },
+      { id: 'sm2', name: 'Fruitopia', price: 70000, desc: 'Mango, strawberry, and pineapple. No ice or sugar added, sweetened by dates.', images: ["assets/images/fruitopia-full.986656e2a8.webp"] },
+      { id: 'sm3', name: 'Paradise Point', price: 70000, desc: 'Passion fruit and pineapple. No ice or sugar added, sweetened by dates.', images: ["assets/images/paradise-point-1-full.63d58ed0c9.webp"] },
+      { id: 'sm4', name: 'Mary Jane', price: 80000, desc: 'Strawberry, mulberry, and banana. No ice or sugar added, sweetened by dates.', images: ["assets/images/mary-jane-1-full.654593f767.webp"] },
+      { id: 'sm5', name: "Reese's Cup", price: 70000, desc: 'Banana, peanut butter, and cocoa powder. No ice or sugar added, sweetened by dates.', images: ["assets/images/reese-s-cup-1-full.d7bf35bcaf.webp"] }
+    ],
+    refreshers: [
+      { id: 'r1', name: 'Mint Pineapple', price: 45000, desc: 'Fresh mint and pineapple.', images: ["assets/images/placeholder-mint-pineapple.09a8c35c73.svg"] },
+      { id: 'r2', name: 'Strawberry Lemonade', price: 50000, desc: 'Strawberry and lime.', images: ["assets/images/placeholder-strawberry-lemonade.129947a09b.svg"] },
+      { id: 'r3', name: 'Sparkling Lime', price: 45000, desc: 'Sparkling water and fresh lime.', images: ["assets/images/placeholder-sparkling-lime.110fc22dab.svg"] },
+      { id: 'r4', name: 'Honey Passion', price: 45000, desc: 'Passion fruit and honey.', images: ["assets/images/placeholder-honey-passion.7a30702f9a.svg"] }
+    ],
+    wellness: [
+      { id: 'w1', name: 'Summer in My Heart', price: 47000, desc: 'Pineapple juice and coconut water.', images: ["assets/images/summer-1-full.49e8ec999d.webp"] },
+      { id: 'w2', name: 'Wish Upon a Heart', price: 47000, desc: 'Green apple, basil cordial, lemon juice, and tapioca pearls.', images: ["assets/images/wish-1-full.28e6039506.webp"] },
+      { id: 'w3', name: 'Heartwarmer', price: 47000, desc: 'Ginger and turmeric tea, lemon juice, honey, and chia seeds.', images: ["assets/images/heartwarmer-1-full.d805be1e7a.webp"] },
+      { id: 'w4', name: 'Red Heart', price: 47000, desc: 'Lemongrass cordial, lemon, beetroot, and apple.', images: ["assets/images/red-heart-1-full.f39a86f461.webp"] }
+    ]
+  };
+
+  const customReviewsData = [
+    { text: "The food is absolutely incredible! ... Wow, I was blown away by all the flavor combinations, especially from the burger! 🍔", name: "Christopher B.", stars: "★★★★★" },
+    { text: "Lovely food and good service. We had the Mediterranean sandwich and a build your own bowl. Very good vegan options and the restaurant has good air con.", name: "Em", stars: "★★★★★" },
+    { text: "The vegetarian food here is next level! We were surprised to find a plant-based restaurant in Vientiane. The food and ambience were really nice. Highly recommend.", name: "Cris A.", stars: "★★★★★" },
+    { text: "Clean and cozy, friendly team. The food is healthy, fresh and delicious. Perfect balance. ... Heaven for vegans/vegetarians. Recommended.", name: "Eleonora A.", stars: "★★★★★" },
+    { text: "Rare exceptionnal plant based burger. It's often hard to find a good one , and these ones are creatives, with an original and very good vegan patty . The pastries are also very tasty , specially the brownie. Definitely advise this place !", name: "Julie M.", stars: "★★★★★" },
+    { text: "Every visit to this vegetarian spot in Vientiane is a treat! The food is uniquely creative, healthy, and very affordable! The staff greet you with warm smiles and genuine hospitality—pure comfort. 😀😀😀 Highly recommended!", name: "Janzel A.", stars: "★★★★★" },
+    { text: "I enjoyed my meal! I ordered mini bowl with chicken as my protein of choice…didnt even realize it was not a real chicken at all! Happy tummy 😁", name: "Kim Angel M.", stars: "★★★★★" },
+    { text: "My wife said, “This food makes me happy to be alive”. I say that this place will definitely fit our need for a healthy food option in Vientiane! The “Bougie Burger” is a must! 🍔 🌱😍 Also love the vibes", name: "Drew L.", stars: "★★★★★" },
+    { text: "Such a cozy vegetarian café! The burgers are amazing — tasty, filling, and made with love. I really liked the atmosphere: calm, clean, and pleasant. ... I’ll definitely come back if I’m ever in town again!", name: "360Art T.", stars: "★★★★★" },
+    { text: "Delicious food, the flavours are really bold and well paired. Healthy vegan food in Vientiane! Very clean restaurant and lovely service.", name: "Amber F.", stars: "★★★★★" },
+    { text: "Wow, anyone in the city must come here, a paradise for vegetarians, the restaurant is 100% meat-free, and the dishes are simply delicious and varied, thank you", name: "Ori A.", stars: "★★★★★" },
+    { text: "Super tasty and healthy food! I had the Protein Bowl and I can really recomend it! But, definetively the best part is the people working there! They are kind and helpful! Muchas gracias!", name: "Andrea V.G.", stars: "★★★★★" },
+    { text: "It’s a cozy place for a delicious and mindful meal. The sauces of the build-your-own-bowl are flavorful and the ingredients are really fresh.", name: "Yun-Chu S.", stars: "★★★★★" },
+    { text: "The best Vegan restaurant in Vientiane, Delicious food, great service, wonderful value and ambience. Would return again for sure.", name: "jn", stars: "★★★★★" },
+    { text: "This is one of the best veggie patties I've ever eaten. Delicious sauce in the burger. Perfectly seasoned fries. Peaceful atmosphere. Friendly service.", name: "Pascal U.", stars: "★★★★★" }
+  ];
+
+  const hopeImagesData = [
+    "assets/images/10-full.362290844c.webp", "assets/images/11-full.4d63bbcce7.webp", "assets/images/12-full.37c8c9a346.webp",
+    "assets/images/3-full.98d46e26ae.webp", "assets/images/4-full.f6ff8b2ca3.webp", "assets/images/5-full.b0b9a73e95.webp",
+    "assets/images/6-full.e439ce137b.webp", "assets/images/7-full.693031d79e.webp", "https://i.postimg.cc/tgbxX81R/8.jpg", "assets/images/9-full.70d783dc76.webp"
+  ];
+  const googleReviewPhotosData = ["assets/images/review-10-full.91bc362188.webp", "assets/images/review-11-full.83f082cc17.webp", "assets/images/review-12-full.407fc4bf79.webp", "assets/images/review-13-full.bb1dc8dc8b.webp", "assets/images/review-2-full.9127b4c13e.webp", "assets/images/review-3-full.447f2d1f52.webp", "assets/images/review-5-full.dfaea519b2.webp", "https://i.postimg.cc/rmr832Mm/Review-7.jpg", "assets/images/review-8-full.de8f5ee3cd.webp"];
+
+  const homeMenuImages = ["assets/images/home-1-full.79d81d586f.webp"];
+  const homeHopeImages = ["https://i.postimg.cc/qv0HJGGq/Home-2.png"];
+  const homeReviewImages = ["https://i.postimg.cc/sgyCjJJM/Home-3.png"];
+
+  // --- INTERNAL UTILITIES ---
+  function formatKip(amount) { return amount.toLocaleString('en-US') + ' Kip'; }
+
+  function readStorage(kind, key) {
+    try { return window[kind].getItem(key) ?? storageFallback.get(key) ?? null; }
+    catch { return storageFallback.get(key) ?? null; }
+  }
+
+  function writeStorage(kind, key, value) {
+    storageFallback.set(key, value);
+    try { window[kind].setItem(key, value); } catch { /* Keep this visit usable when storage is blocked. */ }
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+  }
+
+  function customDetails(item, choices) {
+    const extra = Math.max(0, choices.veggies.length - item.maxVeggies) + Math.max(0, choices.proteins.length - item.maxProteins);
+    const parts = [];
+    if (item.needsWellnessChoice) parts.push(`Drink: ${choices.drink}`);
+    if (choices.sauces.length) parts.push(`Sauces: ${choices.sauces.join(', ')}`);
+    if (choices.veggies.length) parts.push(`Veggies: ${choices.veggies.join(', ')}`);
+    if (choices.proteins.length) parts.push(`Proteins: ${choices.proteins.join(', ')}`);
+    if (extra) parts.push(`Add-ons: +${extra} item(s) (+${formatKip(extra * EXTRA_ADDON_PRICE)})`);
+    return { price: item.price + extra * EXTRA_ADDON_PRICE, subtext: parts.join(' | ') };
+  }
+
+  function saveCart() {
+    writeStorage('sessionStorage', 'oonjai_cart_v1', JSON.stringify({
+      savedAt: Date.now(), items: cart,
+      orderType: document.querySelector('[name="orderType"]:checked')?.value || ''
+    }));
+  }
+
+  function restoreCart() {
+    try {
+      const saved = JSON.parse(readStorage('sessionStorage', 'oonjai_cart_v1') || 'null');
+      if (!saved || !Number.isFinite(saved.savedAt) || Date.now() - saved.savedAt > 86400000 || !Array.isArray(saved.items)) return;
+      cart = saved.items.slice(0, 200).flatMap(entry => {
+        if (!entry || !Number.isSafeInteger(entry.qty) || entry.qty < 1 || entry.qty > 9999) return [];
+        if (!Object.hasOwn(menuData, entry.category)) return [];
+        const item = menuData[entry.category].find(item => item.id === entry.id);
+        if (!item) return [];
+        const row = { id: item.id, name: item.name, price: item.price, subtext: '', qty: entry.qty, isCustom: !!item.isCustom, category: entry.category };
+        if (item.isCustom) {
+          const choices = entry.choices;
+          if (!choices) return [];
+          const lists = { sauces: commonChoices.sauces, veggies: commonChoices.veggies, proteins: commonChoices[item.specificProteins || 'proteins'] };
+          for (const [key, allowed] of Object.entries(lists)) {
+            if (!Array.isArray(choices[key]) || choices[key].some(value => !allowed.includes(value)) || new Set(choices[key]).size !== choices[key].length) return [];
+          }
+          if (choices.sauces.length > item.maxSauces || !(choices.sauces.length + choices.veggies.length + choices.proteins.length)) return [];
+          if (item.needsWellnessChoice && !commonChoices.wellnessDrinks.includes(choices.drink)) return [];
+          row.choices = choices;
+          Object.assign(row, customDetails(item, choices));
+        }
+        return [row];
+      });
+      document.querySelectorAll('[name="orderType"]').forEach(radio => radio.checked = radio.value === saved.orderType);
+    } catch { cart = []; }
+  }
+
+  function setScrollLock() {
+    const top = modalStack.filter(modal => modal.classList.contains('active')).at(-1);
+    const wasLocked = document.body.classList.contains('modal-open');
+    if (top && !wasLocked) {
+      lockedScrollY = window.scrollY;
+      document.body.style.top = `-${lockedScrollY}px`;
+    }
+    document.documentElement.classList.toggle('modal-open', !!top);
+    document.body.classList.toggle('modal-open', !!top);
+    for (const child of document.body.children) {
+      if (child.matches('script, style')) continue;
+      child.inert = !!top && child !== top;
+    }
+    if (!top && wasLocked) {
+      document.body.style.top = '';
+      window.scrollTo(0, lockedScrollY);
+    }
+  }
+
+  function trapFocus(modalEl) {
+    if (!modalStack.includes(modalEl)) {
+      modalEl._returnFocus = document.activeElement;
+      modalStack.push(modalEl);
+    }
+    setScrollLock();
+    const focusable = () => [...modalEl.querySelectorAll('a[href], button, textarea, input, select, [tabindex="0"]')]
+      .filter(el => !el.disabled && el.getClientRects().length && !el.closest('[inert]'));
+    if (modalEl._keyListener) modalEl.removeEventListener('keydown', modalEl._keyListener);
+    modalEl._keyListener = e => {
+      if (e.key !== 'Tab') return;
+      const els = focusable(), first = els[0], last = els.at(-1);
+      if (!first) { e.preventDefault(); return; }
+      if (e.shiftKey && (document.activeElement === first || !modalEl.contains(document.activeElement))) {
+        last.focus(); e.preventDefault();
+      } else if (!e.shiftKey && (document.activeElement === last || !modalEl.contains(document.activeElement))) {
+        first.focus(); e.preventDefault();
+      }
+    };
+    modalEl.addEventListener('keydown', modalEl._keyListener);
+    focusable()[0]?.focus({ preventScroll: true });
+  }
+
+  function releaseModal(modalEl) {
+    modalEl.classList.remove('active');
+    const index = modalStack.indexOf(modalEl);
+    if (index >= 0) modalStack.splice(index, 1);
+    modalEl.removeEventListener('keydown', modalEl._keyListener);
+    setScrollLock();
+    const previous = modalEl._returnFocus;
+    if (previous?.isConnected && previous.getClientRects().length && !previous.closest('[inert]')) previous.focus({ preventScroll: true });
+    else if (modalStack.length) trapFocus(modalStack.at(-1));
+    else document.getElementById('floatingCartBtn').focus({ preventScroll: true });
+  }
+
+  function animateFlyToCart(originElement) {
+    if (reducedMotion.matches) return;
+    const cartBtn = document.getElementById('floatingCartBtn');
+    if (!cartBtn) return;
+
+    let startX = window.innerWidth / 2;
+    let startY = window.innerHeight / 2;
+
+    if (originElement) {
+      const rect = originElement.getBoundingClientRect();
+      if (rect.width > 0 && (rect.top !== 0 || rect.left !== 0)) {
+        startX = rect.left + rect.width / 2;
+        startY = rect.top + rect.height / 2;
+      }
+    }
+
+    const cartRect = cartBtn.getBoundingClientRect();
+    const endX = cartRect.left + cartRect.width / 2;
+    const endY = cartRect.top + cartRect.height / 2;
+
+    const particle = document.createElement('div');
+    particle.className = 'flying-cart-item';
+    particle.style.left = startX + 'px';
+    particle.style.top = startY + 'px';
+    document.body.appendChild(particle);
+
+    requestAnimationFrame(() => {
+      particle.style.left = endX + 'px';
+      particle.style.top = endY + 'px';
+      particle.style.transform = 'translate(-50%, -50%) scale(0.3)';
+      particle.style.opacity = '0.4';
+    });
+
+    setTimeout(() => {
+      particle.remove();
+      cartBtn.classList.remove('cart-shake');
+      void cartBtn.offsetWidth;
+      cartBtn.classList.add('cart-shake');
+      setTimeout(() => cartBtn.classList.remove('cart-shake'), 600);
+    }, 750);
+  }
+
+  function setupTabSwiping() {
+    const appRoot = document.getElementById('appRoot');
+    let touchStartTime = 0;
+
+    appRoot.addEventListener('touchstart', e => {
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+      touchStartTime = e.timeStamp;
+    }, {passive: true});
+
+    appRoot.addEventListener('touchend', e => {
+      if (e.target.closest('input, textarea, select, button, a, .categories-nav') || e.target.closest('.carousel-container') || e.target.closest('.home-card-slider') || e.target.closest('.modal-overlay.active') || e.target.closest('#cartModalWrapper.active')) return;
+
+      touchEndX = e.changedTouches[0].screenX;
+      touchEndY = e.changedTouches[0].screenY;
+
+      const diffX = touchEndX - touchStartX;
+      const diffY = touchEndY - touchStartY;
+      const absX = Math.abs(diffX);
+      const absY = Math.abs(diffY);
+      const duration = e.timeStamp - touchStartTime;
+
+      if (duration < 600 && absX > 120 && absX > (absY * 3)) {
+        const activeTabEl = document.querySelector('.nav-tab.active');
+        if(!activeTabEl) return;
+
+        const currentTab = activeTabEl.dataset.tab;
+        let idx = mainTabs.indexOf(currentTab);
+
+        if (diffX < 0 && idx < mainTabs.length - 1) {
+          App.switchMainTab(mainTabs[idx + 1]);
+        } else if (diffX > 0 && idx > 0) {
+          App.switchMainTab(mainTabs[idx - 1]);
+        }
+      }
+    }, {passive: true});
+  }
+
+  function initSwipeHint() {
+    const hint = document.getElementById('swipeHint');
+    if (!hint) return;
+    if (window.innerWidth >= 768) return;
+
+    if (!readStorage('localStorage', 'oonjai_swipe_hint_shown')) {
+      hint.classList.remove('hidden');
+      setTimeout(() => {
+        hint.classList.add('hidden');
+        writeStorage('localStorage', 'oonjai_swipe_hint_shown', 'true');
+      }, 3500);
+    }
+  }
+
+  function makeScrollableDraggable(ele, trackId, isVertical = false) {
+    if (ele.dataset.dragAttached) return;
+    let pos = { top: 0, left: 0, x: 0, y: 0 }, isDragging = false;
+    const mouseDownHandler = (e) => {
+      isDragging = true; ele.style.cursor = 'grabbing'; ele.style.userSelect = 'none';
+      pos = { left: ele.scrollLeft, top: ele.scrollTop, x: e.clientX, y: e.clientY };
+      document.addEventListener('mousemove', mouseMoveHandler);
+      document.addEventListener('mouseup', mouseUpHandler);
+      if (carouselIntervals[trackId]) clearInterval(carouselIntervals[trackId]);
+    };
+    const mouseMoveHandler = (e) => {
+      if (!isDragging) return;
+      if (isVertical) ele.scrollTop = pos.top - (e.clientY - pos.y);
+      else ele.scrollLeft = pos.left - (e.clientX - pos.x);
+    };
+    const mouseUpHandler = () => {
+      isDragging = false; ele.style.cursor = 'grab'; ele.style.removeProperty('user-select');
+      document.removeEventListener('mousemove', mouseMoveHandler);
+      document.removeEventListener('mouseup', mouseUpHandler);
+      if(trackId && !isVertical) startAutoPlay(trackId, 4000);
+    };
+    ele.addEventListener('mousedown', mouseDownHandler);
+    ele.style.cursor = 'grab';
+    ele.addEventListener('touchstart', () => { if (carouselIntervals[trackId]) clearInterval(carouselIntervals[trackId]); }, {passive: true});
+    ele.addEventListener('touchend', () => { if(trackId && !isVertical) startAutoPlay(trackId, 4000); }, {passive: true});
+    ele.dataset.dragAttached = 'true';
+  }
+
+  function startAutoPlay(trackId, intervalMs) {
+    clearInterval(carouselIntervals[trackId]);
+    const track = document.getElementById(trackId);
+    if (!track || carouselSizes[trackId] < 2 || document.hidden || reducedMotion.matches || !track.clientWidth) return;
+    carouselIntervals[trackId] = setInterval(() => {
+      const next = (Math.round(track.scrollLeft / track.clientWidth) + 1) % carouselSizes[trackId];
+      track.scrollTo({ left: next * track.clientWidth, behavior: reducedMotion.matches ? 'auto' : 'smooth' });
+    }, intervalMs);
+  }
+
+  function syncAnimations() {
+    Object.keys(carouselSizes).forEach(id => startAutoPlay(id, 4000));
+    clearInterval(verticalScrollInterval);
+    const container = document.getElementById('verticalReviewsCarousel');
+    if (document.hidden || reducedMotion.matches || !container?.clientHeight) return;
+    verticalScrollInterval = setInterval(() => {
+      if (!isVerticalHoveredOrDragged) {
+        container.scrollTop += 1;
+        if (Math.ceil(container.scrollTop + container.clientHeight) >= container.scrollHeight) container.scrollTop = 0;
+      }
+    }, 35);
+  }
+
+  function imageAttributes(src, { thumbnail = false, eager = false, priority = 'auto', responsive = false } = {}) {
+    const asset = imageAssets[src];
+    const variant = thumbnail && asset?.thumbnail ? asset.thumbnail : { src, ...asset };
+    const dimensions = variant.width ? ` width="${variant.width}" height="${variant.height}"` : '';
+    const sources = responsive && asset?.small
+      ? ` srcset="${escapeHtml(asset.small.src)} ${asset.small.width}w, ${escapeHtml(src)} ${asset.width}w" sizes="(max-width: 767px) calc(100vw - 60px), calc((100vw - 120px) / 3)"`
+      : '';
+    return `src="${escapeHtml(variant.src)}"${dimensions}${sources} loading="${eager ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${priority}" onerror="this.onerror=null;this.removeAttribute('srcset');this.src='${imageFallback}'"`;
+  }
+
+  function setupCarousel(trackId, dotsId, imagesArray) {
+    const track = document.getElementById(trackId), dots = document.getElementById(dotsId);
+    const validImages = (imagesArray || []).filter(link => typeof link === 'string' && link.trim());
+    clearInterval(carouselIntervals[trackId]);
+    carouselSizes[trackId] = validImages.length;
+    const isVisible = trackId === 'galleryCarouselTrack' || !!track.closest('.tab-pane.active');
+    track.innerHTML = validImages.map((src, index) => `<img ${imageAttributes(src, { eager: isVisible && index === 0, priority: isVisible && index === 0 ? 'high' : 'low' })} alt="${trackId === 'hopeCarouselTrack' ? 'Words of Hope' : trackId === 'reviewCarouselTrack' ? 'Restaurant guest photo' : 'Menu item photo'} ${index + 1}" class="carousel-img" draggable="false">`).join('');
+    dots.innerHTML = validImages.length > 1 ? validImages.map((_, index) => `<button class="dot${index === 0 ? ' active' : ''}" aria-label="Show image ${index + 1}" onclick="App.goToSlide('${trackId}', ${index})"></button>`).join('') : '';
+    track.scrollLeft = 0;
+    track.onscroll = () => {
+      if (!track.clientWidth) return;
+      const index = Math.round(track.scrollLeft / track.clientWidth);
+      dots.querySelectorAll('.dot').forEach((dot, i) => {
+        dot.classList.toggle('active', i === index);
+        dot.setAttribute('aria-current', String(i === index));
+      });
+    };
+    makeScrollableDraggable(track, trackId, false);
+    startAutoPlay(trackId, 4000);
+  }
+
+  function initVerticalReviewsCarousel() {
+    const container = document.getElementById('verticalReviewsCarousel');
+    if(!container) return;
+    const generateHtml = (arr) => arr.map(rev => `
+      <div class="vertical-review-card">
+        <div class="review-stars">${rev.stars}</div>
+        <div class="review-text">"${rev.text}"</div>
+        <div class="review-author">- ${rev.name}</div>
+      </div>
+    `).join('');
+    container.innerHTML = generateHtml(customReviewsData) + generateHtml(customReviewsData);
+    makeScrollableDraggable(container, null, true);
+
+    container.addEventListener('mouseenter', () => isVerticalHoveredOrDragged = true);
+    container.addEventListener('mouseleave', () => isVerticalHoveredOrDragged = false);
+    container.addEventListener('touchstart', () => isVerticalHoveredOrDragged = true, {passive: true});
+    container.addEventListener('touchend', () => setTimeout(() => isVerticalHoveredOrDragged = false, 1500), {passive: true});
+
+    syncAnimations();
+  }
+
+  function initHomeSliders() {
+    const createHomeSlider = (containerId, imagesArray, delayOffset) => {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const validImages = imagesArray.filter(link => link.trim() !== "");
+      if (validImages.length === 0) return;
+
+      const isFirstPreview = containerId === 'homeSliderMenu' && !!container.closest('.tab-pane.active');
+      container.innerHTML = validImages.map((src, i) => `<img ${imageAttributes(src, { eager: isFirstPreview && i === 0, priority: isFirstPreview && i === 0 ? 'high' : 'auto', responsive: true })} class="${i === 0 ? 'active' : ''}" alt="Home Preview">`).join('');
+      if (validImages.length > 1) {
+        let currentIndex = 0;
+        const imgs = container.querySelectorAll('img');
+        setTimeout(() => setInterval(() => {
+            if (document.hidden || reducedMotion.matches || !container.clientWidth) return;
+            imgs[currentIndex].classList.remove('active');
+            currentIndex = (currentIndex + 1) % validImages.length;
+            imgs[currentIndex].classList.add('active');
+        }, 3500), delayOffset);
+      }
+    };
+    createHomeSlider('homeSliderMenu', homeMenuImages, 0);
+    createHomeSlider('homeSliderHope', homeHopeImages, 800);
+    createHomeSlider('homeSliderReview', homeReviewImages, 1600);
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+    cartHome = document.createComment('Cart position in the menu');
+    document.getElementById('cartModalWrapper').before(cartHome);
+    const publicContent = await window.RestaurantPublic127.load();
+    if(publicContent.menu) for(const key of Object.keys(menuData)) menuData[key]=publicContent.menu[key]||[];
+    const page=publicContent.page;
+    if(page){
+      for(const [selector,key] of [['#tab-home .banner-title','title'],['#tab-home .banner-subtitle','subtitle'],['.home-intro h3','intro_title'],['.home-intro p','intro_text']]){
+        const node=document.querySelector(selector);if(node&&typeof page[key]==='string')node.textContent=page[key];
+      }
+      if(/^[0-9]{6,18}$/.test(page.phone||''))PHONE_NUMBER=page.phone;
+      if(/^[a-zA-Z0-9._-]{1,100}$/.test(page.messenger||''))MESSENGER_USERNAME=page.messenger;
+      if(page.announcement){const note=document.createElement('p');note.textContent=page.announcement;note.className='storefront-announcement127';document.querySelector('.home-intro').append(note);}
+    }
+    if(publicContent.stale){const note=document.createElement('p');note.setAttribute('role','status');note.textContent='Please confirm current prices and availability when ordering.';note.style.cssText='font-size:12px;margin:8px 0;color:#6c624c';document.getElementById('productsGrid').before(note);}
+    restoreCart();
+    const hashTab = window.location.hash.slice(1);
+    const savedTab = mainTabs.includes(hashTab) ? hashTab : readStorage('sessionStorage', 'oonjai_active_tab');
+    App.switchMainTab(mainTabs.includes(savedTab) ? savedTab : 'home', false);
+
+    setupCarousel('hopeCarouselTrack', 'hopeCarouselDots', hopeImagesData);
+    setupCarousel('reviewCarouselTrack', 'reviewCarouselDots', googleReviewPhotosData);
+    initVerticalReviewsCarousel();
+    initHomeSliders();
+    App._reRenderStore();
+    setupForm();
+    setupTabSwiping();
+    initSwipeHint();
+    document.querySelectorAll('.nav-left, .home-card').forEach(el => el.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
+    }));
+    document.querySelectorAll('[role="tablist"]').forEach(list => list.addEventListener('keydown', e => {
+      const tabs = [...list.querySelectorAll('[role="tab"]')];
+      const index = tabs.indexOf(document.activeElement);
+      if (index < 0) return;
+      let next;
+      if (e.key === 'ArrowRight') next = (index + 1) % tabs.length;
+      else if (e.key === 'ArrowLeft') next = (index + tabs.length - 1) % tabs.length;
+      else if (e.key === 'Home') next = 0;
+      else if (e.key === 'End') next = tabs.length - 1;
+      else return;
+      e.preventDefault(); tabs[next].click(); tabs[next].focus();
+    }));
+  });
+
+  document.addEventListener('visibilitychange', syncAnimations);
+  window.addEventListener('pagehide', saveCart);
+  window.addEventListener('hashchange', () => App.switchMainTab(mainTabs.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home', false));
+  window.addEventListener('popstate', () => App.switchMainTab(mainTabs.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home', false));
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 768 && document.getElementById('cartModalWrapper').classList.contains('active')) App.closeCartModal();
+    syncAnimations();
+  });
+  reducedMotion.addEventListener('change', syncAnimations);
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const top = modalStack.at(-1);
+    if (!top) return;
+    e.preventDefault();
+    const close = { notificationModal: 'closeNotification', customModal: 'closeCustomModal', galleryModal: 'closeGallery', cartModalWrapper: 'closeCartModal' };
+    App[close[top.id]]();
+  });
+
+  function setupForm() {
+    deviceToken = readStorage("localStorage", "oonjai_user_id");
+    if (!deviceToken) {
+      deviceToken = "DEV-" + Math.random().toString(36).substring(2, 11) + Date.now();
+      writeStorage("localStorage", "oonjai_user_id", deviceToken);
+    }
+    document.getElementById("device_token").value = deviceToken;
+
+    const messageInput = document.getElementById('message');
+    const wordCounter = document.getElementById('wordCounter');
+    const getWordCount = (str) => { const t = str.trim(); return t ? t.split(/\s+/).length : 0; };
+
+    messageInput.addEventListener('input', function() {
+      const count = getWordCount(this.value);
+      wordCounter.innerText = `${count} / 20-30 words`;
+      wordCounter.style.color = (count >= 20 && count <= 30) ? "#4ade80" : "#64748b";
+    });
+
+    document.getElementById('customForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      if (formSubmitting) return;
+      const status = document.getElementById('statusMsg'), submitBtn = document.getElementById('submitBtn');
+      const wordCount = getWordCount(messageInput.value);
+
+      if (wordCount < 20 || wordCount > 30) {
+        status.style.color = "#f87171";
+        status.innerText = `Message is ${wordCount < 20 ? 'too short' : 'too long'} (${wordCount} words). Must be between 20 and 30 words.`;
+        return;
+      }
+      status.style.color = "#94a3b8"; status.innerText = "Submitting..."; submitBtn.disabled = true;
+
+      formSubmitting = true;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 20000);
+      try {
+        await fetch(WEB_APP_URL, { method: 'POST', body: new FormData(this), mode: 'no-cors', signal: controller.signal });
+        // Apps Script returns an opaque response. It does not prove that the sheet saved the message.
+        status.style.color = '#fbbf24';
+        status.innerText = 'Message sent for delivery, but we cannot confirm receipt. Your draft is kept here. Please avoid resending immediately.';
+      } catch (error) {
+        status.style.color = '#f87171';
+        status.innerText = error.name === 'AbortError'
+          ? 'Delivery timed out. Your message may have arrived; we cannot confirm receipt. Your draft is kept here.'
+          : 'Could not confirm delivery. Your draft is kept here. Check your connection before trying again.';
+      } finally {
+        clearTimeout(timeout);
+        formSubmitting = false;
+        submitBtn.disabled = false;
+      }
+    });
+  }
+
+  function renderProductsGrid() {
+    const container = document.getElementById('productsGrid'); container.innerHTML = menuData[currentCategory].length?'':'<p>No items are currently available in this category.</p>';
+    menuData[currentCategory].forEach((item, index) => {
+      const totalCount = cart.filter(c => c.id === item.id).reduce((acc, curr) => acc + curr.qty, 0);
+
+      const card = document.createElement('div'); card.className = 'product-card';
+      const countHtml = totalCount > 0 ? `<span class="item-count-text">×${totalCount}</span>` : '';
+      const actionBtn = item.isCustom ? `<button class="add-btn" onclick="App.openCustomModal('${currentCategory}', '${item.id}')">Customize</button>`
+                        : `<button class="add-btn" onclick="App.addMenuItemToCart('${currentCategory}', '${item.id}', this)">Add +</button>`;
+
+      const thumbnailSrc = item.images && item.images.length > 0 ? item.images[0] : defaultDummyImages[0];
+      const isLeadingImage = index < 2 && document.getElementById('tab-menu').classList.contains('active');
+      const imageHtml = `<img ${imageAttributes(thumbnailSrc, { thumbnail: true, eager: isLeadingImage })} class="product-image" role="button" tabindex="0" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }" alt="${escapeHtml(item.name)}" onclick="App.openGallery('${currentCategory}', '${item.id}')" aria-label="View images and details for ${escapeHtml(item.name)}">`;
+
+      card.innerHTML = `
+        <div style="display: flex; gap: 12px; align-items: center; width: 100%;">
+          ${imageHtml}
+          <div class="product-info">
+            <div class="product-name">${escapeHtml(item.name)}</div>
+            <div class="product-desc">${escapeHtml(item.desc)}</div>
+          </div>
+        </div>
+        <div class="product-action">
+          <span class="price">${formatKip(item.price)}</span>
+          <div class="btn-wrapper">${countHtml}${actionBtn}</div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  // --- PUBLIC API / METHODS ---
+  return {
+    startAutoPlay,
+    saveCart,
+
+    switchMainTab: function(tabId, updateHistory = true) {
+      if (!mainTabs.includes(tabId)) return;
+      if (document.getElementById('cartModalWrapper').classList.contains('active')) this.closeCartModal();
+      // Hide all standard panes
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.getElementById('tab-' + tabId).classList.add('active');
+
+      // Update Desktop top-nav
+      document.querySelectorAll('.nav-tab').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      document.querySelectorAll(`.nav-tab[data-tab="${tabId}"]`).forEach(btn => {
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
+      });
+
+      // Update Mobile bottom-nav
+      document.querySelectorAll('.bottom-nav-tab').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      document.querySelectorAll(`.bottom-nav-tab[data-tab="${tabId}"]`).forEach(btn => {
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
+      });
+
+      writeStorage('sessionStorage', 'oonjai_active_tab', tabId);
+      document.querySelectorAll('[role="tab"]').forEach(tab => tab.tabIndex = tab.dataset.tab === tabId ? 0 : -1);
+      if (updateHistory && location.hash !== '#' + tabId) history.pushState(null, '', '#' + tabId);
+      syncAnimations();
+
+      window.scrollTo({ top: 0, behavior: reducedMotion.matches ? 'auto' : 'smooth' });
+    },
+
+    scrollToBasket: function() {
+      if (window.innerWidth < 768) {
+        // Mobile: Show as elegant popup modal
+        const wrapper = document.getElementById('cartModalWrapper');
+        if (wrapper) {
+          document.body.appendChild(wrapper);
+          wrapper.setAttribute('role', 'dialog');
+          wrapper.setAttribute('aria-modal', 'true');
+          wrapper.setAttribute('aria-label', 'Your Order Basket');
+          wrapper.classList.add('active');
+          trapFocus(wrapper);
+        }
+      } else {
+        // Desktop: Keep current inline design, scroll to basket
+        if (!document.getElementById('tab-menu').classList.contains('active')) {
+          this.switchMainTab('menu');
+          // Wait slightly for tab to swap before scrolling down
+          setTimeout(() => this.executeScrollToCart(), 100);
+        } else {
+          this.executeScrollToCart();
+        }
+      }
+    },
+
+    executeScrollToCart: function() {
+      const cartSection = document.getElementById('cartSection');
+      if (cartSection) {
+        cartSection.scrollIntoView({ behavior: reducedMotion.matches ? 'auto' : 'smooth', block: 'center' });
+        cartSection.classList.remove('basket-highlight');
+        void cartSection.offsetWidth;
+        cartSection.classList.add('basket-highlight');
+
+        setTimeout(() => {
+          cartSection.classList.remove('basket-highlight');
+        }, 6000);
+      }
+    },
+
+    closeCartModal: function() {
+      const wrapper = document.getElementById('cartModalWrapper');
+      if (wrapper) {
+        releaseModal(wrapper);
+        wrapper.removeAttribute('role');
+        wrapper.removeAttribute('aria-modal');
+        if (cartHome) cartHome.after(wrapper);
+      }
+    },
+
+    scrollCarousel: function(trackId, dir) {
+      const track = document.getElementById(trackId);
+      const count = carouselSizes[trackId] || 1;
+      const next = (Math.round(track.scrollLeft / track.clientWidth) + dir + count) % count;
+      track.scrollTo({ left: track.clientWidth * next, behavior: reducedMotion.matches ? 'auto' : 'smooth' });
+      startAutoPlay(trackId, 4000);
+    },
+
+    goToSlide: function(trackId, slideIndex) {
+      const track = document.getElementById(trackId);
+      track.scrollTo({ left: track.clientWidth * slideIndex, behavior: reducedMotion.matches ? 'auto' : 'smooth' });
+      startAutoPlay(trackId, 4000);
+    },
+
+    clearForm: function() {
+      if (formSubmitting) return;
+      document.getElementById('customForm').reset();
+      document.getElementById("device_token").value = deviceToken;
+      document.getElementById('statusMsg').innerText = "";
+      const wc = document.getElementById('wordCounter');
+      wc.innerText = "0 / 20-30 words"; wc.style.color = "#64748b";
+    },
+
+    switchCategory: function(catKey) {
+      if (!Object.hasOwn(menuData, catKey)) return;
+      currentCategory = catKey;
+      document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.category === catKey));
+      const titleMap = { burgers: 'Burgers', sandwiches: 'Sandwiches', texmex: 'Tex-Mexican', pasta: 'Pasta', bowl: 'Build Your Bowl', smoothies: 'Smoothies', refreshers: 'Refreshers', wellness: 'Wellness Drinks' };
+      document.getElementById('categoryTitle').innerText = titleMap[catKey];
+
+      renderProductsGrid();
+      const scrollTarget = window.innerWidth < 768 ? document.getElementById('contentLayout') : document.getElementById('mainContent');
+      if (scrollTarget && typeof scrollTarget.scrollIntoView === 'function') scrollTarget.scrollIntoView({behavior: reducedMotion.matches ? 'auto' : 'smooth', block: 'start'});
+    },
+
+    addMenuItemToCart: function(category, itemId, eventElement = null) {
+      const item = menuData[category]?.find(i => i.id === itemId);
+      if (item && !item.isCustom) {
+        const existing = cart.find(c => c.id === item.id && !c.isCustom);
+        if (existing) {
+          existing.qty += 1;
+        } else {
+          cart.push({ id: item.id, name: item.name, price: item.price, subtext: '', qty: 1, isCustom: false, category: category });
+        }
+
+        animateFlyToCart(eventElement);
+        this._reRenderStore();
+      }
+    },
+
+    incrementCartItem: function(index) {
+      const item = cart[index];
+      if (!item) return;
+      if (item.isCustom) {
+        this.openCustomModal(item.category, item.id);
+      } else {
+        item.qty += 1;
+        this._reRenderStore();
+      }
+    },
+
+    decrementCartItem: function(index) {
+      if (!cart[index]) return;
+      if (cart[index].qty > 1) {
+        cart[index].qty -= 1;
+      } else {
+        cart.splice(index, 1);
+      }
+      this._reRenderStore();
+    },
+
+    editCartItem: function(index) {
+      const item = cart[index];
+      if (!item || !item.isCustom) return;
+      this.openCustomModal(item.category, item.id, index);
+    },
+
+    _reRenderStore: function() {
+      saveCart();
+      renderProductsGrid();
+      const container = document.getElementById('cartItems'), countEl = document.getElementById('cartCount'), totalEl = document.getElementById('totalPrice'), floatingBadge = document.getElementById('floatingCartBadge');
+
+      let totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+      let totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+      countEl.innerText = `(${totalQty} item${totalQty === 1 ? '' : 's'})`;
+      if (floatingBadge) floatingBadge.innerText = totalQty;
+
+      if (cart.length === 0) {
+        container.innerHTML = `<p class="empty-cart-msg">Your basket is empty.</p>`;
+        totalEl.innerText = '0 Kip';
+      } else {
+        container.innerHTML = cart.map((item, idx) => {
+          const editBtnHtml = item.isCustom ? `<button class="cart-item-edit-btn" onclick="App.editCartItem(${idx})" aria-label="Edit options">✎ Edit Choices</button>` : '';
+
+          return `
+            <div class="cart-item">
+              <div class="cart-item-details">
+                <div class="cart-item-name">${escapeHtml(item.name)}</div>
+                ${item.subtext ? `<div class="cart-item-sub">${item.subtext}</div>` : ''}
+                ${editBtnHtml}
+              </div>
+              <div class="cart-item-right">
+                <span class="cart-item-price">${formatKip(item.price * item.qty)}</span>
+                <div class="cart-stepper">
+                  <button class="cart-stepper-btn minus" onclick="App.decrementCartItem(${idx})" aria-label="Decrease quantity">−</button>
+                  <span class="cart-stepper-count">${item.qty}</span>
+                  <button class="cart-stepper-btn" onclick="App.incrementCartItem(${idx})" aria-label="Increase quantity">+</button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+        totalEl.innerText = formatKip(totalPrice);
+      }
+    },
+
+    openCustomModal: function(catKey, itemId, editIndex = null) {
+      const item = menuData[catKey]?.find(i => i.id === itemId);
+      if (!item) return;
+
+      editingCartIndex = editIndex;
+      currentActiveCustomItem = { ...item, category: catKey };
+
+      const modalTitleEl = document.getElementById('modalTitle');
+      const submitBtnEl = document.getElementById('customModalSubmitBtn');
+
+      if (editingCartIndex !== null) {
+        modalTitleEl.innerText = `Edit: ${item.name}`;
+        submitBtnEl.innerText = "Save Changes";
+      } else {
+        modalTitleEl.innerText = item.name;
+        submitBtnEl.innerText = "Add to Order";
+      }
+
+      const bldBox = document.getElementById('standardBuilderBox'), welBox = document.getElementById('wellnessChoiceBox');
+
+      bldBox.style.display = 'block';
+      if (item.needsWellnessChoice) {
+        welBox.style.display = 'block';
+        document.getElementById('wellnessContainer').innerHTML = commonChoices.wellnessDrinks.map((drink, idx) => `<label class="option-label"><input type="radio" name="custWellness" value="${drink}" ${idx === 0 ? 'checked' : ''}> ${drink}</label>`).join('');
+      } else welBox.style.display = 'none';
+
+      document.getElementById('modalRulesInfo').innerText = `Included: Up to ${item.maxSauces} Sauce(s), ${item.maxVeggies} Veggie(s), and ${item.maxProteins} Protein(s).\n(Extra Veggies or Proteins: +7,000 Kip each)`;
+
+      const genChoices = (arr, name) => arr.map(val => `<label class="option-label"><input type="checkbox" name="${name}" value="${val}" onchange="App.enforceLimit(this, '${name}')"> ${val}</label>`).join('');
+      document.getElementById('saucesContainer').innerHTML = genChoices(commonChoices.sauces, 'custSauce');
+      document.getElementById('veggiesContainer').innerHTML = genChoices(commonChoices.veggies, 'custVeggie');
+      document.getElementById('proteinsContainer').innerHTML = genChoices(item.specificProteins ? commonChoices[item.specificProteins] : commonChoices.proteins, 'custProtein');
+
+      if (editingCartIndex !== null) {
+        const existingItem = cart[editingCartIndex];
+        if (existingItem?.choices) {
+          const groups = { custSauce: 'sauces', custVeggie: 'veggies', custProtein: 'proteins' };
+          Object.entries(groups).forEach(([name, key]) => document.querySelectorAll(`input[name="${name}"]`).forEach(input => {
+            input.checked = existingItem.choices[key].includes(input.value);
+          }));
+          document.querySelectorAll('[name="custWellness"]').forEach(input => input.checked = input.value === existingItem.choices.drink);
+        }
+      }
+
+      const modal = document.getElementById('customModal');
+      modal.classList.add('active');
+      trapFocus(modal);
+    },
+
+    closeCustomModal: function() {
+      if (pendingConfirmation) this.closeNotification();
+      releaseModal(document.getElementById('customModal'));
+      currentActiveCustomItem = null;
+      editingCartIndex = null;
+    },
+
+    openGallery: function(catKey, itemId) {
+      const item = menuData[catKey]?.find(i => i.id === itemId);
+      if (!item) return;
+
+      document.getElementById('galleryTitle').innerText = item.name;
+      document.getElementById('galleryDesc').innerText = item.desc;
+      document.getElementById('galleryPriceTag').innerText = formatKip(item.price);
+
+      const actionContainer = document.getElementById('galleryActionContainer');
+      if (item.isCustom) {
+        actionContainer.innerHTML = `<button class="add-btn" onclick="App.closeGallery(); App.openCustomModal('${catKey}', '${item.id}')">Customize Item</button>`;
+      } else {
+        actionContainer.innerHTML = `<button class="add-btn" onclick="App.addMenuItemToCart('${catKey}', '${item.id}', this); App.closeGallery();">Add to Cart +</button>`;
+      }
+
+      const imageList = item.images && item.images.length > 0 ? item.images : defaultDummyImages;
+      setupCarousel('galleryCarouselTrack', 'galleryCarouselDots', imageList);
+
+      const modal = document.getElementById('galleryModal');
+      modal.classList.add('active');
+      trapFocus(modal);
+      syncAnimations();
+    },
+    closeGallery: function() {
+      releaseModal(document.getElementById('galleryModal'));
+      if(carouselIntervals['galleryCarouselTrack']) clearInterval(carouselIntervals['galleryCarouselTrack']);
+    },
+
+    enforceLimit: function(checkbox, groupName) {
+      const maxAllowed = currentActiveCustomItem?.maxSauces;
+      if (groupName === 'custSauce') {
+        if (document.querySelectorAll(`input[name="${groupName}"]:checked`).length > maxAllowed) {
+          checkbox.checked = false;
+          this.triggerAlert(`Limit reached! You can select up to ${maxAllowed} Sauce(s) for this section.`, 'Limit Reached');
+        }
+      }
+    },
+
+    addCustomItemToCart: async function(eventElement) {
+      if (!currentActiveCustomItem || customSubmitPending) return;
+      const activeItem = currentActiveCustomItem;
+      const editIndex = editingCartIndex;
+
+      const getVals = (name) => Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(cb => cb.value);
+      const sauces = getVals('custSauce'), veggies = getVals('custVeggie'), proteins = getVals('custProtein');
+      const maxS = currentActiveCustomItem.maxSauces, maxV = currentActiveCustomItem.maxVeggies, maxP = currentActiveCustomItem.maxProteins;
+
+      if (!sauces.length && !veggies.length && !proteins.length) return this.triggerAlert("Please select at least one item to build your option.", "Selection Required");
+
+      const extV = Math.max(0, veggies.length - maxV), extP = Math.max(0, proteins.length - maxP);
+      const totExt = extV + extP, totExtCost = totExt * EXTRA_ADDON_PRICE;
+      let warnings = [];
+
+      if (sauces.length < maxS || veggies.length < maxV || proteins.length < maxP) {
+        let short = [];
+        if (sauces.length < maxS) short.push(`Sauces: ${sauces.length} / ${maxS}`);
+        if (veggies.length < maxV) short.push(`Veggies: ${veggies.length} / ${maxV}`);
+        if (proteins.length < maxP) short.push(`Proteins: ${proteins.length} / ${maxP}`);
+        warnings.push(`You still have unused included choices:\n` + short.join('\n'));
+      }
+      if (totExt > 0) {
+        let extra = [];
+        if (extV > 0) extra.push(`Extra Veggies: +${extV} (${formatKip(extV * EXTRA_ADDON_PRICE)})`);
+        if (extP > 0) extra.push(`Extra Proteins: +${extP} (${formatKip(extP * EXTRA_ADDON_PRICE)})`);
+        warnings.push(`Additional Add-ons selected:\n` + extra.join('\n') + `\nTotal Extra: +${formatKip(totExtCost)}`);
+      }
+
+      if (warnings.length > 0) {
+        customSubmitPending = true;
+        const proceed = await new Promise(resolve => this.triggerConfirm(warnings.join('\n\n') + `\n\nAre you sure you want to proceed?`, 'Customize Confirmation', resolve));
+        customSubmitPending = false;
+        if (!proceed || currentActiveCustomItem !== activeItem || editingCartIndex !== editIndex) return;
+      }
+
+      const choices = { sauces, veggies, proteins, drink: activeItem.needsWellnessChoice ? document.querySelector('[name="custWellness"]:checked')?.value : null };
+      if (sauces.length > maxS) return this.triggerAlert(`Please select no more than ${maxS} sauces.`, 'Sauce Limit');
+      const { subtext: finalSubtext, price: finalPrice } = customDetails(activeItem, choices);
+
+      if (editingCartIndex !== null && cart[editingCartIndex]) {
+        cart[editingCartIndex].subtext = finalSubtext;
+        cart[editingCartIndex].price = finalPrice;
+        cart[editingCartIndex].choices = choices;
+      } else {
+        const existing = cart.find(c => c.id === currentActiveCustomItem.id && c.subtext === finalSubtext && c.price === finalPrice);
+        if (existing) {
+          existing.qty += 1;
+        } else {
+          cart.push({ id: currentActiveCustomItem.id, name: currentActiveCustomItem.name, price: finalPrice, subtext: finalSubtext, choices, qty: 1, isCustom: true, category: currentActiveCustomItem.category });
+        }
+      }
+
+      animateFlyToCart(eventElement);
+      this._reRenderStore();
+      this.closeCustomModal();
+    },
+
+    handleCheckout: function(platform) {
+      if (cart.length === 0) {
+        this.triggerAlert("Your basket is empty! Please add items before ordering.", "Empty Basket");
+        return;
+      }
+
+      const type = document.querySelector('input[name="orderType"]:checked');
+      if (!type) {
+        const html = `
+          <div style="margin: 10px 0 20px 0;">
+            <p style="margin-bottom: 20px; font-size: 15px; color: var(--text-bright);">How would you like your order?</p>
+            <div style="display: flex; gap: 12px; justify-content: center;">
+              <button style="flex:1; padding: 14px; font-size: 14px; font-weight: 700; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none; border-radius: var(--border-radius-sm); cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);" onclick="App.setOrderTypeAndCheckout('Dine-In', '${platform}')">🍽️ Dine-In</button>
+              <button style="flex:1; padding: 14px; font-size: 14px; font-weight: 700; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; border-radius: var(--border-radius-sm); cursor: pointer; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);" onclick="App.setOrderTypeAndCheckout('Pick-Up', '${platform}')">🛍️ Pick-Up</button>
+            </div>
+          </div>
+        `;
+        this.triggerCustomPrompt(html, "Select Order Type");
+        return;
+      }
+
+      if (platform === 'wa') this.executeWA();
+      else if (platform === 'msgr') this.executeMessenger();
+    },
+
+    setOrderTypeAndCheckout: function(typeValue, platform) {
+      this.closeNotification();
+
+      const radio = document.querySelector(`input[name="orderType"][value="${typeValue}"]`);
+      if (radio) radio.checked = true;
+      saveCart();
+
+      if (platform === 'wa') this.executeWA();
+      else if (platform === 'msgr') this.executeMessenger();
+    },
+
+    executeWA: function() {
+      const msg = this._buildOrderMsg();
+      const url = `https://api.whatsapp.com/send?phone=${PHONE_NUMBER}&text=${encodeURIComponent(msg)}`;
+      window.location.href = url;
+    },
+
+    executeMessenger: async function() {
+      const msg = this._buildOrderMsg();
+      saveCart();
+      this.triggerCustomPrompt(`<div class="messenger-checkout">
+        <p id="copyOrderStatus" role="status">Copying your order…</p>
+        <label for="messengerOrderText">Your order for Oon Jai Marketplace</label>
+        <textarea id="messengerOrderText" class="form-input" rows="6" readonly></textarea>
+        <button class="cat-btn" id="copyOrderBtn" onclick="App.copyMessengerOrder()">Copy order again</button>
+        <p>Open our Messenger chat, paste your order, then tap <strong>Send</strong>.</p>
+        <a id="openMessengerLink" class="btn-msgr" aria-disabled="true" target="_self">Open Messenger</a>
+        <div id="shareOrderOption" hidden>
+          <button id="shareOrderBtn" class="btn-msgr" style="width: 100%;" onclick="App.shareMessengerOrder()">Share order…</button>
+          <p class="messenger-help" style="margin-top: 8px;">If the link doesn’t open Messenger, use Share order. Choose Messenger if listed, then select Oon Jai Marketplace.</p>
+          <p id="shareOrderStatus" class="messenger-help" role="status"></p>
+        </div>
+        <details class="messenger-help"><summary>Messenger didn’t open?</summary>
+          <p>If the App Store opens, return here and open the Messenger app yourself. Search for <strong>Oon Jai Marketplace (@${MESSENGER_USERNAME})</strong>, paste your order, and tap Send. Your basket is saved in this browser tab.</p>
+        </details>
+        <button class="cat-btn" onclick="App.closeNotification()">Back to order</button>
+        </div>`, 'Send Your Order');
+      document.getElementById('messengerOrderText').value = msg;
+      try {
+        const canShare = typeof navigator.share === 'function' && (!navigator.canShare || navigator.canShare({ text: msg }));
+        document.getElementById('shareOrderOption').hidden = !canShare;
+      } catch { /* The copy and direct-chat options remain available. */ }
+      await this.copyMessengerOrder();
+    },
+
+    shareMessengerOrder: async function() {
+      const order = document.getElementById('messengerOrderText');
+      const button = document.getElementById('shareOrderBtn');
+      const status = document.getElementById('shareOrderStatus');
+      if (!order || !navigator.share || button.disabled) return;
+      button.disabled = true;
+      try {
+        // Invoke directly from the tap, before any asynchronous clipboard work.
+        await navigator.share({ text: order.value });
+        if (status.isConnected) status.textContent = 'Check Messenger to confirm that you sent the order.';
+      } catch (error) {
+        if (status.isConnected) status.textContent = error.name === 'AbortError'
+          ? 'Sharing canceled. Your order is still here.'
+          : 'Sharing is unavailable. You can still copy and paste your order.';
+      } finally {
+        if (button.isConnected) button.disabled = false;
+      }
+    },
+
+    copyMessengerOrder: async function() {
+      const orderText = document.getElementById('messengerOrderText');
+      const status = document.getElementById('copyOrderStatus');
+      const button = document.getElementById('copyOrderBtn');
+      const link = document.getElementById('openMessengerLink');
+      if (!orderText || button.disabled) return;
+      button.disabled = true;
+      link.removeAttribute('href');
+      link.setAttribute('aria-disabled', 'true');
+      status.textContent = 'Copying your order…';
+      let copied = false;
+      let timeout;
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await Promise.race([
+            navigator.clipboard.writeText(orderText.value),
+            new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error('Copy timed out')), 4000); })
+          ]);
+          copied = true;
+        }
+      } catch { /* Keep a manual copy option if permission is denied or delayed. */ }
+      finally { clearTimeout(timeout); }
+      if (!status.isConnected) return;
+      if (!copied) copied = this._fallbackCopyText(orderText.value);
+      status.textContent = copied ? 'Order copied. Paste it into the chat, then send it.' : 'Please copy your order manually from the box below.';
+      button.disabled = false;
+      // A real, directly tapped cross-domain link preserves Safari's native app handoff.
+      // Do not replace this with window.open after an await or a timed App Store fallback.
+      link.href = `https://m.me/${MESSENGER_USERNAME}`;
+      link.removeAttribute('aria-disabled');
+      if (!copied) { orderText.focus(); orderText.select(); }
+    },
+
+    _fallbackCopyText: function(text) {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.cssText = 'position:fixed;left:0;top:0;opacity:0;pointer-events:none';
+      const previous = document.activeElement;
+      (modalStack.at(-1) || document.body).appendChild(textArea);
+      textArea.focus(); textArea.select();
+      let copied = false;
+      try { copied = document.execCommand('copy'); } catch { /* Return the actual copy result. */ }
+      textArea.remove();
+      previous?.focus({ preventScroll: true });
+      return copied;
+    },
+
+    _buildOrderMsg: function() {
+      const type = document.querySelector('input[name="orderType"]:checked').value;
+
+      let msg = `✦ *OON JAI ORDER* ✦\n*Type: ${type}*\n\n*Items Ordered:*\n`;
+      cart.forEach((item, index) => {
+        msg += `${index + 1}. *${item.name}* (x${item.qty}) - ${formatKip(item.price * item.qty)}\n` + (item.subtext ? `    _${item.subtext}_\n` : '');
+      });
+      const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      msg += `\n*Total: ${formatKip(totalPrice)}*\n\n👉Note: Please send your payment receipt to process this order.\n`;
+      return msg;
+    },
+
+    triggerAlert: function(message, title) {
+      this.closeNotification();
+      document.getElementById('notifTitle').textContent = title;
+      document.getElementById('notifMessage').textContent = message;
+      document.getElementById('notifAlertAction').style.display = 'block';
+      document.getElementById('notifConfirmActions').style.display = 'none';
+      const modal = document.getElementById('notificationModal');
+      modal.classList.add('active');
+      trapFocus(modal);
+    },
+
+    triggerCustomPrompt: function(html, title) {
+      this.closeNotification();
+      document.getElementById('notifTitle').textContent = title;
+      document.getElementById('notifMessage').innerHTML = html;
+      document.getElementById('notifAlertAction').style.display = 'none';
+      document.getElementById('notifConfirmActions').style.display = 'none';
+      const modal = document.getElementById('notificationModal');
+      modal.classList.add('active');
+      trapFocus(modal);
+    },
+
+    triggerConfirm: function(message, title, callback) {
+      this.triggerAlert(message, title);
+      pendingConfirmation = callback;
+      document.getElementById('notifAlertAction').style.display = 'none';
+      document.getElementById('notifConfirmActions').style.display = 'flex';
+      document.getElementById('btnNotifProceed').onclick = e => { e.preventDefault(); this.closeNotification(true); };
+      document.getElementById('btnNotifCancel').onclick = () => this.closeNotification(false);
+      trapFocus(document.getElementById('notificationModal'));
+    },
+
+    closeNotification: function(confirmed = false) {
+      const callback = pendingConfirmation;
+      pendingConfirmation = null;
+      const modal = document.getElementById('notificationModal');
+      if (modal.classList.contains('active')) releaseModal(modal);
+      if (callback) callback(confirmed);
+    }
+
+  };
+})();
+</script>
+</body>
+</html>
