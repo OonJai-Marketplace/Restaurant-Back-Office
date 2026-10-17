@@ -20,7 +20,7 @@
   if(s.busy||!liveProfile?.id||s.sample)return;
   const owner=liveProfile.id,epoch=sessionEpoch121,write=s.writeGeneration125||0,generation=++readGeneration;
   const valid=()=>owner===liveProfile?.id&&epoch===sessionEpoch121&&generation===readGeneration;
-  s.busy=true;if(!background||!s.loaded){s.error='';pos118.render()}
+  let catalogChanged=false;s.busy=true;if(!background||!s.loaded){s.error='';pos118.render()}
   try{
    if(!navigator.onLine)throw Error('Network request failed');
    // Replay only when there are captured entries, not on every healthy poll.
@@ -31,7 +31,7 @@
    catch(e){if(/pos_cashier_snapshot125/.test(e.message)&&/schema cache|could not find|does not exist/i.test(e.message)){fallback=true;data=await rpc('pos_snapshot118',{})}else throw e}
    if(!valid()||write!==(s.writeGeneration125||0))return;
    if(!Array.isArray(data?.orders))throw Error('POS records are unavailable. Ask your administrator to check setup.');
-   if(!data.schema125){s.balances125=null;s.schema125=false;s.catalogVersion125=null;s.summary125=null}Object.assign(s,data,{owner,loaded:true,offline:false});s.receiptDate||=day();
+   catalogChanged=Array.isArray(data.menu)&&data.catalogVersion125!==s.catalogVersion125;if(!data.schema125){s.balances125=null;s.schema125=false;s.catalogVersion125=null;s.summary125=null}Object.assign(s,data,{owner,loaded:true,offline:false});s.receiptDate||=day();
    s.offlineQueue=await posOffline119.queue(owner);if(!valid())return;hooks.overlayPending();
    s.error=fallback?'The fast POS database update is pending. Ask your administrator to apply migration 10.':'';
    if(!s.picked||!hooks.catalog().some(m=>m.id===s.picked))hooks.pick(hooks.catalog()[0]?.id,false);
@@ -45,7 +45,7 @@
     if(!s.loaded&&cached){Object.assign(s,cached.data,{loaded:true,owner});s.offlineQueue=await posOffline119.queue(owner);if(!valid())return;hooks.overlayPending();hooks.pick(hooks.catalog()[0]?.id,false)}
     s.offline=true;s.error=s.loaded?'Offline: sales remain on this device until synced.':'Connect once to prepare the POS on this device.';
    }else{s.loaded=false;s.offline=false;s.error=e.message;showCenterStatus(e.message,true)}
-  }finally{if(valid()){s.busy=false;if(!background||!s.loaded||s.tab!=='Sales'||s.sub!=='New Order')pos118.render();else updateStatus(s);schedule(s.offline?30000:8000)}}
+  }finally{if(valid()){s.busy=false;if(!background||catalogChanged||!s.loaded||s.tab!=='Sales'||s.sub!=='New Order')pos118.render();else updateStatus(s);schedule(s.offline?30000:8000)}}
  }
  function updateStatus(s){const node=document.querySelector('.pos-sync118');if(node)node.textContent=s.offlineQueue.length?s.offlineQueue.length+' pending sync':s.offline?'Offline':'Synced';
   // Never replace focused input nodes, scroll positions or a current draft during polling.
@@ -102,6 +102,7 @@
   if(['open-shift','close-shift','cash','shift-view'].includes(a))return allowed('Overview','New Order');
   if(a==='refund')return allowed('Sales','Receipts');
   if(a==='resume')return allowed('Sales','New Order');
+  if(a==='menu-display')return isAdmin121();
   if(a==='menu')return restaurantRouteAllowed128('menu-recipe');
   if(a==='categories')return restaurantRouteAllowed128('menu-categories');
   if(a==='inventory')return restaurantRouteAllowed128('inv-overview');
