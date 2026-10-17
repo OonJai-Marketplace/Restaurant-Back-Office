@@ -85,6 +85,16 @@
    const ids=new Set(s.orders.map(o=>o.id));s.orders.push(...rows.filter(o=>!ids.has(o.id)));s.visibleOrders+=100;pos118.render();
   }finally{if(owner===liveProfile?.id&&epoch===sessionEpoch121)s.receiptLoading125=false}
  }
+ function missingLinks129(s){
+  const used=new Set(),menus=new Map((s.menu||[]).map(m=>[m.id,m.data]));
+  function recipe(id,seen=new Set()) {if(seen.has(id))return;const d=menus.get(id);if(!d)return;const next=new Set(seen).add(id);for(const r of d.recipe||[])if(d.itemType==='bundle')recipe(r.itemId,next);else used.add(r.itemId)}
+  for(const [id,d] of menus){if(d.active===false||d.currency!=='LAK')continue;recipe(id);for(const g of d.posOptions118||[])for(const o of g.options||[])if(o.available!==false)for(const r of o.recipe||[])used.add(r.itemId)}
+  const linked=new Set((s.ingredients||[]).filter(i=>i.data.inventoryItemId118).map(i=>i.id));return [...used].filter(id=>!linked.has(id)).length;
+ }
+ function setupNotice129(s){
+  if(s.sample||!s.loaded)return '';const count=missingLinks129(s);if(!count)return '';
+  return `<div class="pos-alert118" role="status"><strong>${count} recipe ingredient${count===1?'':'s'} need${count===1?'s':''} Inventory links.</strong> Unpaid orders can be saved; payments need ingredient links and available stock. ${isAdmin121()?'<button type="button" data-pos118="links">Review ingredient links</button>':'Ask your administrator to finish setup.'}</div>`;
+ }
  window.restaurantPosAction125=el=>{const a=el.dataset.pos118,value=el.dataset.value118;
   if(a==='tab')return value==='Sales'?['New Order','Open Orders','Receipts','Online Orders'].some(sub=>allowed('Sales',sub)):allowed(value,'New Order');
   if(a==='sub')return allowed('Sales',value);
@@ -97,7 +107,7 @@
   if(a==='inventory')return restaurantRouteAllowed128('inv-overview');
   return true;
  };
- window.posPerformance125={rpc,load,accepted,allowed,clamp,overview,report,moreReceipts,schedule,network};
+ window.posPerformance125={rpc,load,accepted,allowed,clamp,overview,report,moreReceipts,schedule,network,missingLinks129,setupNotice129};
  document.addEventListener('visibilitychange',()=>{if(active())schedule(100)});
  addEventListener('focus',()=>{if(active())schedule(100)});
  addEventListener('offline',()=>{const s=window.pos118?.state;if(s&&!s.sample&&s.loaded){s.offline=true;updateStatus(s)}});
