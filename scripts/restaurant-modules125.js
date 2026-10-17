@@ -1,16 +1,16 @@
 /* One site and one repository. Load working code only when its module is opened. */
 (()=>{'use strict';
- if('serviceWorker' in navigator&&(location.protocol==='https:'||['localhost','127.0.0.1'].includes(location.hostname)))navigator.serviceWorker.register('restaurant-sw126.js',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+ if('serviceWorker' in navigator&&(location.protocol==='https:'||['localhost','127.0.0.1'].includes(location.hostname)))navigator.serviceWorker.register('restaurant-sw127.js',{scope:'./',updateViaCache:'none'}).catch(()=>{});
  const groups={
-  settings:{js:['restaurant-settings125.js']},
+  settings:{js:['public-content127.js','restaurant-settings125.js']},
   inventory:{css:['inventory-menu-v104.css'],js:['inventory-menu-v104.js','item-icons-v109.js']},
   menu:{depends:['inventory'],js:['menu-v108.js']},
   kitchen:{depends:['inventory'],css:['preparation-waste124.css'],js:['preparation-waste124.js']},
   pos:{css:['pos-v118.css'],js:['pos-offline-v119.js','pos-performance125.js','pos-v118.js']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
- function script(name){if(files.has(name))return Promise.resolve();return new Promise((resolve,reject)=>{const node=document.createElement('script');node.src='scripts/'+name+'?v=126';node.onload=()=>{files.add(name);resolve()};node.onerror=()=>{node.remove();reject(Error('This area could not load. Check the connection and try again.'))};document.body.append(node)})}
- function style(name){if(files.has(name))return Promise.resolve();return new Promise((resolve,reject)=>{const node=document.createElement('link');node.rel='stylesheet';node.href='styles/'+name+'?v=126';node.onload=()=>{files.add(name);resolve()};node.onerror=()=>{node.remove();reject(Error('The workspace style could not load. Try again.'))};document.querySelector('[href*="restaurant-compact124.css"]').before(node)})}
+ function script(name){if(files.has(name))return Promise.resolve();return new Promise((resolve,reject)=>{const node=document.createElement('script');node.src='scripts/'+name+'?v=127';node.onload=()=>{files.add(name);resolve()};node.onerror=()=>{node.remove();reject(Error('This area could not load. Check the connection and try again.'))};document.body.append(node)})}
+ function style(name){if(files.has(name))return Promise.resolve();return new Promise((resolve,reject)=>{const node=document.createElement('link');node.rel='stylesheet';node.href='styles/'+name+'?v=127';node.onload=()=>{files.add(name);resolve()};node.onerror=()=>{node.remove();reject(Error('The workspace style could not load. Try again.'))};document.querySelector('[href*="restaurant-compact124.css"]').before(node)})}
  async function ensure(group){if(ready.has(group))return;if(promises.has(group))return promises.get(group);const config=groups[group];if(!config)return;
   const promise=(async()=>{for(const dep of config.depends||[])await ensure(dep);for(const file of config.css||[])await style(file);for(const file of config.js||[])await script(file);ready.add(group)})();
   promises.set(group,promise);try{await promise}catch(e){promises.delete(group);throw e}

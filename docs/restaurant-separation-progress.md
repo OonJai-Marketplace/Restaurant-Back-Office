@@ -43,3 +43,7 @@ No passwords, authentication tokens, or business-record exports are stored in th
 The new migration was created with Supabase CLI 2.121.0. Its contents are generated using `python tools/build-standalone-schema.py`.
 
 The database tests use `@electric-sql/pglite` 0.5.8 and can be run with `node tests/standalone-db.cjs` after making that package available on Node's module path. Test results and CLI temporary files are intentionally excluded from version control.
+
+## Prepared continuation — release 127
+
+The Accounting fresh-installer fix is prepared in PR #9. Restaurant folder entry points and public-content management are prepared on `codex/restaurant-public-integration-127`; the legacy website redirect is prepared separately. See PROJECT-STRUCTURE-v127.md for the exact scope and ordered publication steps. These continuation changes are not yet live: automatic approval review blocked direct default-branch publication. The prior separation release remains live.

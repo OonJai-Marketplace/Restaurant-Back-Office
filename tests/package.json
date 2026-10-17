@@ -12,7 +12,9 @@
     "test:runtime": "node priority-runtime125.cjs",
     "test:standalone": "node standalone-db.cjs",
     "test:separation": "node separation-browser126.cjs",
-    "test:cache-upgrade": "node cache-upgrade126.cjs"
+    "test:cache-upgrade": "node cache-upgrade126.cjs",
+    "test:public": "node public-storefront127.cjs",
+    "test:public-runtime": "node public-runtime127.cjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.8",
