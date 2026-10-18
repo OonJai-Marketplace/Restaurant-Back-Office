@@ -1,8 +1,8 @@
 /* Tab grants complement the existing module/action grants. Missing tabs preserve
    legacy access; once a module has a tabs map, only checked tabs are allowed. */
 window.restaurantTabs125={
- inventory:{'inv-overview':'Overview','inv-items':'Master List','inv-stock-in':'Stock In','inv-stock-out':'Stock Out','inv-adj':'Adjustments','inv-val':'Valuation','inv-preparation124':'Preparation & Costs','inv-waste124':'Wastage'},
- menu:{'menu-ingredients':'Ingredients','menu-recipe':'Menus & Recipes','menu-pricing':'Pricing','menu-categories':'Categories','menu-costing':'Costing & Promotions','menu-engineering108':'Menu Engineering','menu-avail':'Availability'},
+ inventory:{'inv-overview':'Overview','inv-items':'Master List','inv-stock-in':'Stock In','inv-stock-out':'Stock Out','inv-adj':'Adjustments','inv-val':'Valuation','inv-preparation124':'Kitchen · Bulk Calculator & Preparation','inv-waste124':'Wastage'},
+ menu:{'menu-ingredients':'Ingredients','menu-recipe':'Menus, Recipes & Integration','menu-pricing':'Pricing','menu-categories':'Categories','menu-costing':'Costing & Promotions','menu-engineering108':'Menu Engineering','menu-avail':'Availability'},
  pos:{'pos-overview':'Overview & Shift','pos-sales-new':'Sales · New Order','pos-sales-open':'Sales · Open Orders','pos-sales-receipts':'Sales · Receipts','pos-sales-online':'Sales · Online Orders','pos-management':'Management'},
  settings:{appearance:'Banners & Quotations',branding:'Logo & Theme',security:'Password & Recovery'}
 };
@@ -14,7 +14,7 @@ function restaurantTabCan125(scope,tab,action='view'){
  return !tabs||tabs[tab]===true;
 }
 window.restaurantTabCan125=restaurantTabCan125;
-window.restaurantTabId125=(id)=>id==='menu-details'?'menu-recipe':id;
+window.restaurantTabId125=(id)=>({'menu-details':'menu-recipe','menu-integration132':'menu-recipe','inv-bulk132':'inv-preparation124'}[id]||id);
 window.restaurantPosTab125=(tab,sub)=>tab==='Overview'?'pos-overview':tab==='Management'?'pos-management':({'New Order':'pos-sales-new','Open Orders':'pos-sales-open','Receipts':'pos-sales-receipts','Online Orders':'pos-sales-online'}[sub]||'pos-sales-new');
 window.restaurantFirstTab125=scope=>Object.keys(restaurantTabs125[scope]||{}).find(id=>restaurantTabCan125(scope,id));
 window.restaurantStart125=()=>{

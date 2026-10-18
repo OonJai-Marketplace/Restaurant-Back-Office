@@ -47,7 +47,7 @@
    }else{s.loaded=false;s.offline=false;s.error=e.message;showCenterStatus(e.message,true)}
   }finally{if(valid()){s.busy=false;if(!background||catalogChanged||!s.loaded||s.tab!=='Sales'||s.sub!=='New Order')pos118.render();else updateStatus(s);schedule(s.offline?30000:8000)}}
  }
- function updateStatus(s){const node=document.querySelector('.pos-sync118');if(node)node.textContent=s.offlineQueue.length?s.offlineQueue.length+' pending sync':s.offline?'Offline':'Synced';
+ function updateStatus(s){const sync=document.querySelector('.pos-tab-actions132 [data-pos118=sync]');if(sync){sync.textContent='Sync'+(s.offlineQueue.length?' · '+s.offlineQueue.length:s.offline?' · Offline':'');sync.title=s.offlineQueue.length+' pending orders';}const node=document.querySelector('.pos-sync118');if(node)node.textContent=s.offlineQueue.length?s.offlineQueue.length+' pending sync':s.offline?'Offline':'Synced';
   // Never replace focused input nodes, scroll positions or a current draft during polling.
   const bar=document.querySelector('.pos-mode118');if(bar){let warning=bar.querySelector('.pos-priority-warning125');if(s.error&&!warning){warning=document.createElement('span');warning.className='pos-priority-warning125';warning.setAttribute('role','status');bar.append(warning)}if(warning)warning.textContent=s.error}
  }
@@ -93,7 +93,7 @@
  }
  function setupNotice129(s){
   if(s.sample||!s.loaded)return '';const count=missingLinks129(s);if(!count)return '';
-  return `<div class="pos-alert118" role="status"><strong>${count} recipe ingredient${count===1?'':'s'} need${count===1?'s':''} Inventory links.</strong> Unpaid orders can be saved; payments need ingredient links and available stock. ${isAdmin121()?'<button type="button" data-pos118="links">Review ingredient links</button>':'Ask your administrator to finish setup.'}</div>`;
+  return `<details class="pos-alert118 pos-setup132"><summary><strong>${count} recipe ingredient${count===1?'':'s'} need${count===1?'s':''} Inventory links.</strong><span>Review setup ⌄</span></summary><p>Unpaid orders can be saved; payments need ingredient links and available stock. ${isAdmin121()?'<button type="button" data-pos118="links">Review ingredient links</button>':'Ask your administrator to finish setup.'}</p></details>`;
  }
  window.restaurantPosAction125=el=>{const a=el.dataset.pos118,value=el.dataset.value118;
   if(a==='tab')return value==='Sales'?['New Order','Open Orders','Receipts','Online Orders'].some(sub=>allowed('Sales',sub)):allowed(value,'New Order');
