@@ -39,9 +39,9 @@ const check=async(name,fn)=>{await fn();checks++;console.log('PASS',name)};
   for(const table of ['menu_items104','inventory_items104','inventory_movements104'])assert.equal((await db.query('select * from '+table)).rows.length,0);
  });
  await grants({inventory:{view:true,prepare:true,tabs:{'inv-preparation124':true}}});
- await check('Kitchen-only staff can read preparation data but cannot enter POS or website management',async()=>{
+ await check('Kitchen-only staff can read production recipes but cannot enter POS or website management',async()=>{
   await db.query('select * from inventory_items104');await db.query('select * from menu_ingredients105');
-  assert.equal((await db.query('select * from menu_items104')).rows.length,0);
+  assert.equal((await db.query('select * from menu_items104')).rows.length,1);
   assert.equal((await db.query('select * from storefront_items127')).rows.length,0);
   await assert.rejects(db.query('select pos_cashier_snapshot125()'),/POS access required/);
  });

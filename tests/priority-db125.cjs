@@ -29,9 +29,9 @@ module.exports=async function({db,root,ok,rejects,admin,staff,raw,cooked,ing,dat
  const fullAfter=(await db.query('select pos_snapshot118() as s')).rows[0].s;
  ok('Three thousand historic sales do not enter the cashier snapshot',compactAfter.orders.length===many.orders.length&&compactAfter.receiptCount125===many.receiptCount125);
  ok('Cashier payload stays under one tenth of the full history payload',JSON.stringify(compactAfter).length<JSON.stringify(fullAfter).length/10);
- const report=(await db.query('select pos_report_page125(current_date,current_date) as rows')).rows[0].rows;
+ const report=(await db.query("select pos_report_page125((now() at time zone 'Asia/Vientiane')::date,(now() at time zone 'Asia/Vientiane')::date) as rows")).rows[0].rows;
  ok('On-demand export contains records beyond the cashier receipt cap',report.length>100);
- const older=(await db.query('select pos_receipt_page125(current_date,$1) as rows',[Math.min(...many.orders.filter(o=>o.status==='paid').map(o=>o.number))])).rows[0].rows;
+ const older=(await db.query("select pos_receipt_page125((now() at time zone 'Asia/Vientiane')::date,$1) as rows",[Math.min(...many.orders.filter(o=>o.status==='paid').map(o=>o.number))])).rows[0].rows;
  ok('Older receipts load in a separate bounded page',older.length>0&&older.length<=100&&!older.some(o=>many.orders.some(m=>m.id===o.id)));
  await db.query('update restaurant_members121 set enabled=true,permissions=$2 where user_id=$1',[staff,{inventory:{view:true,prepare:true,stock_out:true,tabs:{'inv-preparation124':true,'inv-waste124':true}},pos:{view:true,sell:true,tabs:{'pos-sales-new':true}}}]);
  await db.query("select set_config('test.uid',$1,false)",[staff]);
