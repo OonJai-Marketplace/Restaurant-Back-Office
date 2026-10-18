@@ -3,7 +3,7 @@ const root=path.resolve(__dirname,'..');let count=0;
 const check=async(name,fn)=>{await fn();console.log('PASS',name);count++};
 const database=range=>({from:table=>{assert.equal(table,'inventory_items104');return {select:()=>({order:()=>({range})})}}});
 const source=fs.readFileSync(root+'/scripts/pos-v118.js','utf8');
-const links=source.slice(source.indexOf('async function links()'),source.indexOf('\nasync function seed()'));
+const links=source.slice(source.indexOf('async function links()'),source.indexOf('\nasync function exportRows('));
 function context(){const c={console,setTimeout,clearTimeout,structuredClone,sessionEpoch121:1,liveProfile:{id:'admin'},isAdmin121:()=>true,admin:()=>true,S:{sample:false,items:[],ingredients:[{id:'ingredient',data:{name:'Rice',unit:'kg'}}]},n:Number,esc:String,document:{addEventListener(){}},addEventListener(){},dialog:(title,html)=>{c.html=html}};c.window=c;vm.createContext(c);vm.runInContext(fs.readFileSync(root+'/scripts/pos-performance125.js','utf8'),c);vm.runInContext(links,c);return c}
 (async()=>{
  await check('Ingredient editor loads unlinked Inventory items outside the cashier snapshot and pages the complete list',async()=>{
