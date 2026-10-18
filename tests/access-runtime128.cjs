@@ -59,9 +59,9 @@ function setup(){
   assert.equal(frame.title,'Oon Jai public website');assert.equal(frame.src,c.OJM_RESTAURANT_APPS.public);
   c.restaurantWorkspace123.publicSite();assert.equal(nodes.get('restaurant-website').querySelector('iframe'),frame);
  });
- await check('Both POS entry paths default to live and only admins may explicitly choose samples',async()=>{
+ await check('POS entry paths stay live even with an obsolete saved sample preference',async()=>{
   role({},true);assert.equal(c.restaurantPosMode128(),'live');c.location.search='?workspace=pos';assert.equal(c.restaurantPosMode128(),'live');
-  f.storage.set('ojm_pos_mode119_user','sample');assert.equal(c.restaurantPosMode128(),'sample');c.location.search='';assert.equal(c.restaurantPosMode128(),'sample');
+  f.storage.set('ojm_pos_mode119_user','sample');assert.equal(c.restaurantPosMode128(),'live');c.location.search='';assert.equal(c.restaurantPosMode128(),'live');
   role({pos:{view:true,tabs:{'pos-sales-new':true}}});assert.equal(c.restaurantPosMode128(),'live');
   c.localStorage.getItem=()=>{throw Error('Storage unavailable')};role({},true);assert.equal(c.restaurantPosMode128(),'live');
  });
