@@ -1,6 +1,6 @@
 /* Public projection only. No authenticated sessions, private records or recipes. */
 window.RestaurantPublic127=(()=>{'use strict';
- const categories=['burgers','sandwiches','texmex','pasta','bowl','smoothies','refreshers','wellness'];
+ const categories=['burgers','sandwiches','texmex','pasta','bowl','smoothies','refreshers','wellness','bakery'];
  const safeImage=x=>typeof x==='string'&&(/^(https:\/\/[^\s<>"']+|assets\/images\/[a-zA-Z0-9._/-]+|data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+)$/.test(x));
  function normalize(rows){
   if(!Array.isArray(rows))throw Error('Invalid public menu');

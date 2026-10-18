@@ -228,6 +228,7 @@
     }
     .menu-content-layout { display: flex; flex-direction: column; gap: 10px; flex: 1; margin-bottom: 15px; }
     .sidebar-logo { display: none; }
+    .cat-btn[hidden]{display:none!important}
     .categories-nav { flex-shrink: 0; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius-main); padding: 6px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; backdrop-filter: blur(10px); }
     .nav-header { grid-column: 1 / -1; background: rgba(74, 222, 128, 0.15); color: var(--accent-green); text-transform: uppercase; font-size: 12px; font-weight: 800; letter-spacing: 1px; text-align: center; padding: 8px; border-radius: var(--border-radius-sm); margin-bottom: 2px; border: 1px solid rgba(74, 222, 128, 0.3); }
     .sidebar-bottom-actions { display: none; }
@@ -662,6 +663,7 @@
             <button class="cat-btn" data-category="bowl" onclick="App.switchCategory('bowl')">Build Your Bowl</button>
             <button class="cat-btn" data-category="smoothies" onclick="App.switchCategory('smoothies')">Smoothies</button>
             <button class="cat-btn" data-category="refreshers" onclick="App.switchCategory('refreshers')">Refreshers</button>
+            <button class="cat-btn" data-category="bakery" onclick="App.switchCategory('bakery')" hidden>Bakery</button>
             <button class="cat-btn" data-category="wellness" onclick="App.switchCategory('wellness')">Wellness Drinks</button>
             <div class="sidebar-bottom-actions">
               <a href="https://search.google.com/local/writereview?placeid=ChIJi5aMHuhnJDER7mdo7-eX_fM" target="_blank" rel="noopener noreferrer" class="btn-review-action">⭐ Leave us a Review</a>
@@ -939,8 +941,8 @@
   </div>
 
 <script src="../scripts/supabase-config.js?v=127"></script>
-<script src="storefront127.js?v=127"></script>
-<script src="../scripts/public-menu-rules131.js?v=131"></script>
+<script src="storefront127.js?v=135"></script>
+<script src="../scripts/public-menu-rules131.js?v=135"></script>
 <script>
 const App = (function() {
   'use strict';
@@ -1024,6 +1026,7 @@ const App = (function() {
       { id: 'r3', name: 'Sparkling Lime', price: 45000, desc: 'Sparkling water and fresh lime.', images: ["assets/images/placeholder-sparkling-lime.110fc22dab.svg"] },
       { id: 'r4', name: 'Honey Passion', price: 45000, desc: 'Passion fruit and honey.', images: ["assets/images/placeholder-honey-passion.7a30702f9a.svg"] }
     ],
+    bakery: [],
     wellness: [
       { id: 'w1', name: 'Summer in My Heart', price: 47000, desc: 'Pineapple juice and coconut water.', images: ["assets/images/summer-1-full.49e8ec999d.webp"] },
       { id: 'w2', name: 'Wish Upon a Heart', price: 47000, desc: 'Green apple, basil cordial, lemon juice, and tapioca pearls.', images: ["assets/images/wish-1-full.28e6039506.webp"] },
@@ -1407,6 +1410,7 @@ const App = (function() {
     document.getElementById('cartModalWrapper').before(cartHome);
     const publicContent = await window.RestaurantPublic127.load();
     if(publicContent.menu) for(const key of Object.keys(menuData)) menuData[key]=publicContent.menu[key]||[];
+    document.querySelector('.cat-btn[data-category="bakery"]').hidden=!menuData.bakery.length;
     const page=publicContent.page;
     if(page){
       for(const [selector,key] of [['#tab-home .banner-title','title'],['#tab-home .banner-subtitle','subtitle'],['.home-intro h3','intro_title'],['.home-intro p','intro_text']]){
@@ -1663,7 +1667,7 @@ const App = (function() {
       if (!Object.hasOwn(menuData, catKey)) return;
       currentCategory = catKey;
       document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.category === catKey));
-      const titleMap = { burgers: 'Burgers', sandwiches: 'Sandwiches', texmex: 'Tex-Mexican', pasta: 'Pasta', bowl: 'Build Your Bowl', smoothies: 'Smoothies', refreshers: 'Refreshers', wellness: 'Wellness Drinks' };
+      const titleMap = { burgers: 'Burgers', sandwiches: 'Sandwiches', texmex: 'Tex-Mexican', pasta: 'Pasta', bowl: 'Build Your Bowl', smoothies: 'Smoothies', refreshers: 'Refreshers', wellness: 'Wellness Drinks', bakery:'Bakery' };
       document.getElementById('categoryTitle').innerText = titleMap[catKey];
 
       renderProductsGrid();
