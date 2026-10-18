@@ -1,0 +1,50 @@
+/* Accounting desktop login: foundation + polish + feedback + 32px controls.
+   IDs intentionally outrank the older 360px compact Restaurant card. */
+html body.shell113 #loginGate{display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at top,#32644b,#102e23);overflow:auto}
+html body.shell113 #loginGate[hidden]{display:none!important}
+html body.shell113 #restaurantLogin{width:min(430px,100%);max-width:430px;flex:none;padding:28px;border:0;border-top:4px solid #c79a57;border-radius:16px;background:#fffaf1;display:flex;flex-direction:column;gap:13px;box-sizing:border-box;box-shadow:0 24px 70px rgba(0,0,0,.3);line-height:1.5;font-family:'Plus Jakarta Sans',Arial,sans-serif}
+html body.shell113 #restaurantLogin .login-brand-mark{width:52px;height:52px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:transparent;padding:0;overflow:hidden}
+html body.shell113 #restaurantLogin img{display:block;width:52px;height:52px;padding:0;border-radius:0;background:transparent!important;object-fit:contain}
+html body.shell113 #restaurantLogin h1{margin:0;font:700 23px/1.5 'Plus Jakarta Sans',Arial,sans-serif;color:#064e3b}
+html body.shell113 #restaurantLogin>p{margin:0;color:#64748b;font-size:13px;line-height:1.5}
+html body.shell113 #restaurantLogin label{display:flex;flex-direction:column;gap:5px;margin:0;color:#334155;font-size:12px;font-weight:700;line-height:1.5}
+html body.shell113 #restaurantLogin input{width:100%;min-height:43px;height:43px;margin:0;padding:9px 12px;border:1px solid #cbd5e1;border-radius:7px;background:#fff;color:#334155;font:inherit;box-shadow:none}
+html body.shell113 #restaurantLogin input:focus{outline:0;border-color:#059669;box-shadow:0 0 0 3px rgba(5,150,105,.12)}
+html body.shell113 #restaurantLogin button{height:32px!important;min-height:32px!important;max-height:32px!important;margin:0;padding:0 16px;border:0;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+html body.shell113 #restaurantLogin .login-submit{width:100%;background:#059669;color:#fff;font:600 12.5px/1.5 'Plus Jakarta Sans',Arial,sans-serif}
+html body.shell113 #restaurantLogin .login-submit:hover{background:#047857}
+html body.shell113 #restaurantLogin .login-link-button{align-self:center;width:auto;padding-inline:8px;background:transparent;color:#047857;font:700 11.5px/1.5 'Plus Jakarta Sans',Arial,sans-serif}
+html body.shell113 #restaurantLogin .login-link-button:hover{text-decoration:underline}
+html body.shell113 #restaurantLogin button:disabled{opacity:.55;cursor:wait}
+html body.shell113 #restaurantLogin #loginError{color:#b91c1c;font-size:12px;font-weight:700}
+html body.shell113 #restaurantLogin #loginError:empty{display:none}
+#restaurantLoading132 p{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+/* The banner and account tools share one header; the tab strip sits below it. */
+html body.shell113 #restaurantApp .restaurant-banner133[hidden]{display:none!important}
+@media(min-width:701px){
+ html body.shell113 #restaurantApp .module-header.has-banner133{height:104px!important;min-height:104px!important;padding:14px 20px!important;border:1px solid #b9c9bf;border-top:3px solid #24634c;border-radius:10px;background-image:var(--banner-image133)!important;background-size:cover!important;background-position:var(--banner-position133)!important;gap:12px}
+ html body.shell113 #restaurantApp .has-banner133 .restaurant-banner133{display:flex!important;flex:1;min-width:0;width:auto;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;border-radius:0;background:none!important;overflow:visible}
+ html body.shell113 #restaurantApp .has-banner133 .banner-copy113{max-width:100%}
+ html body.shell113 #restaurantApp .has-banner133 .banner-copy113 h1{font:700 30px/1.15 'Playfair Display',Georgia,serif!important;margin:0!important;color:#71381d!important}
+ html body.shell113 #restaurantApp .has-banner133 #mainHeaderTitle{display:none!important}
+ html body.shell113 #restaurantApp .has-banner133 .header-left-tools{flex:0 0 auto}
+ html body.shell113 #restaurantApp .has-banner133 #workspaceTools108{flex:0 0 auto;margin-left:0!important}
+}
+@media(max-width:767px){html body.shell113 #restaurantLogin{padding:20px}html body.shell113 #restaurantLogin input{font-size:16px!important}html body.shell113 #restaurantLogin button{height:44px!important;min-height:44px!important;max-height:none!important}}
+@media(max-width:700px){html body.shell113 #restaurantApp .restaurant-banner133{display:none!important}html body.shell113 #restaurantApp .module-header.has-banner133{background-image:none!important}}
+@media(max-height:520px){html body.shell113 #loginGate{align-items:flex-start}}
+/* One selected ingredient, one stock conversion, one save action. */
+.integration-picker133{display:grid;grid-template-columns:minmax(180px,1fr) minmax(230px,2fr);gap:12px;max-width:900px;margin:16px 0}
+.integration-picker133 label{display:grid;gap:6px;font-weight:600}
+.integration-picker133 :is(input,select){width:100%;min-width:0}
+.integration-selected133{max-width:900px;border:1px solid #c7d7ca;border-radius:8px;padding:20px;background:#fffef9}
+.integration-selected133>header{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;margin-bottom:16px}
+.integration-selected133 h3{margin:0;font-size:18px}
+.integration-selected133 p{line-height:1.6;margin:8px 0}
+.integration-selected133 .integration-form132{border:0;padding:0;margin:0}
+.integration-selected133 .integration-fields132{grid-template-columns:repeat(2,minmax(0,1fr))}
+.integration-empty133{padding:24px 0;color:#52685a}
+.integration-tabs133{border-bottom:1px solid #c7d7ca;padding-bottom:10px}
+.integration-tabs133 button[aria-pressed=true]{background:#174c38!important;color:#fff!important}
+.integration-related133{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid #dce4dc}
+@media(max-width:700px){.integration-picker133,.integration-selected133 .integration-fields132{grid-template-columns:minmax(0,1fr)}.integration-selected133{padding:14px}.integration-related133 button{flex:1 1 140px}}

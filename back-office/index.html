@@ -2,17 +2,23 @@
 
 <html lang="en">
 <head>
-<base href="../"><meta name="restaurant-release" content="2026-10-18-kitchen-integration-132">
+<base href="../"><meta name="restaurant-release" content="2026-10-18-catalog-layout-133">
 <meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
 <meta content="#174c38" name="theme-color"/><title>Oon Jai Restaurant Back Office</title>
 <link href="manifest.webmanifest" rel="manifest"/><link href="assets/brand/oonjai-logo.png" rel="icon"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Caveat+Brush&amp;family=Kalam&amp;family=Permanent+Marker&amp;family=Caveat&amp;family=Patrick+Hand&amp;family=Marck+Script&amp;family=Sriracha&amp;family=Kaushan+Script&amp;family=Playfair+Display:wght@600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
-<link href="styles/styles.css?v=132" rel="stylesheet"/><link href="styles/polish-v113.css?v=132" rel="stylesheet"/><link href="styles/final-v117.css?v=132" rel="stylesheet"/><link href="styles/final-v118.css?v=132" rel="stylesheet"/><link href="styles/shared-v108.css?v=132" rel="stylesheet"/><link href="styles/restaurant-backoffice.css?v=132" rel="stylesheet"/><link href="styles/restaurant-v121.css?v=132" rel="stylesheet"/>
-<link href="styles/accounting-navigation122.css?v=132" rel="stylesheet"/><link href="styles/restaurant-shell122.css?v=132" rel="stylesheet"/><link href="styles/restaurant-compact124.css?v=132" rel="stylesheet"/><link href="styles/restaurant-website128.css?v=132" rel="stylesheet"/><link href="styles/restaurant-layout130.css?v=132" rel="stylesheet"/><link href="styles/menu-display131.css?v=132" rel="stylesheet"/><link rel="stylesheet" href="styles/restaurant-mobile132.css?v=132"/></head>
+<link href="styles/styles.css?v=133" rel="stylesheet"/><link href="styles/polish-v113.css?v=133" rel="stylesheet"/><link href="styles/final-v117.css?v=133" rel="stylesheet"/><link href="styles/final-v118.css?v=133" rel="stylesheet"/><link href="styles/shared-v108.css?v=133" rel="stylesheet"/><link href="styles/restaurant-backoffice.css?v=133" rel="stylesheet"/><link href="styles/restaurant-v121.css?v=133" rel="stylesheet"/>
+<link href="styles/accounting-navigation122.css?v=133" rel="stylesheet"/><link href="styles/restaurant-shell122.css?v=133" rel="stylesheet"/><link href="styles/restaurant-compact124.css?v=133" rel="stylesheet"/><link href="styles/restaurant-website128.css?v=133" rel="stylesheet"/><link href="styles/restaurant-layout130.css?v=133" rel="stylesheet"/><link href="styles/menu-display131.css?v=133" rel="stylesheet"/><link rel="stylesheet" href="styles/restaurant-mobile132.css?v=133"/><link rel="stylesheet" href="styles/restaurant-cleanup133.css?v=133"/></head>
 <body class="shell113">
-<div class="restaurant-login login-gate" id="loginGate"><form id="restaurantLogin" class="login-card"><img alt="" src="assets/brand/oonjai-logo.png"/><h1>Oon Jai</h1><p>Restaurant Back Office</p><label>Email<input autocomplete="username" name="email" required="" type="email"/></label><label>Password<input autocomplete="current-password" name="password" required="" type="password"/></label><p id="loginError" role="alert"></p><button type="submit">Sign in</button><button class="link121" id="forgotPassword121" type="button">Forgot password?</button></form></div>
-<div id="restaurantLoading132" hidden role="status" aria-live="polite"><div class="loading-orbit1444"><i style="--i:0"><b></b></i><i style="--i:1"><b></b></i><i style="--i:2"><b></b></i><i style="--i:3"><b></b></i><i style="--i:4"><b></b></i><i style="--i:5"><b></b></i></div><p>Preparing your workspace…</p></div><div class="app-layout" hidden="" id="restaurantApp">
+<div class="restaurant-login login-gate" id="loginGate"><form id="restaurantLogin" class="login-card" onsubmit="return false">
+<div class="login-brand-mark"><img alt="Oon Jai company logo" src="assets/brand/oonjai-logo.png" width="52" height="52"/></div>
+<h1>Oon Jai Restaurant</h1><p>Sign in with your assigned email account.</p>
+<label>Email Address<input autocomplete="username" name="email" required type="email" placeholder="name@example.com"/></label>
+<label>Password<input autocomplete="current-password" name="password" required type="password" placeholder="Enter password"/></label>
+<p id="loginError" class="login-error" role="alert"></p><button type="submit" class="login-submit" disabled>Sign In</button><button class="login-link-button link121" id="forgotPassword121" type="button" disabled>Forgot password?</button>
+</form></div>
+<div id="restaurantLoading132" hidden role="status" aria-live="polite"><div class="loading-orbit1444" aria-hidden="true"><i style="--i:0"><b></b></i><i style="--i:1"><b></b></i><i style="--i:2"><b></b></i><i style="--i:3"><b></b></i><i style="--i:4"><b></b></i><i style="--i:5"><b></b></i></div><p>Preparing your workspace…</p></div><div class="app-layout" hidden="" id="restaurantApp">
 <aside class="sidebar no-print" id="appSidebar">
 <div class="sidebar-brand"><button aria-label="Logo and theme settings" class="logo-tile113" title="Logo and theme settings" type="button"><img alt="Oon Jai" class="restaurant-brand-logo" id="companyLogo101" src="assets/brand/oonjai-logo.png"/></button><h2>Oon Jai Marketplace</h2><button id="closeNavigation130" type="button" aria-label="Close navigation" onclick="closeMobileNavigation()">×</button></div>
 <div class="universal-search108"><input aria-label="Search restaurant sections" id="restaurantSearch121" placeholder="Search sections…" type="search"/></div><div class="nav-category" data-module="dashboard" id="nav-module-dashboard"><button aria-label="Overview" class="nav-header" onclick="switchTab('restaurant-overview')" type="button"><span aria-hidden="true" class="nav-icon113"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" viewBox="0 0 24 24"><path d="M3 11l9-9 9 9 M5 10v12h14V10 M10 22v-7h4v7"></path></svg></span>Overview</button></div>
@@ -35,4 +41,4 @@
 </div></main></div>
 
 
-<script src="scripts/restaurant-release132.js?v=132"></script></body></html>
+<script src="scripts/restaurant-release133.js?v=133"></script></body></html>
