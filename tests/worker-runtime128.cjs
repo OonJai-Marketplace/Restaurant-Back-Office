@@ -3,14 +3,14 @@ const root=path.resolve(__dirname,'..'),scope='https://fixture.test/Restaurant-B
 const check=async(name,fn)=>{await fn();console.log('PASS',name);count++};
 (async()=>{
  const events={},entries=new Map(),key=x=>String(x.url||x),cache={put:async(k,v)=>entries.set(key(k),v.clone()),match:async(k)=>entries.get(key(k))?.clone()};let offline=false,activated=false;
- const c={URL,Request,Response,AbortController,setTimeout,clearTimeout,console,caches:{open:async()=>cache,keys:async()=>['oonjai-pos-shell127-restaurant','oonjai-pos-shell141-restaurant'],delete:async()=>true},self:{registration:{scope},location:{origin:new URL(scope).origin},clients:{claim:async()=>{}},skipWaiting(){activated=true},addEventListener(n,fn){events[n]=fn}},fetch:async input=>{
+ const c={URL,Request,Response,AbortController,setTimeout,clearTimeout,console,caches:{open:async()=>cache,keys:async()=>['oonjai-pos-shell127-restaurant','oonjai-pos-shell142-restaurant'],delete:async()=>true},self:{registration:{scope},location:{origin:new URL(scope).origin},clients:{claim:async()=>{}},skipWaiting(){activated=true},addEventListener(n,fn){events[n]=fn}},fetch:async input=>{
   if(offline)throw Error('offline');const u=new URL(key(input));if(u.origin!==new URL(scope).origin)return new Response('external');
   const relative=u.pathname.slice(new URL(scope).pathname.length);const file=path.join(root,relative.endsWith('/')?relative+'index.html':relative||'index.html');
   if(!fs.existsSync(file))return new Response('Missing '+relative,{status:404});return new Response(fs.readFileSync(file));
  }};
- vm.createContext(c);vm.runInContext(fs.readFileSync(root+'/restaurant-sw141.js','utf8'),c);
+ vm.createContext(c);vm.runInContext(fs.readFileSync(root+'/restaurant-sw142.js','utf8'),c);
  await check('Worker upgrades activate without waiting for any asset download',async()=>{let promise;events.install({waitUntil:p=>promise=p});await promise;assert(activated);assert.equal(entries.size,0)});
- await check('Shell caching happens separately after login code is ready',async()=>{let promise;events.message({data:{type:'CACHE_SHELL141'},waitUntil:p=>promise=p});await promise;for(const page of ['','back-office/','pos/','kitchen/'])assert(entries.has(scope+page))});
+ await check('Shell caching happens separately after login code is ready',async()=>{let promise;events.message({data:{type:'CACHE_SHELL142'},waitUntil:p=>promise=p});await promise;for(const page of ['','back-office/','pos/','kitchen/'])assert(entries.has(scope+page))});
  const navigate=async path=>{let promise;events.fetch({request:{url:scope+path,method:'GET',mode:'navigate'},respondWith:p=>promise=p});return promise};offline=true;
  await check('Offline Back Office keeps its correct asset base even with a workspace query',async()=>{const response=await navigate('back-office/?workspace=pos');assert((await response.text()).includes('<base href="../">'));});
  await check('Offline POS and Kitchen keep their intended workspace redirects',async()=>{for(const area of ['pos','kitchen']){const response=await navigate(area+'/');assert((await response.text()).includes('?workspace='+area));}});

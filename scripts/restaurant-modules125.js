@@ -1,11 +1,11 @@
 /* One site and one repository. Load working code only when its module is opened. */
 (()=>{'use strict';
  const groups={
-  settings:{js:['restaurant-settings141.bundle.js']},
-  inventory:{css:['inventory-menu-v104.css'],js:['restaurant-inventory141.bundle.js']},
+  settings:{js:['restaurant-settings142.bundle.js']},
+  inventory:{css:['inventory-menu-v104.css'],js:['restaurant-inventory142.bundle.js']},
   menu:{depends:['inventory'],js:['menu-v108.js']},
   kitchen:{depends:['inventory'],css:['preparation-waste124.css'],js:['preparation-waste124.js']},
-  pos:{css:['pos-v118.css'],js:['restaurant-pos141.bundle.js']}
+  pos:{css:['pos-v118.css'],js:['restaurant-pos142.bundle.js']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
  const pendingFiles=new Map();
@@ -13,14 +13,14 @@
   if(files.has(name))return Promise.resolve();if(pendingFiles.has(name))return pendingFiles.get(name);
   const promise=new Promise((resolve,reject)=>{
    const node=document.createElement(kind==='js'?'script':'link');let timer,runtimeError;
-   const url=new URL((kind==='js'?'scripts/':'styles/')+name+(name.includes('141.bundle')?'':'?v=141'),document.baseURI).href;
+   const url=new URL((kind==='js'?'scripts/':'styles/')+name+(name.includes('142.bundle')?'':'?v=142'),document.baseURI).href;
    const capture=e=>{if(e.filename===url)runtimeError=e.error||Error(e.message)};
    const cleanup=()=>{clearTimeout(timer);window.removeEventListener('error',capture)};
    if(kind==='js'){node.src=url;window.addEventListener('error',capture)}else{node.rel='stylesheet';node.href=url}
    node.onload=()=>{cleanup();if(runtimeError){reject(runtimeError);return}files.add(name);resolve()};
    node.onerror=()=>{cleanup();node.remove();pendingFiles.delete(name);reject(Error('Could not download '+name+'. Open this area again to retry.'))};
    timer=setTimeout(()=>{cleanup();reject(Error('Loading '+name+' took too long. Reload the page to retry.'))},45000);
-   if(kind==='js')document.body.append(node);else (document.getElementById('restaurantShellStyle141')||document.querySelector('[href*="restaurant-compact124.css"]')).before(node);
+   if(kind==='js')document.body.append(node);else (document.getElementById('restaurantShellStyle142')||document.querySelector('[href*="restaurant-compact124.css"]')).before(node);
   });pendingFiles.set(name,promise);return promise;
  }
  const script=name=>asset(name,'js'),style=name=>asset(name,'css');
