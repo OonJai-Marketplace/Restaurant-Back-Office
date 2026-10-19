@@ -63,7 +63,7 @@ function loginProgress132(message){const box=document.getElementById('restaurant
 function hydrate(session){
  if(hydration132?.id===session?.user?.id)return hydration132.promise;
  const job={id:session?.user?.id,promise:null};hydration132=job;loginProgress132('1/4 · Checking your access…');
- job.promise=hydrateCore132(session).catch(e=>{if(hydration132!==job)return;clearRestaurantSession();document.getElementById('loginError').textContent=e.message||'Your workspace could not load. Sign in to retry.';}).finally(()=>{if(hydration132===job){hydration132=null;loginProgress132('');}});return job.promise;
+ job.promise=loginWait140(hydrateCore132(session),'Your workspace took too long to open. Please sign in to retry.',45000).catch(e=>{if(hydration132!==job)return;clearRestaurantSession();document.getElementById('loginError').textContent=e.message||'Your workspace could not load. Sign in to retry.';}).finally(()=>{if(hydration132===job){hydration132=null;loginProgress132('');}});return job.promise;
 }
 function permissionForm121(p={}){return Object.entries(permissionOptions121).map(([scope,actions])=>`<fieldset><legend>${scope==='pos'?'Point of Sale & Online Orders':scope[0].toUpperCase()+scope.slice(1)}</legend>${Object.entries(actions).map(([a,label])=>`<label class="check121"><input type="checkbox" name="${scope}.${a}" ${p[scope]?.[a]?'checked':''}>${label}</label>`).join('')}</fieldset>`).join('')}
 function recoveryUrl121(){const u=new URL(window.OJM_PUBLIC_APP_URL||location.href);if(!['https:','http:'].includes(u.protocol))throw Error('Open the hosted restaurant site to request a password reset.');u.hash='';u.search='';u.searchParams.set('password-recovery','1');return u.href}
@@ -72,8 +72,53 @@ function actionPermission121(el){if(window.restaurantPosAction125&&el.dataset.po
  if(el.dataset.pos118){const a=el.dataset.pos118;if(['refund'].includes(a))return restaurantCan('pos','refund');if(a==='cancel')return restaurantCan('pos','void');if(['settings'].includes(a))return restaurantCan('pos','manage');if(['options','links','seed'].includes(a))return isAdmin121();if(['save','charge','add','quick-add','new','resume','remove','qty','edit-line','open-shift','close-shift','cash'].includes(a))return restaurantCan('pos','sell')}
  return true}
 function decorate121(){document.querySelectorAll('[data-im-action],[data-m108],[data-pos118]').forEach(b=>{if(!actionPermission121(b)){b.disabled=true;b.title='Not included in your access';b.dataset.denied121='true'}});document.querySelectorAll('.im-title104>h2,.im-title104>p').forEach(n=>n.hidden=true)}
+// Attach controls before any session or network work. A stalled restore must not lock the form.
+function loginWait140(work,message,ms=15000){let timer;return Promise.race([Promise.resolve(work),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(message)),ms)})]).finally(()=>clearTimeout(timer))}
+let loginConnection140=null,loginRecovery140=false,loginAutomatic140=true,loginAction140=0;
+function loginStatus140(message){const node=document.getElementById('loginStatus140');if(node)node.textContent=message}
+async function connectLogin140(){
+ if(loginConnection140)return loginConnection140;
+ loginConnection140=(async()=>{
+  if(!window.supabase||!window.OJM_SUPABASE_URL)throw Error('Sign-in could not start. Reload this page to try again.');
+  loginRecovery140=location.hash.includes('type=recovery')||new URLSearchParams(location.search).get('type')==='recovery';
+  const client=await restaurantAuth123.connect({recovery:loginRecovery140});ojmDb=client;
+  client.auth.onAuthStateChange((event,session)=>{
+   if(event==='SIGNED_OUT')clearRestaurantSession();
+   if(event==='PASSWORD_RECOVERY'){loginRecovery140=true;setTimeout(async()=>{loginProgress132('');if(await passwordForm121(true)){loginRecovery140=false;await hydrate(session)}},0)}
+   else if(event==='SIGNED_IN'&&session&&!loginRecovery140)setTimeout(()=>{if(!loginAutomatic140&&!liveProfile)return;if(liveProfile&&liveProfile.id!==session.user.id)clearRestaurantSession();hydrate(session)},0);
+  });
+  return client;
+ })().catch(error=>{loginConnection140=null;throw error});
+ return loginConnection140;
+}
+async function startRestaurantLogin140(){
+ const form=document.getElementById('restaurantLogin'),submit=form.querySelector('[type=submit]'),forgot=document.getElementById('forgotPassword121'),error=document.getElementById('loginError');
+ let busy=false;
+ const controls=value=>{busy=value;submit.disabled=value;forgot.disabled=value};
+ form.onsubmit=async event=>{
+  event.preventDefault();if(busy)return;loginAction140++;loginAutomatic140=true;controls(true);error.textContent='';loginStatus140('');loginProgress132('Signing in…');
+  try{const client=await loginWait140(connectLogin140(),'Sign-in could not start. Please reload and try again.');
+   const result=await loginWait140(client.auth.signInWithPassword({email:form.email.value.trim(),password:form.password.value}),'Sign-in is taking too long. Check your connection and try again.');
+   if(result.error)throw result.error;form.password.value='';await hydrate(result.data.session);
+  }catch(err){loginAutomatic140=false;error.textContent=err.message||'Sign-in failed. Please try again.'}
+  finally{controls(false);loginProgress132('')}
+ };
+ forgot.onclick=async()=>{
+  if(busy||!form.email.reportValidity())return;loginAction140++;loginAutomatic140=false;controls(true);error.textContent='';loginStatus140('Requesting a password reset…');
+  try{const client=await loginWait140(connectLogin140(),'Password reset could not start. Please reload and try again.');
+   const result=await loginWait140(client.auth.resetPasswordForEmail(form.email.value.trim(),{redirectTo:recoveryUrl121()}),'Password reset is taking too long. Check your connection and try again.');
+   if(result.error)throw result.error;loginStatus140('If this email has an account, a recovery link will be sent.');
+  }catch(err){loginStatus140('');error.textContent=err.message||'Password reset failed. Please try again.'}
+  finally{controls(false)}
+ };
+ controls(false);loginProgress132('');loginStatus140('Checking saved sign-in…');const action=loginAction140;
+ try{const current=await loginWait140(connectLogin140().then(client=>client.auth.getSession()),'Saved sign-in could not be restored. You can sign in below.');
+  if(action!==loginAction140)return;if(current.error)throw current.error;loginStatus140('');if(current.data?.session&&!loginRecovery140)await hydrate(current.data.session);
+ }catch(err){if(action===loginAction140){loginAutomatic140=false;error.textContent=err.message}}
+ finally{if(action===loginAction140)loginStatus140('')}
+}
 async function restaurantReady(){document.addEventListener('click',e=>{const b=e.target.closest('[data-im-action],[data-m108],[data-pos118]');if(b&&!actionPermission121(b)){e.preventDefault();e.stopImmediatePropagation();showCenterStatus('This action is not included in your access.',true)}},true);let pending=false;new MutationObserver(rs=>{if(pending||!rs.some(r=>[...r.addedNodes].some(n=>n.nodeType===1&&!n.classList.contains('area-banner113'))))return;pending=true;requestAnimationFrame(()=>{pending=false;decorate121()})}).observe(document.querySelector('.workspace-scroll'),{childList:true,subtree:true});document.getElementById('restaurantSearch121').oninput=e=>{let box=document.getElementById('searchResults121');if(!box){box=document.createElement('div');box.id='searchResults121';e.target.parentElement.append(box)}const q=e.target.value.trim().toLowerCase();box.innerHTML='';if(!q)return;document.querySelectorAll('#appSidebar .nav-category:not([hidden]) button:not([hidden])').forEach(b=>{if(b.textContent.toLowerCase().includes(q)){const x=document.createElement('button');x.textContent=b.textContent;x.onclick=()=>{b.click();box.innerHTML='';e.target.value=''};box.append(x)}})};
- if(!window.supabase||!window.OJM_SUPABASE_URL){document.getElementById('loginError').textContent='Supabase configuration is unavailable.';return}let recovery=location.hash.includes('type=recovery')||new URLSearchParams(location.search).get('type')==='recovery';ojmDb=await restaurantAuth123.connect({recovery});ojmDb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT')clearRestaurantSession();if(event==='PASSWORD_RECOVERY'){recovery=true;setTimeout(async()=>{if(await passwordForm121(true)){recovery=false;await hydrate(session)}},0)}else if(event==='SIGNED_IN'&&session&&!recovery){if(liveProfile&&liveProfile.id!==session.user.id)clearRestaurantSession();setTimeout(()=>hydrate(session),0)}});loginProgress132('1/4 · Restoring your session…');try{const current=await ojmDb.auth.getSession();if(current.error)throw current.error;if(current.data?.session&&!recovery)await hydrate(current.data.session)}catch(err){document.getElementById('loginError').textContent=err.message}finally{loginProgress132('')}document.getElementById('restaurantLogin').onsubmit=async e=>{e.preventDefault();const b=e.target.querySelector('[type=submit]');b.disabled=true;loginProgress132('1/4 · Signing in…');document.getElementById('loginError').textContent='';try{const r=await ojmDb.auth.signInWithPassword({email:e.target.email.value.trim(),password:e.target.password.value});if(r.error)throw r.error;e.target.password.value='';await hydrate(r.data.session)}catch(err){document.getElementById('loginError').textContent=err.message}finally{b.disabled=false;loginProgress132('')}};document.querySelector('#restaurantLogin [type=submit]').disabled=false;document.getElementById('forgotPassword121').disabled=false;document.getElementById('forgotPassword121').onclick=async()=>{const f=document.getElementById('restaurantLogin');if(!f.email.reportValidity())return;try{const r=await ojmDb.auth.resetPasswordForEmail(f.email.value.trim(),{redirectTo:recoveryUrl121()});if(r.error)throw r.error;document.getElementById('loginError').textContent='If this email has an account, a recovery link will be sent.'}catch(err){document.getElementById('loginError').textContent=err.message}};
+ await startRestaurantLogin140();
  window.addEventListener('focus',async()=>{
   if(!liveProfile)return;const owner=liveProfile.id,epoch=sessionEpoch121;
   const [p,r]=await Promise.all([ojmDb.from('profiles').select('*').eq('id',owner).maybeSingle(),ojmDb.from('restaurant_members121').select('*').eq('user_id',owner).maybeSingle()]);
@@ -84,4 +129,5 @@ async function restaurantReady(){document.addEventListener('click',e=>{const b=e
   liveProfile=p.data;restaurantMember=r.data;syncNav121();const id=document.querySelector('.tab-content.active')?.id||'',scope=scopes121(id);
   if(!restaurantRouteAllowed128(id))switchTab(restaurantStart125());else if(scope==='inventory'||scope==='menu')menuStore108.render?.();else if(scope==='pos')window.pos118?.render();else if(scope==='settings')window.renderSettings121?.();
  });overview()}
-if(window.restaurantBootLoading126)document.addEventListener('restaurant:boot126',restaurantReady,{once:true});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',restaurantReady);else restaurantReady();
+function startRestaurant140(){window.restaurantReady140=restaurantReady().catch(error=>{loginProgress132('');loginStatus140('');document.getElementById('loginError').textContent=error.message||'The restaurant could not start.';window.restaurantBootFailure140?.(error)});return window.restaurantReady140}
+if(window.restaurantBootLoading126)document.addEventListener('restaurant:boot126',startRestaurant140,{once:true});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',startRestaurant140);else startRestaurant140();
