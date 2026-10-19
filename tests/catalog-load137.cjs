@@ -1,7 +1,7 @@
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
 const source=fs.readFileSync('scripts/inventory-menu-v104.js','utf8');
 function fixture(rows,beforeRead=async()=>{}){
- const c={window:{},console,AbortController,liveProfile:{id:'owner'},sessionEpoch121:1,readEpoch125:0,readController125:null,loadJob132:null,state:{owner:null,loaded:false,busy:false,moves:[]},tables:{items:'inventory_items104',moves:'inventory_movements104'},restaurantCan:()=>true,rendered:()=>false,render(){},calls:[]};
+ const c={window:{},console,AbortController,setTimeout,clearTimeout,liveProfile:{id:'owner'},sessionEpoch121:1,readEpoch125:0,readController125:null,loadJob132:null,state:{owner:null,loaded:false,busy:false,moves:[]},tables:{items:'inventory_items104',moves:'inventory_movements104'},restaurantCan:()=>true,rendered:()=>false,render(){},calls:[]};
  c.ojmDb={from(table){const q={start:0,end:999,select(){return this},order(){return this},range(a,b){this.start=a;this.end=b;return this},abortSignal(){return this},async then(resolve,reject){try{c.calls.push([table,this.start,this.end]);await beforeRead(table,this.start,c);resolve({data:(rows[table]||[]).slice(this.start,this.end+1)})}catch(e){reject(e)}}};return q}};
  vm.createContext(c);vm.runInContext(source.slice(source.indexOf(' function load('),source.indexOf(' async function save(')),c);return c;
 }
