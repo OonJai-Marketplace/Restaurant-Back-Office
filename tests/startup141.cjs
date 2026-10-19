@@ -1,0 +1,20 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');let checks=0;
+const flush=async()=>{for(let i=0;i<20;i++)await Promise.resolve()};
+const code=fs.readFileSync('scripts/restaurant-bootstrap141.js','utf8');
+function fixture(){
+ const timers=new Map(),listeners={},scripts=[];let seq=0,submitted=0;
+ const logo={getAttribute:()=> 'data:image/png;base64,fixture'},status={textContent:''},error={textContent:'',after(node){nodes[node.id]=node}},forgot={click(){forgot.onclick()}},form={email:{reportValidity:()=>true},querySelector:()=>logo,requestSubmit(){submitted++}};
+ const nodes={restaurantLogin:form,forgotPassword121:forgot,loginStatus140:status,loginError:error,restaurantLoading132:{hidden:true},restaurantShellStyle141:{sheet:{},media:'print'}};
+ const c={URL,Promise,Error,document:{baseURI:'https://example.test/Restaurant/',getElementById:id=>nodes[id],addEventListener(){},querySelectorAll:()=>[],createElement:()=>({remove(){}}),body:{append:s=>scripts.push(s)}},navigator:{},location:{protocol:'https:',hostname:'example.test',reload(){}},addEventListener:(n,f)=>listeners[n]=f,removeEventListener:n=>delete listeners[n],setTimeout:(fn,ms)=>{let id=++seq;timers.set(id,{fn,ms});return id},clearTimeout:id=>timers.delete(id)};c.window=c;vm.createContext(c);vm.runInContext(code,c);
+ return {c,form,forgot,status,error,scripts,nodes,timers,submitted:()=>submitted};
+}
+async function test(name,f){await f();checks++;console.log('PASS',name)}
+(async()=>{
+await test('An early Sign in click queues once while the single core download is pending',async()=>{const f=fixture();const event={preventDefault(){}};f.form.onsubmit(event);f.form.onsubmit(event);assert.equal(f.scripts.length,1);assert.match(f.status.textContent,/Opening secure/);assert.equal(f.nodes.restaurantLoading132.hidden,true);f.c.restaurantCoreReady141=true;f.scripts[0].onload();await flush();assert.equal(f.submitted(),1)});
+await test('A failed core download retries once and exposes the exact file and Retry control',async()=>{const f=fixture();f.scripts[0].onerror();await flush();assert.equal(f.scripts.length,2);f.scripts[1].onerror();await flush();assert.match(f.error.textContent,/restaurant-core141.bundle.js/);assert(f.nodes.restaurantBootRetry139);assert.equal(f.nodes.restaurantLoading132.hidden,true)});
+await test('A download deadline does not inject a duplicate script that could execute twice',async()=>{const f=fixture();for(const t of [...f.timers.values()])if(t.ms===45000)t.fn();await flush();assert.equal(f.scripts.length,1);assert.match(f.error.textContent,/taking too long/)});
+await test('Both entry pages include the exact login style before any asset download',()=>{for(const name of ['index.html','back-office/index.html']){const html=fs.readFileSync(name,'utf8');assert(html.includes(fs.readFileSync('styles/restaurant-login141.css','utf8')));assert(html.includes(fs.readFileSync('scripts/restaurant-bootstrap141.js','utf8')));assert(!/class="login-submit" disabled/.test(html));assert(!/restaurant-release\d+\.js/.test(html));assert.equal((html.match(/id="restaurantShellStyle141"/g)||[]).length,1);assert(!html.includes("\\'all\\'"))}});
+await test('The shell stylesheet cannot reintroduce legacy login or green logo-tile rules',()=>{const css=fs.readFileSync('styles/restaurant-shell141.bundle.css','utf8');assert(!/#(?:loginGate|restaurantLogin)|\.login-brand-mark|\.restaurant-login/.test(css));const auth=fs.readFileSync('styles/restaurant-login141.css','utf8');assert(auth.includes('width:430px!important'));assert(auth.includes('height:36px!important'));assert(auth.includes('background:transparent!important'))});
+await test('Every compiled JavaScript bundle parses as one complete executable',()=>{for(const name of ['core','inventory','settings','pos'])new vm.Script(fs.readFileSync('scripts/restaurant-'+name+'141.bundle.js','utf8'))});
+console.log('COMPLETE',checks);
+})().catch(e=>{console.error(e);process.exit(1)});
