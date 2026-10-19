@@ -66,7 +66,7 @@ function setup(){
   c.localStorage.getItem=()=>{throw Error('Storage unavailable')};role({},true);assert.equal(c.restaurantPosMode128(),'live');
  });
  await check('Search excludes hidden tabs even when their module is visible',async()=>{
-  role({inventory:{view:true,tabs:{'inv-preparation124':true}}});run('syncNav121()');await run('restaurantReady()');
+  role({inventory:{view:true,tabs:{'inv-preparation124':true}}});run('syncNav121()');run('startRestaurantLogin140=async()=>{}');await run('restaurantReady()');
   const parent=new Node();nodes.get('restaurantSearch121').parentElement=parent;nodes.get('restaurantSearch121').oninput({target:{value:'master',parentElement:parent}});
   assert.equal(parent.children.at(-1).children.length,0);
  });

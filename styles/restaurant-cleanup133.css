@@ -42,3 +42,10 @@ html body.shell113 #restaurantApp #workspaceTools108{flex:0 0 auto;margin-left:a
 .integration-tabs133 button[aria-pressed=true]{background:#174c38!important;color:#fff!important}
 .integration-related133{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid #dce4dc}
 @media(max-width:700px){.integration-picker133,.integration-selected133 .integration-fields132{grid-template-columns:minmax(0,1fr)}.integration-selected133{padding:14px}.integration-related133 button{flex:1 1 140px}}
+
+/* Login sizing repair; retain the established colors, typography and form layout. */
+html body.shell113 #loginGate:not(.is-authenticated){inset:0!important;width:100%!important;height:100dvh!important}
+html body.shell113 #restaurantLogin{min-width:0;max-width:100%;height:auto;min-height:0;flex-shrink:0}
+html body.shell113 #restaurantLogin #loginStatus140{font-size:12px;color:#64748b}
+#loginStatus140:empty{display:none}
+#restaurantLoading132 p{position:static;width:auto;height:auto;overflow:visible;clip-path:none;white-space:normal}
