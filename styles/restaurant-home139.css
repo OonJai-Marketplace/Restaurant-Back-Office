@@ -1,0 +1,53 @@
+/* Daily Workspace, scoped to the homepage so operational tables keep their layouts. */
+html body.shell113 #restaurantOverviewGrid{display:block;max-width:1400px;margin:0 auto;padding:8px 10px 24px;color:#183c2e}
+#restaurantOverviewGrid *{box-sizing:border-box}
+.home-welcome139{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:4px 0 24px}
+.home-welcome139 p{margin:0 0 7px;font-size:10px;letter-spacing:.13em;color:#65766c;font-weight:700}
+.home-welcome139 h2{margin:0;font:700 clamp(25px,3vw,34px)/1.2 'Playfair Display',Georgia,serif;color:#173d2d}
+.home-welcome139 time{font-size:12px;color:#6a766e;text-align:right}
+#restaurantOverviewGrid button{font:600 12px/1.4 'Plus Jakarta Sans',Arial,sans-serif;cursor:pointer;border:1px solid #cbd9cf;border-radius:8px;background:#fffefa;color:#173d2d;margin:0;box-shadow:none;min-height:42px}
+#restaurantOverviewGrid button:focus-visible{outline:2px solid #087652;outline-offset:3px}
+#restaurantOverviewGrid button:disabled{opacity:.5;cursor:default}
+#restaurantOverviewGrid svg{flex:none;width:23px;height:23px}
+.home-actions139{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:22px}
+#restaurantOverviewGrid .home-actions139 button{display:flex;align-items:center;gap:12px;padding:20px 16px;text-align:left;background:#fff}
+.home-actions139 button span{flex:1}.home-actions139 button svg:last-child{width:17px}
+.home-columns139{display:grid;grid-template-columns:minmax(0,2.1fr) minmax(240px,1fr);gap:18px;align-items:start}
+.home-panel139{background:#fffefa;border:1px solid #d4dfd6;border-radius:11px;padding:20px;margin:0 0 18px;min-width:0;box-shadow:0 3px 12px #173d2d04}
+.home-panel139 h3{font:700 18px/1.4 'Playfair Display',Georgia,serif;margin:0 0 16px;color:#163d2c}
+.home-panel139 h4{margin:20px 0 5px;font-size:13px}
+.home-areas139{display:grid;gap:10px}
+#restaurantOverviewGrid .home-areas139 button{display:flex;align-items:center;gap:18px;padding:17px;text-align:left;background:#fff}
+.home-areas139 button>svg:first-child{width:29px;height:29px}
+.home-areas139 button>span{flex:1;min-width:0}.home-areas139 strong{display:block;font-size:15px}.home-areas139 small{display:block;font-size:12px;font-weight:400;color:#637267;margin-top:5px}
+.home-areas139 button>svg:last-child{width:18px}
+.home-records139{margin:0}.home-records139>div{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:15px 10px;margin:0 0 9px;border:1px solid #e0e7e0;border-radius:7px}
+.home-records139 dt{font-size:12px}.home-records139 dd{margin:0;font-size:18px;font-weight:700}
+#restaurantOverviewGrid .home-note139{font:400 11px/1.7 'Plus Jakarta Sans',Arial,sans-serif;color:#657469;margin:12px 0 0}
+.home-links139{display:grid;gap:8px}#restaurantOverviewGrid .home-links139 button{display:flex;align-items:center;gap:10px;padding:11px;text-align:left}.home-links139 button span{flex:1}.home-links139 button svg{width:18px}
+.home-sales139>header{display:flex;justify-content:space-between;align-items:center;gap:12px}.home-sales139>header h3{margin:0 0 5px}.home-sales139>header p{font-size:12px;color:#657469;margin:0}.home-sales139>header button{display:flex;gap:8px;align-items:center;padding:8px 12px}
+#homeReportForm139{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin:20px 0}
+#homeReportForm139 label{display:grid;gap:5px;font-size:11px;font-weight:600}
+#homeReportForm139 input{height:42px;min-width:150px;padding:8px;border:1px solid #becfc2;border-radius:6px;background:#fff;font:inherit;font-size:13px}
+#homeReportForm139 button{background:#18513a;color:#fff;border-color:#18513a;padding:10px 18px}
+.home-empty139{padding:28px 12px;text-align:center;background:#f4f7f1;border-radius:8px;font-size:12px;color:#657469}
+.home-sales-metrics139{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.home-sales-metrics139>div{padding:14px;border:1px solid #dce5dd;border-radius:8px;background:#f7f9f3}.home-sales-metrics139 small{display:block;font-size:11px;color:#637367}.home-sales-metrics139 strong{display:block;font-size:17px;margin-top:7px;overflow-wrap:anywhere}
+#restaurantOverviewGrid .home-chart139{width:100%;height:auto;max-height:280px;display:block;margin-top:14px}.home-chart139 text{font:10px Arial;fill:#647568}
+.home-export139{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}.home-export139 button{padding:8px 14px}
+.home-table139{overflow:auto}.home-table139 table{width:100%;border-collapse:collapse;font-size:12px}.home-table139 th,.home-table139 td{padding:11px;text-align:left;border-bottom:1px solid #dfe7df;white-space:nowrap}.home-table139 th{background:#edf3e9;color:#234c37}.home-table139 th:last-child,.home-table139 td:last-child{text-align:right}
+.home-pager139{display:flex;gap:15px;justify-content:center;align-items:center;margin-top:14px;font-size:12px}.home-pager139 button{padding:8px 14px}
+.home-print139{position:fixed;left:-10000px;top:0;width:900px;height:700px;border:0}
+@media(max-width:850px){.home-columns139{grid-template-columns:minmax(0,1fr)}.home-columns139>aside{display:grid;grid-template-columns:1fr 1fr;gap:14px}.home-actions139{grid-template-columns:repeat(2,minmax(0,1fr))}.home-sales-metrics139{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){html body.shell113 #restaurantOverviewGrid{padding:4px 0 16px}.home-welcome139{display:block;margin-bottom:18px}.home-welcome139 time{display:block;text-align:left;margin-top:8px}.home-columns139>aside{display:block}.home-panel139{padding:14px}.home-actions139{gap:8px}#restaurantOverviewGrid .home-actions139 button{padding:13px 10px;gap:7px}.home-actions139 button svg:last-child{display:none}#restaurantOverviewGrid .home-areas139 button{padding:13px;gap:12px}.home-areas139 small{font-size:11px}.home-sales139>header{align-items:start}.home-sales139>header button{font-size:11px}.home-sales139>header button svg{display:none}#homeReportForm139 label{flex:1}#homeReportForm139 input{width:100%;min-width:0}#homeReportForm139 button{width:100%}.home-sales-metrics139 strong{font-size:14px}}
+/* Match Accounting's stable centered login and shared six-dot orbit. */
+html body.shell113 #loginGate:not(.is-authenticated){position:fixed!important;inset:0!important;left:0!important;top:0!important;width:100%!important;height:100dvh!important;max-width:none!important;box-sizing:border-box!important;display:flex!important;justify-content:center!important;align-items:center!important;padding:24px!important;overflow:auto!important}
+html body.shell113 #loginGate[hidden]{display:none!important}
+html body.shell113 #restaurantLogin{width:430px!important;max-width:100%!important;min-width:0!important;height:auto!important;min-height:0!important;max-height:none!important;flex:0 0 auto!important;align-items:stretch!important;margin:auto!important;transform:none!important;box-sizing:border-box!important}
+html body.shell113 #restaurantLogin>*{flex-shrink:0;min-width:0}html body.shell113 #restaurantLogin label{width:100%}html body.shell113 #restaurantLogin #loginError{overflow-wrap:anywhere}
+html body.shell113 #restaurantLogin .login-brand-mark{width:52px!important;height:52px!important;flex:none!important}html body.shell113 #restaurantLogin .login-brand-mark img{width:52px!important;height:52px!important;object-fit:contain!important}
+html body.shell113 #restaurantLoading132{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;max-width:none!important;margin:0!important;transform:none!important;display:grid!important;place-content:center!important;justify-items:center!important;background:#faf7ef!important;backdrop-filter:none!important;color:#164b39;gap:12px}
+html body.shell113 #restaurantLoading132[hidden]{display:none!important}
+html body.shell113 #restaurantLoading132 p{position:static;width:auto;height:auto;overflow:visible;clip-path:none;white-space:normal;margin:0;font:500 12px/1.5 'Plus Jakarta Sans',Arial,sans-serif}
+html body.shell113 #restaurantLoading132 .loading-orbit1444{flex:none}
+@media(max-width:767px){html body.shell113 #loginGate:not(.is-authenticated){padding:20px!important}}
+@media(max-height:520px){html body.shell113 #loginGate:not(.is-authenticated){align-items:flex-start!important}}
