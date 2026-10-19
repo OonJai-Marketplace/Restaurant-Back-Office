@@ -4,7 +4,7 @@ window.restaurantTabs125={
  inventory:{'inv-overview':'Overview','inv-items':'Master List','inv-stock-in':'Stock In','inv-stock-out':'Stock Out','inv-adj':'Adjustments','inv-val':'Valuation','inv-preparation124':'Kitchen · Bulk Calculator & Preparation','inv-waste124':'Wastage'},
  menu:{'menu-ingredients':'Ingredients','menu-recipe':'Menus, Recipes & Integration','menu-pricing':'Pricing','menu-categories':'Categories','menu-costing':'Costing & Promotions','menu-engineering108':'Menu Engineering','menu-avail':'Availability'},
  pos:{'pos-overview':'Overview & Shift','pos-sales-new':'Sales · New Order','pos-sales-open':'Sales · Open Orders','pos-sales-receipts':'Sales · Receipts','pos-sales-online':'Sales · Online Orders','pos-management':'Management'},
- settings:{appearance:'Banners',branding:'Logo & Theme',security:'Password & Recovery'}
+ settings:{branding:'Logo & Theme',security:'Password & Recovery'}
 };
 permissionOptions121.inventory.prepare='Record cooking batches';
 function restaurantTabCan125(scope,tab,action='view'){
