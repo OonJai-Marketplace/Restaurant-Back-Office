@@ -1,12 +1,13 @@
 /* One site and one repository. Load working code only when its module is opened. */
 (()=>{'use strict';
  const groups={
+  readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js']},
   sales:{css:['restaurant-sales143.css'],js:['sales-math143.js','restaurant-sales143.js']},
-  settings:{js:['restaurant-settings142.bundle.js']},
-  inventory:{css:['inventory-menu-v104.css'],js:['restaurant-inventory142.bundle.js']},
+  settings:{js:['restaurant-settings144.bundle.js']},
+  inventory:{css:['inventory-menu-v104.css'],js:['restaurant-inventory144.bundle.js']},
   menu:{depends:['inventory'],js:['menu-v108.js']},
   kitchen:{depends:['inventory'],css:['preparation-waste124.css'],js:['preparation-waste124.js']},
-  pos:{css:['pos-v118.css'],js:['restaurant-pos142.bundle.js']}
+  pos:{css:['pos-v118.css'],js:['restaurant-pos144.bundle.js']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
  const pendingFiles=new Map();
@@ -14,7 +15,7 @@
   if(files.has(name))return Promise.resolve();if(pendingFiles.has(name))return pendingFiles.get(name);
   const promise=new Promise((resolve,reject)=>{
    const node=document.createElement(kind==='js'?'script':'link');let timer,runtimeError;
-   const url=new URL((kind==='js'?'scripts/':'styles/')+name+(name.includes('142.bundle')?'':'?v=142'),document.baseURI).href;
+   const url=new URL((kind==='js'?'scripts/':'styles/')+name+(name.includes('144.bundle')?'':'?v=144'),document.baseURI).href;
    const capture=e=>{if(e.filename===url)runtimeError=e.error||Error(e.message)};
    const cleanup=()=>{clearTimeout(timer);window.removeEventListener('error',capture)};
    if(kind==='js'){node.src=url;window.addEventListener('error',capture)}else{node.rel='stylesheet';node.href=url}

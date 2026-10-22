@@ -20,7 +20,9 @@
     "test:worker-runtime": "node worker-runtime128.cjs",
     "test:sales": "cd .. && node tests/sales143.cjs",
     "test:sales:db": "cd .. && node tests/sales-db143.cjs",
-    "test:sales:browser": "cd .. && node tests/sales-browser143.cjs"
+    "test:sales:browser": "cd .. && node tests/sales-browser143.cjs",
+    "test:readiness": "cd .. && node tests/readiness144.cjs",
+    "test:assessment:browser": "cd .. && node tests/assessment-browser144.cjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.8",

@@ -6,7 +6,7 @@ const server=http.createServer((req,res)=>{const name=path.join(root,new URL(req
  try{
  const context=await browser.newContext({serviceWorkers:'block'});await context.route(/^https:\/\//,route=>route.fulfill({status:200,body:'{}',contentType:'application/json'}));
  const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('http://127.0.0.1:'+server.address().port+'/');await page.waitForFunction(()=>window.restaurantCoreReady143);
+ await page.goto('http://127.0.0.1:'+server.address().port+'/');await page.waitForFunction(()=>window.restaurantCoreReady144);
  await page.evaluate(()=>{
   liveProfile={id:'11111111-1111-4111-8111-111111111111',full_name:'Local test',role:'admin',status:'active'};
   const menu=[15000,33000,42000,null].map((cost,i)=>({id:'m'+i,data:{name:'Test item '+(i+1),currency:'LAK',price:50000,active:true,recipe:cost===null?[]:[{itemId:'i'+i,quantity:1}]}}));
