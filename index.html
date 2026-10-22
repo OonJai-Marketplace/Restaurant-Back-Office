@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 <html lang="en">
-<head><meta name="restaurant-release" content="2026-10-19-startup-audit-142">
+<head><meta name="restaurant-release" content="2026-10-22-sales-profitability-143">
 <meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
 <meta content="#174c38" name="theme-color"/><title>Oon Jai Restaurant Back Office</title>
 <link href="manifest.webmanifest" rel="manifest"/><link href="assets/brand/oonjai-logo.png" rel="icon"/>
@@ -3882,6 +3882,7 @@ html body.shell113 #restaurantLogin .login-link-button{align-self:center;display
 <div class="nav-category" data-module="inventory" id="nav-module-inventory"><button aria-label="Inventory" class="nav-header" onclick="switchTab('inv-overview')" type="button"><span aria-hidden="true" class="nav-icon113"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" viewBox="0 0 24 24"><path d="M3 7l9-4 9 4v11l-9 4-9-4z M3 7l9 5 9-5 M12 12v10"></path></svg></span><span data-inventory-label128>Inventory</span> <span class="arrow">▼</span></button><div class="nav-links"><button class="tab-btn" onclick="switchTab('inv-overview')" type="button">Overview</button><button class="tab-btn" onclick="switchTab('inv-items')" type="button">Master List</button><button class="tab-btn" onclick="switchTab('inv-stock-in')" type="button">Stock In</button><button class="tab-btn" onclick="switchTab('inv-stock-out')" type="button">Stock Out</button><button class="tab-btn" onclick="switchTab('inv-adj')" type="button">Adjustments</button><button class="tab-btn" onclick="switchTab('inv-val')" type="button">Valuation</button></div></div>
 <div class="nav-category" data-module="kitchen" id="nav-module-kitchen"><button class="nav-header" aria-label="Kitchen" onclick="switchTab('inv-bulk132')" type="button"><span class="nav-icon113" aria-hidden="true">♧</span>Kitchen <span class="arrow">▼</span></button><div class="nav-links"><button class="tab-btn" onclick="switchTab('inv-bulk132')" type="button">Bulk plan</button><button class="tab-btn" onclick="switchTab('inv-preparation124')" type="button">Prepare</button><button class="tab-btn" onclick="switchTab('inv-waste124')" type="button">Wastage</button></div></div>
 <div class="nav-category" data-module="menu" id="nav-module-menu"><button aria-label="Menu" class="nav-header" onclick="switchTab('menu-ingredients')" type="button"><span aria-hidden="true" class="nav-icon113"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" viewBox="0 0 24 24"><path d="M5 2v8h6V2 M8 2v20 M19 2c-4 3-4 7-4 11h4v9V2"></path></svg></span>Menu <span class="arrow">▼</span></button><div class="nav-links"><button class="tab-btn" onclick="switchTab('menu-ingredients')" type="button">Ingredients</button><button class="tab-btn" onclick="switchTab('menu-recipe')" type="button">Menus &amp; Recipes</button><button class="tab-btn" onclick="switchTab('menu-integration132')" type="button">Integration</button><button class="tab-btn" onclick="switchTab('menu-pricing')" type="button">Pricing</button><button class="tab-btn" onclick="switchTab('menu-categories')" type="button">Categories</button><button class="tab-btn" onclick="switchTab('menu-costing')" type="button">Costing &amp; Promotions</button><button class="tab-btn" onclick="switchTab('menu-engineering108')" type="button">Menu Engineering</button><button class="tab-btn" onclick="switchTab('menu-avail')" type="button">Availability</button></div></div>
+<div class="nav-category" data-module="sales" id="nav-module-sales"><button aria-label="Sales and profitability" class="nav-header tab-btn" onclick="switchTab('restaurant-sales143')" type="button"><span class="nav-category-title">Sales &amp; Profitability</span></button></div>
 <div class="nav-category" data-module="pos" id="nav-module-pos"><button aria-label="Point of Sale" class="nav-header" onclick="switchTab('pos118')" type="button"><span aria-hidden="true" class="nav-icon113"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" viewBox="0 0 24 24"><path d="M2 3h3l3 13h11l3-9H6 M9 20h.01 M18 20h.01"></path></svg></span>Point of Sale</button></div>
 <div class="nav-category" data-module="website" id="nav-module-website" hidden><button aria-label="Public Website" class="nav-header" onclick="switchTab('restaurant-website')" type="button"><span aria-hidden="true" class="nav-icon113"><svg fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c6 5 6 13 0 18M12 3c-6 5-6 13 0 18"/></svg></span>Website</button></div>
 <div class="nav-category" data-module="settings" id="nav-module-settings"><button aria-label="Settings" class="nav-header" onclick="switchTab('restaurant-settings')" type="button"><span aria-hidden="true" class="nav-icon113"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" viewBox="0 0 24 24"><path d="M4 7h16 M4 17h16 M8 3v8 M16 13v8"></path></svg></span>Settings</button></div>
@@ -3890,6 +3891,7 @@ html body.shell113 #restaurantLogin .login-link-button{align-self:center;display
 <main class="main-content-area"><header class="module-header no-print"><div class="header-left-tools"><button aria-label="Open navigation" class="mobile-menu-toggle" id="mobileMenuToggle" onclick="toggleMobileNavigation()" type="button"><span></span><span></span><span></span></button><h1 class="module-header-title" id="mainHeaderTitle">Restaurant Overview</h1></div><div class="no-print" hidden="" id="workspaceTools108"><button aria-expanded="false" aria-label="Notifications" id="upcomingBell101" title="Notifications" type="button"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"></path></svg><span hidden="" id="headerNoticeBadge104"></span></button><button aria-label="Restaurant apps and account" id="switchAccount110" title="Restaurant apps and account" type="button"><svg fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path d="M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4"></path></svg></button><button aria-label="Sign out" id="signOut110" title="Sign out" type="button"><svg fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path d="M10 4H4v16h6M9 12h12m-5-5 5 5-5 5"></path></svg></button><button aria-label="Fullscreen orders" aria-pressed="false" hidden="" id="posFullscreen122" title="Fullscreen orders" type="button"><svg fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"></path></svg></button></div></header>
 <div class="category-tab-shell no-print" hidden="" id="categoryTabShell"><div class="category-tabs" id="categoryTabs" role="navigation" aria-label="Section views"></div></div>
 <div class="workspace-scroll" id="printableDocArea">
+<div class="tab-content" data-module="sales" id="restaurant-sales143"></div>
 <div class="tab-content active" data-module="dashboard" id="restaurant-overview"><div class="restaurant-overview-grid" id="restaurantOverviewGrid"></div></div>
 <div class="tab-content" data-module="inventory" id="inv-overview"></div><div class="tab-content" data-module="inventory" id="inv-items"></div><div class="tab-content" data-module="inventory" id="inv-stock-in"></div><div class="tab-content" data-module="inventory" id="inv-stock-out"></div><div class="tab-content" data-module="inventory" id="inv-adj"></div><div class="tab-content" data-module="inventory" id="inv-val"></div>
 <div class="tab-content" data-module="inventory" id="inv-bulk132"></div><div class="tab-content" data-module="menu" id="menu-integration132"></div><div class="tab-content" data-module="inventory" id="inv-preparation124"></div><div class="tab-content" data-module="inventory" id="inv-waste124"></div><div class="tab-content" data-module="menu" id="menu-ingredients"></div><div class="tab-content" data-module="menu" id="menu-details"></div><div class="tab-content" data-module="menu" id="menu-recipe"></div><div class="tab-content" data-module="menu" id="menu-pricing"></div><div class="tab-content" data-module="menu" id="menu-categories"></div><div class="tab-content" data-module="menu" id="menu-costing"></div><div class="tab-content" data-module="menu" id="menu-engineering108"></div><div class="tab-content" data-module="menu" id="menu-avail"></div>
@@ -3897,9 +3899,9 @@ html body.shell113 #restaurantLogin .login-link-button{align-self:center;display
 <div class="tab-content" data-module="settings" id="restaurant-settings"><div id="restaurantSettings121"></div></div>
 </div></main></div>
 
-<script id="restaurantBoot142">/* Inline entry: the visible form and controls never depend on a stylesheet download. */
+<script id="restaurantBoot143">/* Inline entry: the visible form and controls never depend on a stylesheet download. */
 (()=>{'use strict';
- if(window.restaurantBootStarted142)return;window.restaurantBootStarted142=true;
+ if(window.restaurantBootStarted143)return;window.restaurantBootStarted143=true;
  const form=document.getElementById('restaurantLogin'),forgot=document.getElementById('forgotPassword121'),status=document.getElementById('loginStatus140'),error=document.getElementById('loginError');
  let corePromise,queued=false;
  const logo=form.querySelector('.login-brand-mark img');window.restaurantLogo139=logo.getAttribute('src');
@@ -3908,10 +3910,10 @@ html body.shell113 #restaurantLogin .login-link-button{align-self:center;display
  window.restaurantBootFailure140=err=>{document.getElementById('restaurantLoading132').hidden=true;status.textContent='';error.textContent=err.message||'The restaurant could not start.';let retry=document.getElementById('restaurantBootRetry139');if(!retry){retry=document.createElement('button');retry.id='restaurantBootRetry139';retry.type='button';retry.className='login-link-button';retry.textContent='Retry loading';retry.onclick=()=>location.reload();error.after(retry)}};
  // The new worker activates immediately: it does not wait behind a full-app pre-download.
  let registration;
- if('serviceWorker' in navigator&&(location.protocol==='https:'||['localhost','127.0.0.1'].includes(location.hostname)))try{registration=navigator.serviceWorker.register(new URL('restaurant-sw142.js',document.baseURI).href,{scope:new URL('./',document.baseURI).href,updateViaCache:'none'});registration.catch(()=>{})}catch{}
- async function waitForWorker142(){
+ if('serviceWorker' in navigator&&(location.protocol==='https:'||['localhost','127.0.0.1'].includes(location.hostname)))try{registration=navigator.serviceWorker.register(new URL('restaurant-sw143.js',document.baseURI).href,{scope:new URL('./',document.baseURI).href,updateViaCache:'none'});registration.catch(()=>{})}catch{}
+ async function waitForWorker143(){
   if(!registration)return;
-  await Promise.race([registration.then(reg=>new Promise(resolve=>{if(reg.active?.scriptURL.endsWith('restaurant-sw142.js'))return resolve();const done=()=>{navigator.serviceWorker.removeEventListener('controllerchange',done);clearTimeout(timer);resolve()};const timer=setTimeout(done,8000);navigator.serviceWorker.addEventListener('controllerchange',done)})),new Promise(resolve=>setTimeout(resolve,8000))]).catch(()=>{});
+  await Promise.race([registration.then(reg=>new Promise(resolve=>{if(reg.active?.scriptURL.endsWith('restaurant-sw143.js'))return resolve();const done=()=>{navigator.serviceWorker.removeEventListener('controllerchange',done);clearTimeout(timer);resolve()};const timer=setTimeout(done,8000);navigator.serviceWorker.addEventListener('controllerchange',done)})),new Promise(resolve=>setTimeout(resolve,8000))]).catch(()=>{});
  }
  function loadCore(){
   if(corePromise)return corePromise;
@@ -3919,17 +3921,17 @@ html body.shell113 #restaurantLogin .login-link-button{align-self:center;display
    for(let attempt=0;attempt<2;attempt++)try{
     await new Promise((resolve,reject)=>{
      const script=document.createElement('script');let timer,runtimeError;
-     const src=new URL('scripts/restaurant-core142.bundle.js',document.baseURI).href;
+     const src=new URL('scripts/restaurant-core143.bundle.js',document.baseURI).href;
      const capture=e=>{if(e.filename===src)runtimeError=e.error||Error(e.message)};
      const done=err=>{clearTimeout(timer);window.removeEventListener('error',capture);script.onload=null;script.onerror=null;if(err)reject(err);else resolve()};
      window.addEventListener('error',capture);script.src=src;
-     script.onload=()=>{if(runtimeError){runtimeError.noRetry=true;done(runtimeError)}else if(!window.restaurantCoreReady142){const e=Error('The restaurant application did not initialize. Please reload.');e.noRetry=true;done(e)}else done()};
-     script.onerror=()=>{script.remove();done(Error('The restaurant application file could not download (restaurant-core142.bundle.js). Select Retry loading.'))};
+     script.onload=()=>{if(runtimeError){runtimeError.noRetry=true;done(runtimeError)}else if(!window.restaurantCoreReady143){const e=Error('The restaurant application did not initialize. Please reload.');e.noRetry=true;done(e)}else done()};
+     script.onerror=()=>{script.remove();done(Error('The restaurant application file could not download (restaurant-core143.bundle.js). Select Retry loading.'))};
      timer=setTimeout(()=>{const e=Error('The restaurant application download is taking too long. Select Retry loading.');e.noRetry=true;done(e)},45000);document.body.append(script);
     });return;
    }catch(err){if(err.noRetry||attempt===1)throw err;
     // Allow a newly registered worker to replace an old four-second request deadline.
-    await waitForWorker142();
+    await waitForWorker143();
    }
   })();return corePromise;
  }
@@ -3938,7 +3940,7 @@ html body.shell113 #restaurantLogin .login-link-button{align-self:center;display
  loadCore().then(()=>{
   document.getElementById('restaurantBootRetry139')?.remove();
   // Warm only the shell after startup, without gating sign-in or touching private data.
-  if(registration)registration.then(reg=>{const send=()=>{const worker=navigator.serviceWorker.controller||reg.active;if(!worker?.scriptURL.endsWith('restaurant-sw142.js'))return false;worker.postMessage({type:'CACHE_SHELL142'});return true};if(!send())navigator.serviceWorker.addEventListener('controllerchange',send,{once:true})}).catch(()=>{});
+  if(registration)registration.then(reg=>{const send=()=>{const worker=navigator.serviceWorker.controller||reg.active;if(!worker?.scriptURL.endsWith('restaurant-sw143.js'))return false;worker.postMessage({type:'CACHE_SHELL143'});return true};if(!send())navigator.serviceWorker.addEventListener('controllerchange',send,{once:true})}).catch(()=>{});
  }).catch(window.restaurantBootFailure140);
 })();
 </script></body></html>
