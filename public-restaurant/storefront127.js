@@ -13,6 +13,7 @@ window.RestaurantPublic127=(()=>{'use strict';
   }
   return result;
  }
+ function cached(){try{const c=JSON.parse(localStorage.getItem('oonjai_public127:'+window.OJM_SUPABASE_URL)||'null');if(c&&Number.isFinite(c.savedAt)&&Date.now()-c.savedAt>=0&&Date.now()-c.savedAt<86400000)return {menu:normalize(c.rows),page:c.page,stale:true};}catch{}return null;}
  async function load(){
   const base=window.OJM_SUPABASE_URL,key=window.OJM_SUPABASE_ANON_KEY;
   if(!/^https:\/\/[a-z0-9]+\.supabase\.co$/.test(base||'')||!key)return {stale:true};
@@ -30,5 +31,5 @@ window.RestaurantPublic127=(()=>{'use strict';
    return {stale:true};
   }finally{clearTimeout(timer);}
  }
- return {load,normalize,safeImage};
+ return {load,cached,normalize,safeImage};
 })();

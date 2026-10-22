@@ -8,7 +8,7 @@
   const controller=new AbortController();let timeout;
   try{let request=ojmDb.rpc(name,args);if(request.abortSignal)request=request.abortSignal(controller.signal);
    const out=await Promise.race([Promise.resolve(request),new Promise((_,reject)=>{timeout=setTimeout(()=>{controller.abort();reject(Error('Network request timed out'))},name==='pos_order118'?8000:6000)})]);
-   if(out.error)throw Error(out.error.message);return out.data;
+   if(out.error)throw Error(out.error.message);if(['pos_order118','pos_manage118'].includes(name))window.restaurantData144?.changed(name==='pos_order118'?['sales','stock']:['catalog','stock']);return out.data;
   }catch(e){if(controller.signal.aborted)throw Error('Network request timed out');throw e}
   finally{clearTimeout(timeout)}
  }

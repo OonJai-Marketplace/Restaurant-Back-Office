@@ -941,7 +941,7 @@
   </div>
 
 <script src="../scripts/supabase-config.js?v=127"></script>
-<script src="storefront127.js?v=135"></script>
+<script src="storefront127.js?v=144"></script>
 <script src="../scripts/public-menu-rules131.js?v=135"></script>
 <script>
 const App = (function() {
@@ -960,6 +960,7 @@ const App = (function() {
   let cartHome = null;
   let lockedScrollY = 0;
   let cart = [];
+  let publicMenuLoading144 = true;
   let currentActiveCustomItem = null;
   let editingCartIndex = null;
   let currentCategory = 'burgers';
@@ -1099,9 +1100,9 @@ const App = (function() {
     }));
   }
 
-  function restoreCart() {
+  function restoreCart(snapshot) {
     try {
-      const saved = JSON.parse(readStorage('sessionStorage', 'oonjai_cart_v1') || 'null');
+      const saved = snapshot || JSON.parse(readStorage('sessionStorage', 'oonjai_cart_v1') || 'null');
       if (!saved || !Number.isFinite(saved.savedAt) || Date.now() - saved.savedAt > 86400000 || !Array.isArray(saved.items)) return;
       cart = saved.items.slice(0, 200).flatMap(entry => {
         if (!entry || !Number.isSafeInteger(entry.qty) || entry.qty < 1 || entry.qty > 9999) return [];
@@ -1403,12 +1404,7 @@ const App = (function() {
     createHomeSlider('homeSliderReview', homeReviewImages, 1600);
   }
 
-  document.addEventListener('DOMContentLoaded', async () => {
-    document.getElementById('currentYear').textContent = new Date().getFullYear();
-
-    cartHome = document.createComment('Cart position in the menu');
-    document.getElementById('cartModalWrapper').before(cartHome);
-    const publicContent = await window.RestaurantPublic127.load();
+  function applyPublicContent144(publicContent) {
     if(publicContent.menu) for(const key of Object.keys(menuData)) menuData[key]=publicContent.menu[key]||[];
     document.querySelector('.cat-btn[data-category="bakery"]').hidden=!menuData.bakery.length;
     const page=publicContent.page;
@@ -1418,9 +1414,18 @@ const App = (function() {
       }
       if(/^[0-9]{6,18}$/.test(page.phone||''))PHONE_NUMBER=page.phone;
       if(/^[a-zA-Z0-9._-]{1,100}$/.test(page.messenger||''))MESSENGER_USERNAME=page.messenger;
-      if(page.announcement){const note=document.createElement('p');note.textContent=page.announcement;note.className='storefront-announcement127';document.querySelector('.home-intro').append(note);}
+      document.querySelector('.storefront-announcement127')?.remove();if(page.announcement){const note=document.createElement('p');note.textContent=page.announcement;note.className='storefront-announcement127';document.querySelector('.home-intro').append(note);}
     }
-    if(publicContent.stale){const note=document.createElement('p');note.setAttribute('role','status');note.textContent='Please confirm current prices and availability when ordering.';note.style.cssText='font-size:12px;margin:8px 0;color:#6c624c';document.getElementById('productsGrid').before(note);}
+    const note=document.getElementById('publicMenuStatus144')||document.createElement('p');note.id='publicMenuStatus144';note.setAttribute('role','status');note.textContent=publicMenuLoading144?'Checking the latest menu…':publicContent.stale?'Saved menu · confirm current prices and availability with us.':'Menu updated · orders are confirmed by the restaurant.';note.style.cssText='font-size:12px;margin:8px 0;color:#6c624c';if(!note.isConnected)document.getElementById('productsGrid').before(note);
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+    cartHome = document.createComment('Cart position in the menu');
+    document.getElementById('cartModalWrapper').before(cartHome);
+    const publicRequest144 = window.RestaurantPublic127.load();
+    applyPublicContent144(window.RestaurantPublic127.cached() || {stale:true});
     restoreCart();
     const hashTab = window.location.hash.slice(1);
     const savedTab = mainTabs.includes(hashTab) ? hashTab : readStorage('sessionStorage', 'oonjai_active_tab');
@@ -1449,6 +1454,15 @@ const App = (function() {
       else return;
       e.preventDefault(); tabs[next].click(); tabs[next].focus();
     }));
+    publicRequest144.then(publicContent=>{
+      const before=JSON.stringify(cart),snapshot={savedAt:Date.now(),items:cart,orderType:document.querySelector('[name="orderType"]:checked')?.value||''};
+      publicMenuLoading144=false;
+      applyPublicContent144(publicContent);
+      restoreCart(snapshot);
+      if(currentActiveCustomItem)App.closeCustomModal();
+      App._reRenderStore();
+      if(before!==JSON.stringify(cart))App.triggerAlert('Your basket was updated to the latest menu prices and availability. Please review it before sending.','Menu updated');
+    }).catch(()=>{publicMenuLoading144=false;applyPublicContent144({stale:true});});
   });
 
   document.addEventListener('visibilitychange', syncAnimations);
@@ -1910,6 +1924,7 @@ const App = (function() {
     },
 
     handleCheckout: function(platform) {
+      if(publicMenuLoading144)return this.triggerAlert('We are checking the latest menu. Please try again in a moment.','Menu check');
       if (cart.length === 0) {
         this.triggerAlert("Your basket is empty! Please add items before ordering.", "Empty Basket");
         return;
@@ -1946,12 +1961,14 @@ const App = (function() {
     },
 
     executeWA: function() {
+      if(publicMenuLoading144)return this.triggerAlert('Please wait for the menu check to finish.','Menu check');
       const msg = this._buildOrderMsg();
       const url = `https://api.whatsapp.com/send?phone=${PHONE_NUMBER}&text=${encodeURIComponent(msg)}`;
       if(window.self!==window.top)window.open(url,'_blank','noopener,noreferrer');else window.location.href = url;
     },
 
     executeMessenger: async function() {
+      if(publicMenuLoading144)return this.triggerAlert('Please wait for the menu check to finish.','Menu check');
       const msg = this._buildOrderMsg();
       saveCart();
       this.triggerCustomPrompt(`<div class="messenger-checkout">

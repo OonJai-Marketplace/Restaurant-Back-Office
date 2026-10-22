@@ -18,7 +18,15 @@ async function main(){
  await db.query("select set_config('test.uid',$1,false)",[admin]);
  ok('Independent Restaurant schema installs without Accounting tables',true);
  ok('No accounting or payroll tables created',(await db.query("select count(*)::int as n from information_schema.tables where table_schema='public' and (table_name like 'journal%' or table_name like 'payroll%' or table_name='user_permissions')")).rows[0].n===0);
+ await db.exec('set role authenticated');
+ const readiness=(await db.query('select restaurant_readiness144() r')).rows[0].r;
+ ok('Admin readiness returns catalog and balances without photos or ledger rows',Array.isArray(readiness.menu)&&Array.isArray(readiness.items)&&!JSON.stringify(readiness).includes('photoData')&&!('moves' in readiness));
+ await db.exec('reset role');
+ await db.query("select set_config('test.uid',$1,false)",[staff]);await db.exec('set role authenticated');
+ await rejects(()=>db.query('select restaurant_readiness144()'),/Administrator access required/,'Staff cannot call administrator readiness checks');
+ await db.exec('reset role');await db.query("select set_config('test.uid',$1,false)",[admin]);
  await db.exec('set role anon');
+ await rejects(()=>db.query('select restaurant_readiness144()'),/permission denied/,'Anonymous visitors cannot invoke readiness checks');
  await rejects(()=>db.query('select * from menu_items104'),/permission denied/,'Anonymous visitors cannot read private recipes');
  await rejects(()=>db.query('select pos_cashier_snapshot125()'),/permission denied/,'Anonymous visitors cannot invoke staff RPCs');
  await db.exec('reset role');
@@ -32,7 +40,7 @@ async function main(){
  ok('Added ingredients are included',Number(b.data.ingredientTotal)===190);
  ok('Worker minutes, fuel and other cooking cost are included',Number(b.data.fullTotal)===280);
  ok('Cooked unit cost follows actual output quantity',Number(b.data.fullUnitCost)===140);
- let stocks=async()=>Object.fromEntries((await db.query('select id,restaurant_stock124(id) as q from inventory_items104')).rows.map(r=>[r.id,Number(r.q)]));let st=await stocks();ok('Cooking consumes raw ingredients and creates cooked stock atomically',st[raw]===8.5&&st[oil]===9.9&&st[cooked]===2);
+ let stocks=async()=>Object.fromEntries((await db.query('select id,restaurant_stock124(id) as q from inventory_items104')).rows.map(r=>[r.id,Number(r.q)]));let st=await stocks();const checked=(await db.query('select restaurant_readiness144() r')).rows[0].r;ok('Readiness balances match the authoritative stock calculation',checked.items.every(i=>Number(i.available)===st[i.id]));ok('Redundant index copies are removed while covering indexes remain',(await db.query("select count(*)::int n from pg_indexes where indexname in ('inventory_movements_item124','pos_stock_item124','inventory_item_lookup125','pos_stock_item125')")).rows[0].n===2);ok('Cooking consumes raw ingredients and creates cooked stock atomically',st[raw]===8.5&&st[oil]===9.9&&st[cooked]===2);
  await db.query('select restaurant_prepare124($1,$2)',[batch,data]);st=await stocks();ok('Retrying a batch does not repeat stock changes',st[raw]===8.5&&st[cooked]===2);
  const linked=(await db.query('select data from menu_ingredients105 where id=$1',[prepIng])).rows[0].data;ok('Recipe cost stays ingredient-only and full cooked cost is separate',Number(linked.cost)===.095&&Number(linked.fullPreparedCost124)===.14);
  const w=(await db.query('select restaurant_record_waste124($1,$2) as w',[waste,{itemId:cooked,batchId:batch,date:'2026-10-09',quantity:500,unit:'g',reason:'Spoiled cooked filling'}])).rows[0].w;
