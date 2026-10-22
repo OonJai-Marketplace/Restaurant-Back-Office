@@ -1,0 +1,22 @@
+const {PGlite}=require('@electric-sql/pglite'),fs=require('fs'),assert=require('node:assert/strict');
+(async()=>{
+ const db=new PGlite();let count=0;
+ const admin='11111111-1111-4111-8111-111111111111',staff='22222222-2222-4222-8222-222222222222',ingredient='33333333-3333-4333-8333-333333333333',menu='44444444-4444-4444-8444-444444444444',order='55555555-5555-4555-8555-555555555555';
+ const pass=n=>{count++;console.log('PASS',n)};
+ await db.exec(`create role anon;create role authenticated;create schema auth;create schema restaurant_private;create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('test.uid',true),'')::uuid$$;grant usage on schema auth to authenticated;create table profiles(id uuid primary key);create function is_admin() returns boolean language sql stable as $$select auth.uid()='${admin}'::uuid$$;create function pos_allowed118() returns boolean language sql stable as $$select auth.uid() is not null$$;create table menu_items104(id uuid primary key,data jsonb);create table menu_ingredients105(id uuid primary key,data jsonb);create table pos_orders118(id uuid primary key,status text,data jsonb);insert into profiles values('${admin}'),('${staff}');`);
+ await db.exec(fs.readFileSync('sql/13-sales-profitability143.sql','utf8'));
+ await db.query("select set_config('test.uid',$1,false)",[admin]);
+ await db.exec('set role authenticated');
+ let plan=(await db.query("insert into restaurant_sales_plans143(name,from_date,to_date,data) values('Test','2026-10-01','2026-10-22','{}') returning *")).rows[0];assert.equal(plan.created_by,admin);pass('Admin can save a scenario');
+ await assert.rejects(db.query('update restaurant_sales_plans143 set name=$1 where id=$2',['Bad update',plan.id]),/refresh/);
+ await db.query('update restaurant_sales_plans143 set name=$1,version=2 where id=$2',['Updated',plan.id]);pass('Scenario updates enforce version progression');
+ await db.exec('reset role');await db.query("select set_config('test.uid',$1,false)",[staff]);await db.exec('set role authenticated');assert.equal((await db.query('select * from restaurant_sales_plans143')).rows.length,0);await assert.rejects(db.query("insert into restaurant_sales_plans143(name,from_date,to_date,data) values('Unauthorized','2026-10-01','2026-10-22','{}')"),/row-level security/);pass('Staff cannot read or write administrator plans');
+ await db.exec('reset role;set role anon');await assert.rejects(db.query('select * from restaurant_sales_plans143'),/permission denied/);pass('Anonymous access is denied');await db.exec('reset role');await db.query("select set_config('test.uid',$1,false)",[admin]);
+ await db.query('insert into menu_ingredients105 values($1,$2)',[ingredient,{cost:7500,currency:'LAK'}]);await db.query('insert into menu_items104 values($1,$2)',[menu,{currency:'LAK',recipe:[{itemId:ingredient,quantity:2}]}]);
+ const data={currency:'LAK',lines:[{menuId:menu,quantity:2,unitPrice:50000,choices:{}}]};await db.query("insert into pos_orders118 values($1,'unpaid',$2)",[order,data]);await db.query("update pos_orders118 set status='paid' where id=$1",[order]);
+ let receipt=(await db.query('select data from pos_orders118 where id=$1',[order])).rows[0].data;assert.equal(receipt.lines[0].cost143.unitCost,15000);pass('Payment captures server-side recipe cost');
+ await db.query("update menu_ingredients105 set data=jsonb_set(data,'{cost}','90000') where id=$1",[ingredient]);receipt.lines[0].cost143.unitCost=1;await db.query("update pos_orders118 set status='refunded',data=$2 where id=$1",[order,receipt]);receipt=(await db.query('select data from pos_orders118 where id=$1',[order])).rows[0].data;assert.equal(receipt.lines[0].cost143.unitCost,15000);pass('Ingredient edits and refunds cannot rewrite the saved cost');
+ await db.query("update menu_items104 set data=jsonb_set(data,'{recipe}','[]') where id=$1",[menu]);assert.equal((await db.query('select restaurant_private.recipe_cost143($1) cost',[menu])).rows[0].cost,null);pass('Empty recipes return unknown cost');
+ const exposed=(await db.query("select count(*)::int n from pg_proc where pronamespace='restaurant_private'::regnamespace and proname like '%143' and has_function_privilege('authenticated',oid,'execute')")).rows[0].n;assert.equal(exposed,0);pass('Private trigger and costing functions are not client-callable');
+ await db.close();console.log('COMPLETE',count);
+})().catch(e=>{console.error(e);process.exit(1)});

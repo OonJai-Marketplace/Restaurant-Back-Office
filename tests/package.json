@@ -17,7 +17,10 @@
     "test:public-runtime": "node public-runtime127.cjs",
     "test:access": "node access-db128.cjs",
     "test:access-runtime": "node access-runtime128.cjs",
-    "test:worker-runtime": "node worker-runtime128.cjs"
+    "test:worker-runtime": "node worker-runtime128.cjs",
+    "test:sales": "cd .. && node tests/sales143.cjs",
+    "test:sales:db": "cd .. && node tests/sales-db143.cjs",
+    "test:sales:browser": "cd .. && node tests/sales-browser143.cjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.8",

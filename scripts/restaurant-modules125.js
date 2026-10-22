@@ -1,6 +1,7 @@
 /* One site and one repository. Load working code only when its module is opened. */
 (()=>{'use strict';
  const groups={
+  sales:{css:['restaurant-sales143.css'],js:['sales-math143.js','restaurant-sales143.js']},
   settings:{js:['restaurant-settings142.bundle.js']},
   inventory:{css:['inventory-menu-v104.css'],js:['restaurant-inventory142.bundle.js']},
   menu:{depends:['inventory'],js:['menu-v108.js']},
@@ -28,7 +29,7 @@
   const promise=(async()=>{for(const dep of config.depends||[])await ensure(dep);for(const file of config.css||[])await style(file);for(const file of config.js||[])await script(file);ready.add(group)})();
   promises.set(group,promise);try{await promise}catch(e){promises.delete(group);throw e}
  }
- function groupFor(id){return ['inv-bulk132','inv-preparation124','inv-waste124'].includes(id)?'kitchen':id.startsWith('inv-')?'inventory':id.startsWith('menu-')?'menu':id==='pos118'?'pos':id==='restaurant-settings'?'settings':null}
+ function groupFor(id){return id==='restaurant-sales143'?'sales':['inv-bulk132','inv-preparation124','inv-waste124'].includes(id)?'kitchen':id.startsWith('inv-')?'inventory':id.startsWith('menu-')?'menu':id==='pos118'?'pos':id==='restaurant-settings'?'settings':null}
  // POS uses its own current catalog. It does not load the Inventory ledger.
  window.menuStore108={state:{loaded:false,items:[],ingredients:[],moves:[],menu:[],categories:[]},
   async save(...args){await ensure('inventory');return window.menuStore108.save(...args)},
