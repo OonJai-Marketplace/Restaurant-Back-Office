@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 <html lang="en">
-<head><meta name="restaurant-release" content="2026-10-22-readiness-performance-144">
+<head><meta name="restaurant-release" content="2026-10-26-word-of-hope-145">
 <meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
 <meta content="#174c38" name="theme-color"/><title>Oon Jai Restaurant Back Office</title>
 <link href="manifest.webmanifest" rel="manifest"/><link href="assets/brand/oonjai-logo.png" rel="icon"/>
@@ -3899,9 +3899,9 @@ html body.shell113 #restaurantLogin .login-link-button{align-self:center;display
 <div class="tab-content" data-module="settings" id="restaurant-settings"><div id="restaurantSettings121"></div></div>
 </div></main></div>
 
-<script id="restaurantBoot144">/* Inline entry: the visible form and controls never depend on a stylesheet download. */
+<script id="restaurantBoot145">/* Inline entry: the visible form and controls never depend on a stylesheet download. */
 (()=>{'use strict';
- if(window.restaurantBootStarted144)return;window.restaurantBootStarted144=true;
+ if(window.restaurantBootStarted145)return;window.restaurantBootStarted145=true;
  const form=document.getElementById('restaurantLogin'),forgot=document.getElementById('forgotPassword121'),status=document.getElementById('loginStatus140'),error=document.getElementById('loginError');
  let corePromise,queued=false;
  const logo=form.querySelector('.login-brand-mark img');window.restaurantLogo139=logo.getAttribute('src');
@@ -3910,10 +3910,10 @@ html body.shell113 #restaurantLogin .login-link-button{align-self:center;display
  window.restaurantBootFailure140=err=>{document.getElementById('restaurantLoading132').hidden=true;status.textContent='';error.textContent=err.message||'The restaurant could not start.';let retry=document.getElementById('restaurantBootRetry139');if(!retry){retry=document.createElement('button');retry.id='restaurantBootRetry139';retry.type='button';retry.className='login-link-button';retry.textContent='Retry loading';retry.onclick=()=>location.reload();error.after(retry)}};
  // The new worker activates immediately: it does not wait behind a full-app pre-download.
  let registration;
- if('serviceWorker' in navigator&&(location.protocol==='https:'||['localhost','127.0.0.1'].includes(location.hostname)))try{registration=navigator.serviceWorker.register(new URL('restaurant-sw144.js',document.baseURI).href,{scope:new URL('./',document.baseURI).href,updateViaCache:'none'});registration.catch(()=>{})}catch{}
- async function waitForWorker144(){
+ if('serviceWorker' in navigator&&(location.protocol==='https:'||['localhost','127.0.0.1'].includes(location.hostname)))try{registration=navigator.serviceWorker.register(new URL('restaurant-sw145.js',document.baseURI).href,{scope:new URL('./',document.baseURI).href,updateViaCache:'none'});registration.catch(()=>{})}catch{}
+ async function waitForWorker145(){
   if(!registration)return;
-  await Promise.race([registration.then(reg=>new Promise(resolve=>{if(reg.active?.scriptURL.endsWith('restaurant-sw144.js'))return resolve();const done=()=>{navigator.serviceWorker.removeEventListener('controllerchange',done);clearTimeout(timer);resolve()};const timer=setTimeout(done,8000);navigator.serviceWorker.addEventListener('controllerchange',done)})),new Promise(resolve=>setTimeout(resolve,8000))]).catch(()=>{});
+  await Promise.race([registration.then(reg=>new Promise(resolve=>{if(reg.active?.scriptURL.endsWith('restaurant-sw145.js'))return resolve();const done=()=>{navigator.serviceWorker.removeEventListener('controllerchange',done);clearTimeout(timer);resolve()};const timer=setTimeout(done,8000);navigator.serviceWorker.addEventListener('controllerchange',done)})),new Promise(resolve=>setTimeout(resolve,8000))]).catch(()=>{});
  }
  function loadCore(){
   if(corePromise)return corePromise;
@@ -3921,17 +3921,17 @@ html body.shell113 #restaurantLogin .login-link-button{align-self:center;display
    for(let attempt=0;attempt<2;attempt++)try{
     await new Promise((resolve,reject)=>{
      const script=document.createElement('script');let timer,runtimeError;
-     const src=new URL('scripts/restaurant-core144.bundle.js',document.baseURI).href;
+     const src=new URL('scripts/restaurant-core145.bundle.js',document.baseURI).href;
      const capture=e=>{if(e.filename===src)runtimeError=e.error||Error(e.message)};
      const done=err=>{clearTimeout(timer);window.removeEventListener('error',capture);script.onload=null;script.onerror=null;if(err)reject(err);else resolve()};
      window.addEventListener('error',capture);script.src=src;
-     script.onload=()=>{if(runtimeError){runtimeError.noRetry=true;done(runtimeError)}else if(!window.restaurantCoreReady144){const e=Error('The restaurant application did not initialize. Please reload.');e.noRetry=true;done(e)}else done()};
-     script.onerror=()=>{script.remove();done(Error('The restaurant application file could not download (restaurant-core144.bundle.js). Select Retry loading.'))};
+     script.onload=()=>{if(runtimeError){runtimeError.noRetry=true;done(runtimeError)}else if(!window.restaurantCoreReady145){const e=Error('The restaurant application did not initialize. Please reload.');e.noRetry=true;done(e)}else done()};
+     script.onerror=()=>{script.remove();done(Error('The restaurant application file could not download (restaurant-core145.bundle.js). Select Retry loading.'))};
      timer=setTimeout(()=>{const e=Error('The restaurant application download is taking too long. Select Retry loading.');e.noRetry=true;done(e)},45000);document.body.append(script);
     });return;
    }catch(err){if(err.noRetry||attempt===1)throw err;
     // Allow a newly registered worker to replace an old four-second request deadline.
-    await waitForWorker144();
+    await waitForWorker145();
    }
   })();return corePromise;
  }
@@ -3940,7 +3940,7 @@ html body.shell113 #restaurantLogin .login-link-button{align-self:center;display
  loadCore().then(()=>{
   document.getElementById('restaurantBootRetry139')?.remove();
   // Warm only the shell after startup, without gating sign-in or touching private data.
-  if(registration)registration.then(reg=>{const send=()=>{const worker=navigator.serviceWorker.controller||reg.active;if(!worker?.scriptURL.endsWith('restaurant-sw144.js'))return false;worker.postMessage({type:'CACHE_SHELL144'});return true};if(!send())navigator.serviceWorker.addEventListener('controllerchange',send,{once:true})}).catch(()=>{});
+  if(registration)registration.then(reg=>{const send=()=>{const worker=navigator.serviceWorker.controller||reg.active;if(!worker?.scriptURL.endsWith('restaurant-sw145.js'))return false;worker.postMessage({type:'CACHE_SHELL145'});return true};if(!send())navigator.serviceWorker.addEventListener('controllerchange',send,{once:true})}).catch(()=>{});
  }).catch(window.restaurantBootFailure140);
 })();
 </script></body></html>

@@ -759,21 +759,22 @@
                   Leave an encouraging thought or quote to brighten someone's day.
                 </p>
                 <form id="customForm" autocomplete="off" style="font-family: 'Segoe UI', -apple-system, sans-serif;">
-                  <input type="hidden" id="device_token" name="device_token" />
+                  <div hidden aria-hidden="true"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div>
                   <div style="margin-bottom: 16px;">
                     <div class="form-label-row">
                       <label class="form-label-primary" for="message">Your Message</label>
-                      <span id="wordCounter" style="font-size: 11px; color: #64748b; font-weight: 500;">0 / 20-30 words</span>
+                      <span id="wordCounter" style="font-size: 11px; color: #64748b; font-weight: 500;">0 / 1,500 characters</span>
                     </div>
-                    <textarea class="form-input" id="message" name="message" rows="3" placeholder="Type your message here (20–30 words)..." required aria-required="true" style="resize: vertical;"></textarea>
+                    <textarea class="form-input" id="message" name="message" rows="3" placeholder="Share an encouraging message (20–30 words is a helpful guide)…" minlength="10" maxlength="1500" required aria-required="true" style="resize: vertical;"></textarea>
                   </div>
                   <div style="margin-bottom: 20px;">
                     <label class="form-label-primary" for="name" style="display: block; margin-bottom: 6px;">Name or Initials</label>
-                    <input class="form-input" type="text" id="name" name="sender_name" placeholder="e.g., Sarah V., S. Valdez, or Anonymous" />
+                    <input class="form-input" type="text" id="name" name="sender_name" maxlength="80" placeholder="e.g., Sarah V., S. Valdez, or Anonymous" />
                   </div>
+                  <label style="display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;font-size:13px;color:#d1e2d8"><input type="checkbox" id="hopeConsent183" style="width:18px;height:18px;flex:none">You may feature my message and name or initials on a future Word of Hope card.</label><p style="font-size:12px;color:#b9cbc2;line-height:1.5">Your message is sent privately to the Oon Jai team for review. Your name is optional. Please avoid sharing private contact details.</p>
                   <div style="display: flex; gap: 10px;">
                     <button type="submit" id="submitBtn" style="flex: 2; padding: 11px 16px; background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); color: #ffffff; border: none; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; letter-spacing: 0.02em;">Submit Message</button>
-                    <button type="button" onclick="App.clearForm()" style="flex: 1; padding: 11px 16px; background-color: transparent; color: #94a3b8; border: 1px solid #1e4d40; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer;">Clear</button>
+                    <button type="button" onclick="OonJaiHopePublic183.clear()" style="flex: 1; padding: 11px 16px; background-color: transparent; color: #94a3b8; border: 1px solid #1e4d40; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer;">Clear</button>
                   </div>
                 </form>
               </div>
@@ -943,6 +944,7 @@
 <script src="../scripts/supabase-config.js?v=127"></script>
 <script src="storefront127.js?v=144"></script>
 <script src="../scripts/public-menu-rules131.js?v=135"></script>
+<script src="hope183.js"></script>
 <script>
 const App = (function() {
   'use strict';
@@ -955,8 +957,6 @@ const App = (function() {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let pendingConfirmation = null;
   let customSubmitPending = false;
-  let formSubmitting = false;
-  let deviceToken = '';
   let cartHome = null;
   let lockedScrollY = 0;
   let cart = [];
@@ -972,7 +972,7 @@ const App = (function() {
   let PHONE_NUMBER = "8562057048174";
   let MESSENGER_USERNAME = "oon.jai.laos";
   const EXTRA_ADDON_PRICE = restaurantPublicRules131.extraPrice;
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw82CgCvJ6vcNC4IZ86-gDOkn9--L2w-DYVD-txuZ3rqzjmcDeHftf9KSjgYS2USezn/exec";
+  // Word of Hope uses the confirmed shared inbox endpoint.
 
   // Local image variants keep thumbnails small and galleries sharp.
   const imageAssets = {"assets/images/classic-1-full.a7893f03e0.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/classic-1-thumb.477cdcb8d4.webp","width":225,"height":169}},"assets/images/review-5-full.dfaea519b2.webp":{"width":1080,"height":608},"assets/images/wish-1-full.28e6039506.webp":{"width":500,"height":366,"thumbnail":{"src":"assets/images/wish-1-thumb.ef561c5133.webp","width":225,"height":165}},"assets/images/kickstart-full.c0755e222e.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/kickstart-thumb.153702b687.webp","width":225,"height":169}},"assets/images/review-12-full.407fc4bf79.webp":{"width":1080,"height":607},"assets/images/7-full.693031d79e.webp":{"width":1050,"height":600},"assets/images/banner-full.12b9cbe236.webp":{"width":1050,"height":600},"assets/images/mary-jane-1-full.654593f767.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/mary-jane-1-thumb.e88f4b3dbc.webp","width":225,"height":169}},"assets/images/10-full.362290844c.webp":{"width":1050,"height":600},"assets/images/carbonara-1-full.5a711363e4.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/carbonara-1-thumb.875ef683ed.webp","width":225,"height":169}},"assets/images/3-full.98d46e26ae.webp":{"width":1050,"height":600},"assets/images/red-heart-1-full.f39a86f461.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/red-heart-1-thumb.05cd657fc6.webp","width":225,"height":169}},"assets/images/miso-pasta-1-full.52d03c78fc.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/miso-pasta-1-thumb.7d7dc94b53.webp","width":225,"height":169}},"assets/images/review-3-full.447f2d1f52.webp":{"width":1200,"height":675,"thumbnail":{"src":"assets/images/review-3-thumb.777490db3c.webp","width":225,"height":127}},"assets/images/logo-full.5c5ca87866.webp":{"width":240,"height":180},"assets/images/review-11-full.83f082cc17.webp":{"width":1080,"height":607},"assets/images/4-full.f6ff8b2ca3.webp":{"width":1050,"height":600},"assets/images/home-1-full.79d81d586f.webp":{"width":900,"height":498,"small":{"src":"assets/images/home-1-card.4a6d7dfbfe.webp","width":480,"height":266}},"assets/images/review-13-full.bb1dc8dc8b.webp":{"width":1080,"height":608},"assets/images/11-full.4d63bbcce7.webp":{"width":1050,"height":600},"assets/images/chickelious-1-full.89a0d01486.webp":{"width":500,"height":365,"thumbnail":{"src":"assets/images/chickelious-1-thumb.eec838a0ff.webp","width":225,"height":164}},"assets/images/italian-1-full.849cf0670b.webp":{"width":500,"height":365,"thumbnail":{"src":"assets/images/italian-1-thumb.b9f50aae29.webp","width":225,"height":164}},"assets/images/6-full.e439ce137b.webp":{"width":1050,"height":600},"assets/images/build-your-own-full.0ec7dfadd3.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/build-your-own-thumb.7bcc16723f.webp","width":225,"height":169}},"assets/images/logo-png-full.342a5ca342.webp":{"width":500,"height":500},"assets/images/bougie-1-full.69f1d28ecd.webp":{"width":500,"height":365,"thumbnail":{"src":"assets/images/bougie-1-thumb.f9b85c1b42.webp","width":225,"height":164}},"assets/images/mediteranian-1-full.0b58ddcbc9.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/mediteranian-1-thumb.fab1e4a47f.webp","width":225,"height":169}},"assets/images/paradise-point-1-full.63d58ed0c9.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/paradise-point-1-thumb.eb010b0383.webp","width":225,"height":169}},"assets/images/reese-s-cup-1-full.d7bf35bcaf.webp":{"width":500,"height":365,"thumbnail":{"src":"assets/images/reese-s-cup-1-thumb.9d7954b9e1.webp","width":225,"height":164}},"assets/images/review-8-full.de8f5ee3cd.webp":{"width":1080,"height":608},"assets/images/5-full.b0b9a73e95.webp":{"width":1050,"height":600},"assets/images/review-2-full.9127b4c13e.webp":{"width":1200,"height":675},"assets/images/review-10-full.91bc362188.webp":{"width":1011,"height":569},"assets/images/pesto-1-full.ab8b99c070.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/pesto-1-thumb.a776e2f39b.webp","width":225,"height":169}},"assets/images/bowl-combo-full.4bf98ebc33.webp":{"width":500,"height":365,"thumbnail":{"src":"assets/images/bowl-combo-thumb.e66a1dcbe5.webp","width":225,"height":164}},"assets/images/burger-combo-1-full.d9dca0b9e9.webp":{"width":500,"height":365,"thumbnail":{"src":"assets/images/burger-combo-1-thumb.b30186a453.webp","width":225,"height":164}},"assets/images/spaghetti-1-full.ceeb5d7c53.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/spaghetti-1-thumb.2bfaed0921.webp","width":225,"height":169}},"assets/images/9-full.70d783dc76.webp":{"width":1050,"height":600},"assets/images/summer-1-full.49e8ec999d.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/summer-1-thumb.0413b84748.webp","width":225,"height":169}},"assets/images/12-full.37c8c9a346.webp":{"width":1050,"height":600},"assets/images/tex-mex-combo-1-full.3be46349e4.webp":{"width":500,"height":366,"thumbnail":{"src":"assets/images/tex-mex-combo-1-thumb.9d7ec786c8.webp","width":225,"height":165}},"assets/images/fruitopia-full.986656e2a8.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/fruitopia-thumb.ea44dc8cea.webp","width":225,"height":169}},"assets/images/heartwarmer-1-full.d805be1e7a.webp":{"width":500,"height":375,"thumbnail":{"src":"assets/images/heartwarmer-1-thumb.45fca4b4b4.webp","width":225,"height":169}},"assets/images/placeholder-byo-sandwich.dfbb1b0122.svg":{"width":400,"height":400},"assets/images/placeholder-french-fries.56d2c70569.svg":{"width":400,"height":400},"assets/images/placeholder-honey-passion.7a30702f9a.svg":{"width":400,"height":400},"assets/images/placeholder-mint-pineapple.09a8c35c73.svg":{"width":400,"height":400},"assets/images/placeholder-oon-jai-dish.3506877ebc.svg":{"width":400,"height":400},"assets/images/placeholder-sparkling-lime.110fc22dab.svg":{"width":400,"height":400},"assets/images/placeholder-strawberry-lemonade.129947a09b.svg":{"width":400,"height":400}};
@@ -1484,55 +1484,7 @@ const App = (function() {
   });
 
   function setupForm() {
-    deviceToken = readStorage("localStorage", "oonjai_user_id");
-    if (!deviceToken) {
-      deviceToken = "DEV-" + Math.random().toString(36).substring(2, 11) + Date.now();
-      writeStorage("localStorage", "oonjai_user_id", deviceToken);
-    }
-    document.getElementById("device_token").value = deviceToken;
-
-    const messageInput = document.getElementById('message');
-    const wordCounter = document.getElementById('wordCounter');
-    const getWordCount = (str) => { const t = str.trim(); return t ? t.split(/\s+/).length : 0; };
-
-    messageInput.addEventListener('input', function() {
-      const count = getWordCount(this.value);
-      wordCounter.innerText = `${count} / 20-30 words`;
-      wordCounter.style.color = (count >= 20 && count <= 30) ? "#4ade80" : "#64748b";
-    });
-
-    document.getElementById('customForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      if (formSubmitting) return;
-      const status = document.getElementById('statusMsg'), submitBtn = document.getElementById('submitBtn');
-      const wordCount = getWordCount(messageInput.value);
-
-      if (wordCount < 20 || wordCount > 30) {
-        status.style.color = "#f87171";
-        status.innerText = `Message is ${wordCount < 20 ? 'too short' : 'too long'} (${wordCount} words). Must be between 20 and 30 words.`;
-        return;
-      }
-      status.style.color = "#94a3b8"; status.innerText = "Submitting..."; submitBtn.disabled = true;
-
-      formSubmitting = true;
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 20000);
-      try {
-        await fetch(WEB_APP_URL, { method: 'POST', body: new FormData(this), mode: 'no-cors', signal: controller.signal });
-        // Apps Script returns an opaque response. It does not prove that the sheet saved the message.
-        status.style.color = '#fbbf24';
-        status.innerText = 'Message sent for delivery, but we cannot confirm receipt. Your draft is kept here. Please avoid resending immediately.';
-      } catch (error) {
-        status.style.color = '#f87171';
-        status.innerText = error.name === 'AbortError'
-          ? 'Delivery timed out. Your message may have arrived; we cannot confirm receipt. Your draft is kept here.'
-          : 'Could not confirm delivery. Your draft is kept here. Check your connection before trying again.';
-      } finally {
-        clearTimeout(timeout);
-        formSubmitting = false;
-        submitBtn.disabled = false;
-      }
-    });
+    window.OonJaiHopePublic183.setup();
   }
 
   function renderProductsGrid() {
@@ -1668,14 +1620,7 @@ const App = (function() {
       startAutoPlay(trackId, 4000);
     },
 
-    clearForm: function() {
-      if (formSubmitting) return;
-      document.getElementById('customForm').reset();
-      document.getElementById("device_token").value = deviceToken;
-      document.getElementById('statusMsg').innerText = "";
-      const wc = document.getElementById('wordCounter');
-      wc.innerText = "0 / 20-30 words"; wc.style.color = "#64748b";
-    },
+    clearForm: function() { window.OonJaiHopePublic183.clear(); },
 
     switchCategory: function(catKey) {
       if (!Object.hasOwn(menuData, catKey)) return;
