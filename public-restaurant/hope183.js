@@ -2,14 +2,16 @@
 window.OonJaiHopePublic183=(()=>{'use strict';
  const key='oonjai_hope_draft183',endpoint='https://nhjsesfhapnjtwlxvirm.supabase.co/functions/v1/word-of-hope';
  let busy=false,draft=null;
+ // Opaque-origin previews may omit randomUUID; getRandomValues stays secure.
+ const uuid=()=>{const b=crypto.getRandomValues(new Uint8Array(16));b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;const h=[...b].map(x=>x.toString(16).padStart(2,'0')).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20)};
  const load=k=>{try{return JSON.parse(localStorage.getItem(k)||'null');}catch{return null;}};
  const save=(k,v)=>{try{if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,JSON.stringify(v));}catch{}};
  function setup(){
   const form=document.getElementById('customForm'),message=form.querySelector('#message'),name=form.querySelector('#name'),consent=form.querySelector('#hopeConsent183'),status=document.getElementById('statusMsg'),counter=document.getElementById('wordCounter'),submit=document.getElementById('submitBtn');
-  let device=load('oonjai_hope_device183');if(!device){device=crypto.randomUUID();save('oonjai_hope_device183',device);}
+  let device=load('oonjai_hope_device183');if(!device){device=uuid();save('oonjai_hope_device183',device);}
   draft=load(key);if(draft&&typeof draft.message==='string'){message.value=draft.message;name.value=draft.name||'';consent.checked=!!draft.consent;}
   const payload=()=>({message:message.value.trim(),name:name.value.trim(),consent:consent.checked});
-  function keep(){const p=payload();if(!draft||JSON.stringify(p)!==JSON.stringify({message:draft.message,name:draft.name,consent:draft.consent}))draft={...p,id:crypto.randomUUID()};save(key,draft);counter.textContent=message.value.length+' / 1,500 characters';counter.style.color='#b9cbc2';return draft;}
+  function keep(){const p=payload();if(!draft||JSON.stringify(p)!==JSON.stringify({message:draft.message,name:draft.name,consent:draft.consent}))draft={...p,id:uuid()};save(key,draft);counter.textContent=message.value.length+' / 1,500 characters';counter.style.color='#b9cbc2';return draft;}
   form.addEventListener('input',keep);keep();
   form.addEventListener('submit',async e=>{
    e.preventDefault();if(busy||!form.reportValidity())return;const p=keep();if(p.message.length<10){status.style.color='#fca5a5';status.textContent='Please write at least 10 characters.';return;}

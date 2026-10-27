@@ -57,6 +57,8 @@ function setup(){
   role({},true);assert.equal(c.restaurantWorkspace123.publicSite(),true);
   const frame=nodes.get('restaurant-website').querySelector('iframe');assert(frame);assert.equal(frame.src,'https://example.test/Restaurant/public-restaurant/');
   assert.equal(frame.title,'Oon Jai public website');assert.equal(frame.src,c.OJM_RESTAURANT_APPS.public);
+  assert.equal(frame.getAttribute('sandbox'),'allow-scripts allow-forms allow-popups');
+  assert.equal(frame.getAttribute('referrerpolicy'),'no-referrer');
   c.restaurantWorkspace123.publicSite();assert.equal(nodes.get('restaurant-website').querySelector('iframe'),frame);
  });
  await check('POS entry paths stay live even with an obsolete saved sample preference',async()=>{
