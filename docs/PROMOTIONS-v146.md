@@ -36,7 +36,7 @@ Open **Results & return**, select dates and enter food/packaging/payment costs a
 
 ## Implementation and verification
 
-Canonical migration: `supabase/migrations/20261027102221_promotions_vouchers146.sql`. Its source parts are `sql/15-promotions146.sql`, `16-vouchers146.sql`, `16-promotion-orders146.sql`, `18-promotion-pos-helpers146.sql`, `17-pos-promotions146.sql`, `19-promotion-reports146.sql`, `20-promotion-retention146.sql`, in that dependency order. Apply the canonical migration once. It adds private tables/RLS, restricted RPCs, a public marketing-image bucket and an hourly proof-retention task; it preserves the existing POS accounting and stock flow.
+Canonical migrations: `supabase/migrations/20261027110508_promotions_vouchers146.sql`, `20261027110512_promotion_proof_scheduler146.sql` and `20261027111445_promotion_proof_retention146.sql`. Their source parts are `sql/15-promotions146.sql`, `16-vouchers146.sql`, `16-promotion-orders146.sql`, `18-promotion-pos-helpers146.sql`, `17-pos-promotions146.sql`, `19-promotion-reports146.sql`, `20-promotion-retention146.sql`, in that dependency order. Apply the three canonical migrations once in timestamp order. They add private tables/RLS, restricted RPCs, a public marketing-image bucket and an hourly proof-retention task; it preserves the existing POS accounting and stock flow.
 
 Run `python tools/build-promotions146.py` after changing the relevant source files. It rebuilds versioned core, settings, POS, bootstrap and worker files without replacing unrelated modules. Local preview fixtures under ignored `dist/qa` are not shipped.
 

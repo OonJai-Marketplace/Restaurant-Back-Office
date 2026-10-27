@@ -1,0 +1,1 @@
+select cron.schedule('restaurant-promotion-proof-retention146','15 * * * *',$job$ update public.promotion_claims146 set proof=null where proof is not null and (expires_at<now() or created_at<now()-interval '24 hours'); $job$);
