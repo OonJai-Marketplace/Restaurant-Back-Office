@@ -1,4 +1,4 @@
-# Promotions and vouchers · release 146
+# Promotions and vouchers · release 147
 
 Open **Back office → Promotions** as an administrator. The studio uses the restaurant's existing database and hosting. Creating banners, uploading Canva exports, issuing vouchers and reviewing requests needs no AI subscription, API credits or paid editor. Existing hosting and storage quotas still apply.
 
@@ -38,6 +38,8 @@ Open **Results & return**, select dates and enter food/packaging/payment costs a
 
 Canonical migrations: `supabase/migrations/20261027110508_promotions_vouchers146.sql`, `20261027110512_promotion_proof_scheduler146.sql` and `20261027111445_promotion_proof_retention146.sql`. Their source parts are `sql/15-promotions146.sql`, `16-vouchers146.sql`, `16-promotion-orders146.sql`, `18-promotion-pos-helpers146.sql`, `17-pos-promotions146.sql`, `19-promotion-reports146.sql`, `20-promotion-retention146.sql`, in that dependency order. Apply the three canonical migrations once in timestamp order. They add private tables/RLS, restricted RPCs, a public marketing-image bucket and an hourly proof-retention task; it preserves the existing POS accounting and stock flow.
 
-Run `python tools/build-promotions146.py` after changing the relevant source files. It rebuilds versioned core, settings, POS, bootstrap and worker files without replacing unrelated modules. Local preview fixtures under ignored `dist/qa` are not shipped.
+Run `python tools/build-promotions147.py` after changing the relevant source files. It rebuilds versioned core, settings, POS, bootstrap and worker files without replacing unrelated modules. Local preview fixtures under ignored `dist/qa` are not shipped.
 
 Checks: `node tests/promotions146.cjs`, `node tests/public-runtime127.cjs`, `node tests/readiness144.cjs`, `node tests/sales143.cjs`. Database scenarios in `tests/promotions-db146.sql` run inside a transaction ending in ROLLBACK; they use temporary test menu/order data, exercising canonical prices, duplicate codes, idempotency, both 100,000-LAK balance examples, capacity release, combined restrictions, anonymous access, approval/proof removal, draft isolation and reporting. Do not run that test file outside a rollback transaction.
+
+Release 147 adds audit repairs documented in [PROMOTIONS-AUDIT-v147.md](PROMOTIONS-AUDIT-v147.md). Apply `supabase/migrations/20261027120504_promotion_audit147.sql` after the three release-146 migrations. Customers now confirm their order type; changing it after confirmation requires a new request. Customer names, phone numbers and notes accompany prepared messaging orders. Active requests remain visible even when more than 200 newer records exist. Exported results include estimated return and return on spend.
