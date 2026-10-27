@@ -61,7 +61,7 @@ catalogCan121=function(kind,action='edit',data={}){
 function restaurantRouteAllowed128(id){
  if(!liveProfile||liveProfile.status!=='active')return false;
  if(id==='restaurant-no-access')return true;
- if(id==='restaurant-overview'||id==='restaurant-website'||id==='restaurant-sales143')return isAdmin121();
+ if(id==='restaurant-promotions'||id==='restaurant-overview'||id==='restaurant-website'||id==='restaurant-sales143')return isAdmin121();
  if(id==='pos118')return !!restaurantFirstTab125('pos');
  if(id==='restaurant-settings')return !!restaurantFirstTab125('settings');
  if(typeof id!=='string')return false;

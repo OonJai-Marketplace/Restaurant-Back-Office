@@ -9,7 +9,7 @@
   const refresh=document.createElement('button');refresh.type='button';refresh.textContent='Refresh website';
   const link=document.createElement('a');link.href=OJM_RESTAURANT_APPS.public;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Open full website ↗';
   const frame=document.createElement('iframe');frame.title='Oon Jai public website';frame.className='restaurant-website-frame128';frame.src=OJM_RESTAURANT_APPS.public;frame.setAttribute('allow','clipboard-write; web-share');
-  refresh.onclick=()=>{frame.src=OJM_RESTAURANT_APPS.public};toolbar.append(title,refresh,link);root.replaceChildren(toolbar,frame);return true;
+  refresh.onclick=()=>{frame.src=OJM_RESTAURANT_APPS.public};const promote=document.createElement('button');promote.type='button';promote.textContent='Manage promotions';promote.onclick=()=>switchTab('restaurant-promotions');toolbar.append(title,promote,refresh,link);root.replaceChildren(toolbar,frame);return true;
  }
  window.restaurantWorkspace123={publicSite(){if(!isAdmin121())return false;return switchTab('restaurant-website')},renderWebsite};
 })();

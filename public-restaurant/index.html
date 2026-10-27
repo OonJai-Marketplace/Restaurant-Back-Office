@@ -519,6 +519,7 @@
       *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
     }
   </style>
+<link rel="stylesheet" href="../styles/promotions146.css"><link rel="stylesheet" href="promotions146.css">
 </head>
 <body>
 
@@ -1676,6 +1677,8 @@ const App = (function() {
       this.openCustomModal(item.category, item.id, index);
     },
 
+    promotionCart146: function(){return JSON.parse(JSON.stringify(cart));},
+    promotionOpen146: function(ids){this.switchMainTab('menu');if(ids?.length){for(const [category,items] of Object.entries(menuData)){if(items.some(i=>ids.includes(i.id))){this.switchCategory(category);break;}}}},
     _reRenderStore: function() {
       saveCart();
       renderProductsGrid();
@@ -2062,6 +2065,9 @@ const App = (function() {
 
   };
 })();
+window.App=App;
 </script>
+<script src="../scripts/promotion-kit146.js"></script>
+<script src="promotions146.js"></script>
 </body>
 </html>
