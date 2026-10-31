@@ -1,0 +1,8 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const source=fs.readFileSync('restaurant-sw148.js','utf8');
+async function run(offline=false){
+ const events={},cache=new Map([['https://example.com/Restaurant-Back-Office/manifest.webmanifest','old manifest']]);let network=0,result;
+ const ctx={URL,console,self:{registration:{scope:'https://example.com/Restaurant-Back-Office/'},addEventListener:(name,fn)=>events[name]=fn},caches:{open:async()=>({match:async req=>cache.get(req.url||String(req)),put:async(req,res)=>cache.set(req.url||String(req),res)})},fetch:async(req,options)=>{network++;assert.equal(options.cache,'no-cache');if(offline)throw Error('offline');return {ok:true,body:'updated manifest',clone(){return this;}};}};
+ vm.runInNewContext(source,ctx);events.fetch({request:{method:'GET',url:'https://example.com/Restaurant-Back-Office/manifest.webmanifest',mode:'cors'},respondWith:p=>result=p});const response=await result;assert.equal(network,1);assert.equal(offline?response:response.body,offline?'old manifest':'updated manifest');
+}
+(async()=>{await run();await run(true);const m=JSON.parse(fs.readFileSync('manifest.webmanifest'));assert.equal(m.start_url,'./');assert.equal(m.scope,'./');assert.equal(m.id,undefined);for(const icon of m.icons){const b=fs.readFileSync(icon.src);assert.equal(b.readUInt32BE(16)+'x'+b.readUInt32BE(20),icon.sizes);}console.log('PASS: manifest refresh bypasses stale cache, offline fallback retained, existing installation identity and icon dimensions preserved.');})().catch(e=>{console.error(e);process.exitCode=1;});

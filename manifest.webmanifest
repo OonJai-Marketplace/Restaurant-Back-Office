@@ -1,1 +1,29 @@
-{"name":"Oon Jai Restaurant Back Office","short_name":"Oon Jai Restaurant","start_url":"./","scope":"./","display":"standalone","background_color":"#fffaf1","theme_color":"#174c38","icons":[{"src":"assets/brand/oonjai-logo.png","sizes":"any","type":"image/png"}]}
+{
+  "name": "Oon Jai Restaurant Back Office",
+  "short_name": "Oon Jai Restaurant",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fffaf1",
+  "theme_color": "#bd593a",
+  "icons": [
+    {
+      "src": "assets/app-icons/restaurant-192-v1.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/app-icons/restaurant-512-v1.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/app-icons/restaurant-maskable-v1.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

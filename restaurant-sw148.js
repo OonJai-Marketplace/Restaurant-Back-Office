@@ -15,8 +15,8 @@ self.addEventListener('fetch',event=>{
  if(!staticAsset&&request.mode!=='navigate')return;
  event.respondWith((async()=>{
   const cache=await caches.open(CACHE),hit=await cache.match(request);
-  if(staticAsset){if(hit)return hit;for(const key of await caches.keys()){if(key!==CACHE&&key.startsWith('oonjai-pos-shell')&&key.endsWith('-restaurant')){const prior=await (await caches.open(key)).match(request);if(prior)return prior}}}
-  try{const response=await fetch(request,staticAsset?{}:{cache:'no-cache'});if(response.ok){try{await cache.put(request,response.clone())}catch{/* Storage pressure must not break an otherwise successful download. */}}return response}
+  if(staticAsset&&!url.pathname.endsWith('.webmanifest')){if(hit)return hit;for(const key of await caches.keys()){if(key!==CACHE&&key.startsWith('oonjai-pos-shell')&&key.endsWith('-restaurant')){const prior=await (await caches.open(key)).match(request);if(prior)return prior}}}
+  try{const response=await fetch(request,staticAsset&&!url.pathname.endsWith('.webmanifest')?{}:{cache:'no-cache'});if(response.ok){try{await cache.put(request,response.clone())}catch{/* Storage pressure must not break an otherwise successful download. */}}return response}
   catch(error){if(hit)return hit;
    if(request.mode==='navigate'){
     const relative=url.pathname.slice(PREFIX.length),entry=/^(?:index\.html)?$/.test(relative)?'./':/^(back-office|pos|kitchen)\/(?:index\.html)?$/.test(relative)?relative.split('/')[0]+'/':null;
