@@ -32,6 +32,7 @@ jobs:
       - run: npm run build && npm run android
       - run: npx playwright install --with-deps chromium
       - run: node tests/browser.cjs
+      - run: node tests/kitchen-browser.cjs
       - run: cd android && ./gradlew assembleDebug assembleRelease
       - uses: actions/upload-artifact@v4
         with:

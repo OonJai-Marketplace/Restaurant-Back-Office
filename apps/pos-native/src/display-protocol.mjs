@@ -8,8 +8,9 @@ export const nonce=()=>encode(crypto.getRandomValues(new Uint8Array(18)));
 export function localIPv4(host){const p=String(host).split('.').map(Number);return /^\d+\.\d+\.\d+\.\d+$/.test(host)&&p.length===4&&p.every(v=>Number.isInteger(v)&&v>=0&&v<=255)&&(p[0]===10||p[0]===192&&p[1]===168||p[0]===172&&p[1]>=16&&p[1]<=31||p[0]===169&&p[1]===254);}
 export function pairing(value){
  const p=typeof value==='string'?JSON.parse(value):value;
- if(p?.protocol!=='oonjai-display/1'||!localIPv4(p.host)||!Number.isInteger(p.port)||p.port<1024||p.port>65535||decode(p.key).length!==32)throw Error('This is not an Oon Jai customer-display pairing code.');
- return {protocol:p.protocol,host:p.host,port:p.port,key:p.key};
+ if(!['oonjai-display/1','oonjai-kitchen/1'].includes(p?.protocol)||!localIPv4(p.host)||!Number.isInteger(p.port)||p.port<1024||p.port>65535||decode(p.key).length!==32)throw Error('This is not an Oon Jai device pairing code.');
+ if(p.protocol==='oonjai-kitchen/1' && (typeof p.stream!=='string'||!/^[a-zA-Z0-9-]{1,100}$/.test(p.stream)))throw Error('Invalid main POS identity.');
+ return {protocol:p.protocol,host:p.host,port:p.port,key:p.key,...(p.protocol==='oonjai-kitchen/1'?{stream:p.stream}:{})};
 }
 async function key(secret){const raw=decode(secret);if(raw.length!==32)throw Error('Invalid key');return crypto.subtle.importKey('raw',raw,'AES-GCM',false,['encrypt','decrypt']);}
 export async function seal(secret,data,direction){

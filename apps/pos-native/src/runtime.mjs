@@ -2,6 +2,7 @@ import { Capacitor, registerPlugin } from '@capacitor/core';
 import { CapacitorBarcodeScanner, CapacitorBarcodeScannerTypeHint } from '@capacitor/barcode-scanner';
 import QRCode from 'qrcode';
 import { randomKey, nonce, pairing, seal, unseal, saleView, receivedView } from './display-protocol.mjs';
+import { kitchenRuntime } from './kitchen-runtime.mjs';
 
 const link = window.oonjaiDesktop || registerPlugin('OonJaiLocalLink');
 const native = !!window.oonjaiDesktop || Capacitor.isNativePlatform();
@@ -12,6 +13,7 @@ const save = (key, value) => localStorage.setItem(key, JSON.stringify(value));
 let currentSale = saleView(null), lastSeen = 0, hostKey = saved('native-display-host-key'), listening = false;
 let status;
 const message = text => { if (status) status.textContent = text; };
+const kitchen = kitchenRuntime({ link, native, mobile: Capacitor.isNativePlatform(), el, button, dialog, startHost });
 function dialog(title, text) {
   const box = el('dialog', null, 'native-dialog');
   box.append(el('h2', title), el('p', text));
@@ -33,7 +35,7 @@ async function startHost() {
         if (request.type !== 'view' || typeof request.nonce !== 'string' || request.nonce.length !== 24) throw Error('Invalid request');
         response = await seal(hostKey, { nonce: request.nonce, view: currentSale }, 'response');
         lastSeen = Date.now();
-      } catch { /* Invalid peers receive no sale information. */ }
+      } catch { try { response = await kitchen.respond(event.payload); } catch { /* Invalid peers receive no information. */ } }
       await link.reply({ id: event.id, payload: response }).catch(() => {});
     });
     listening = true;
@@ -43,7 +45,7 @@ async function startHost() {
 async function hostPairing() {
   const address = await startHost();
   if (!address.addresses?.length) throw Error('Join the shop Wi-Fi, then try again. On iPad, allow Local Network access in Settings.');
-  const panel = dialog('Connect the customer display', 'On the iPad, choose Customer display → Connect to cashier and scan this code. Both devices must use the same shop Wi-Fi. Keep this code private.');
+  const panel = dialog('Connect the customer display', 'On the other Android tablet, iPad or desktop, choose Customer display → Connect to cashier and scan this code. Both devices must use the same shop Wi-Fi. Keep this code private.');
   const select = el('select'), canvas = el('canvas'), code = el('textarea'); code.readOnly = true; code.setAttribute('aria-label', 'Pairing code'); select.setAttribute('aria-label', 'Cashier Wi-Fi address');
   for (const host of address.addresses) { const option = el('option', host); option.value = host; select.append(option); }
   panel.add(select); panel.add(canvas); panel.add(code);
@@ -54,7 +56,7 @@ async function hostPairing() {
 async function setupCashier() {
   const bar = el('nav', null, 'native-toolbar'); bar.setAttribute('aria-label', 'Device controls');
   status = el('output', native ? 'Customer display not connected' : 'Browser preview · pairing requires installed app');
-  bar.append(button('Customer display', hostPairing), button('Download POS data', async () => {
+  bar.append(...kitchen.mainControls(), button('Customer display', hostPairing), button('Download POS data', async () => {
     const pos = window.pos118;
     if (!pos?.state.loaded || !pos.state.owner) throw Error('Sign in and open the POS first.');
     if (!navigator.onLine) throw Error('Internet is needed to download the latest catalog. Saved data remains on this device.');
@@ -69,7 +71,7 @@ async function setupCashier() {
     const s = window.pos118.state;
     dialog('Sales sync', s.offline ? 'Internet is unavailable. Sales remain queued on this device.' : s.offlineQueue.length ? s.offlineQueue.length + ' sales are still pending. ' + (s.syncError || 'Retry when connected.') : 'No sales are waiting to sync.');
   }), button('App updates', async () => {
-    dialog('App version 1.0.0 · Testing build', 'Automatic update distribution is not configured yet. Install a newer company-signed package over this app when available. Do not uninstall the app or clear its data while sales are waiting to sync. iPad installation requires the company’s Apple distribution setup.');
+    dialog('App version 1.1.0 · Testing build', 'Automatic update distribution is not configured yet. Install a newer company-signed package over this app when available. Do not uninstall the app or clear its data while sales are waiting to sync. iPad installation requires the company’s Apple distribution setup.');
   }), status);
   document.body.prepend(bar);
   // Observe the authoritative cashier draft without passing account/customer/payment fields.
@@ -100,7 +102,7 @@ async function setupDisplay() {
     empty.append(el('h1', 'Reconnecting to the cashier…'), el('p', 'Check that both apps are open and connected to the same shop Wi-Fi.'));
     root.replaceChildren(empty); message('Disconnected · reconnecting'); status.classList.add('native-disconnected');
   };
-  const connect = value => { transportRequired(); paired = pairing(value); save('native-display-pair', paired); generation++; previous = ''; message('Connecting…'); };
+  const connect = value => { transportRequired(); const next = pairing(value); if(next.protocol!=='oonjai-display/1')throw Error('This code is for the kitchen receiver. Choose Kitchen / Ticket Receiver in device roles.'); paired = next; save('native-display-pair', paired); generation++; previous = ''; message('Connecting…'); };
   document.getElementById('pair').onclick = () => {
     const panel = dialog('Connect to cashier', 'Open Customer display on the cashier device. Scan its QR code, or paste the pairing code below.');
     const input = el('textarea'); input.setAttribute('aria-label', 'Pairing code'); input.placeholder = 'Paste the cashier’s pairing code'; panel.add(input);
@@ -130,3 +132,4 @@ async function setupDisplay() {
 }
 if (location.pathname.endsWith('/cashier.html')) setupCashier().catch(error => message(error.message));
 if (location.pathname.endsWith('/display.html')) setupDisplay().catch(error => message(error.message));
+if (location.pathname.endsWith('/receiver.html')) kitchen.setupReceiver().catch(error => { document.getElementById('connection').textContent = error.message; });

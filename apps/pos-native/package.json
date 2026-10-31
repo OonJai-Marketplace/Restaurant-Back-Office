@@ -1,7 +1,7 @@
 {
   "name": "oon-jai-pos",
   "productName": "Oon Jai POS",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Oon Jai cashier POS and paired customer display",
   "main": "desktop/main.cjs",

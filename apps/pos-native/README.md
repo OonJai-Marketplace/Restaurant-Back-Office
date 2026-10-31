@@ -1,38 +1,51 @@
 # Oon Jai POS native device build
 
 This project packages the company's existing cashier engine separately from the
-Restaurant back office, with Android, iPad/iPhone and desktop targets. The launch
-screen offers **Cashier POS** and **Customer display**. The display is read-only;
-it is not a second till or a kitchen ticket queue.
+Restaurant back office, with Android, iPad/iPhone and desktop targets. Every device offers **Main POS**
+and **Kitchen / Ticket Receiver**. Either platform can take either role. An
+optional **Customer display** remains a separate third mode.
 
 ## Device connection
 
-1. Join both devices to the same shop Wi-Fi (a router is required; internet is
-   not required for the display connection). Guest Wi-Fi that isolates clients
-   will not work. Keep both applications open and devices awake during service.
-2. On the cashier, sign in and open the POS. Select **Customer display**.
-3. On the iPad, choose **Customer display → Connect to cashier → Scan QR code**.
-   A pairing code can also be pasted. Allow camera and local-network permission.
-4. Add/remove/change an item at the cashier. Check that the iPad shows the same
-   items, quantities, discount and total. Disconnect internet while keeping Wi-Fi
-   connected and repeat. The display must continue updating.
-5. If Wi-Fi or the cashier app is lost, the display clears the old order and shows
-   a reconnect message. It reconnects automatically at the saved local address.
-   Pair again after the router changes the cashier's IP address.
+1. Join both devices to the same shop Wi-Fi. The local connection does not need
+   internet. Guest Wi-Fi that isolates devices will not work.
+2. Choose **Main POS** on the front-counter device and sign in. Choose **Kitchen /
+   Ticket Receiver** on the kitchen device. Android and iPad can take either role;
+   the same choices are available on Windows.
+3. On the main device, select **Pair ticket receiver**. On the receiver select
+   **Connect to main POS** and scan or paste its pairing code. Allow local-network
+   and camera access when needed. Each kitchen pairing has one main and one receiver.
+4. Save an order or record payment at the main POS. Its saved order becomes a
+   durable kitchen ticket. The receiver shows items, quantities, options and notes.
+   Delivery is acknowledged only after the receiver has persisted the ticket.
+   Pending tickets retry after reconnect; repeated delivery does not create duplicates.
+5. Mark prepared tickets **Done** on the receiver. Changed orders create a new
+   revision and reopen the ticket; cancellations are shown explicitly. Delivery
+   acknowledgement does not mean preparation is complete or payment is confirmed.
+6. To reverse the devices, save the current order, deliver pending tickets, sync
+   pending sales and finish received kitchen tickets. Choose **Change device role**
+   on each device, choose the opposite roles, and pair again. History stays on its
+   original device; changing a role does not migrate sales or a shift.
 
-Only a sanitized current-sale projection is exchanged. No names, phone numbers,
-account tokens, inventory costs, bank details or transaction commands are sent.
-The random 256-bit pairing secret stays in the two devices. AES-GCM authenticates
-and encrypts messages; request nonces prevent accepting a stale reply. Rotating
-the cashier's code disconnects previously paired screens. The native transport
-accepts only private IPv4 addresses, bounds message sizes and times out peers.
+Kitchen tickets remain visible through disconnection and app restart. A receiver
+uses the saved pairing when reopened; pair again if the main device's IP changes.
+The apps keep their screens awake during service. Keep both applications in the
+foreground. The optional customer-facing display shows only the current sale and
+clears stale totals on disconnect, unlike the persistent kitchen ticket queue.
+
+Pairing secrets for the kitchen and customer display are separate. Authenticated
+AES-GCM encryption protects the local messages. The receiver can acknowledge
+receipt only; it cannot alter sales, take payments or call database operations.
+Kitchen messages exclude customer identity, payment details, prices and costs.
+Notes intended for kitchen preparation are included. Private IPv4 addressing,
+message bounds and connection deadlines constrain the native transport.
 
 ## Offline data and limitations
 
 **Download POS data** saves the current catalog/records using the existing POS
 snapshot store. Existing queued sales remain in the same on-device IndexedDB and
 sync through the existing server RPCs. Prepare the shift online before service.
-The display connection works without internet independently of the backend.
+Kitchen ticket delivery and the customer display work without internet independently of the backend. Saved offline orders can be sent over local Wi-Fi before cloud sync.
 
 This is a **device-testing build**, not a production release. Cold-start cashier
 authentication still requires internet; an already signed-in cashier can use its
