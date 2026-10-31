@@ -1,0 +1,77 @@
+name: POS native device builds
+on:
+  push:
+    branches: [pos-native151]
+    paths: ['apps/pos-native/**', '.github/workflows/pos-native.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/pos-native
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/pos-native/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
+          log-accepted-android-sdk-licenses: false
+      - run: npm ci
+      - run: npm test
+      - run: npm run build && npm run android
+      - run: npx playwright install --with-deps chromium
+      - run: node tests/browser.cjs
+      - run: node tests/kitchen-browser.cjs
+      - run: cd android && ./gradlew assembleDebug assembleRelease
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Oon-Jai-POS-Android-device-test
+          path: apps/pos-native/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
+  ios:
+    runs-on: macos-26
+    defaults:
+      run:
+        working-directory: apps/pos-native
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npm run build && npm run ios
+      - run: xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -destination 'generic/platform=iOS' -archivePath build/OonJaiPOS.xcarchive CODE_SIGNING_ALLOWED=NO archive
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Oon-Jai-POS-iOS-unsigned-NOT-INSTALLABLE
+          path: apps/pos-native/build/OonJaiPOS.xcarchive
+          retention-days: 14
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: apps/pos-native
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npm run build
+      - run: npm run package:windows
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Oon-Jai-POS-Windows-device-test
+          path: apps/pos-native/dist/*.exe
+          retention-days: 14
