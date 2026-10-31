@@ -26,7 +26,8 @@ class LocalLink {
     this.server = net.createServer(socket => {
       if (!local(socket.remoteAddress) || this.pending.size >= 8) return socket.destroy();
       const id = randomUUID(); this.pending.set(id, socket);
-      socket.once('close', () => this.pending.delete(id));
+      const deadline = setTimeout(() => socket.destroy(), 5000);
+      socket.once('close', () => { clearTimeout(deadline); this.pending.delete(id); });
       readLine(socket, (error, payload) => error ? socket.destroy() : this.notify({ id, payload }));
     });
     await new Promise((resolve, reject) => {

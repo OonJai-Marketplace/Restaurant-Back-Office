@@ -7,7 +7,7 @@ if (platform === 'android') {
   const variables = 'android/variables.gradle'; fs.writeFileSync(variables, fs.readFileSync(variables, 'utf8').replace('minSdkVersion = 24', 'minSdkVersion = 26'));
   const dir = 'android/app/src/main/java/org/oonjai/pos'; fs.mkdirSync(dir, { recursive: true });
   fs.copyFileSync('native/android/OonJaiLocalLinkPlugin.java', path.join(dir, 'OonJaiLocalLinkPlugin.java'));
-  fs.writeFileSync(path.join(dir, 'MainActivity.java'), `package org.oonjai.pos;\nimport android.os.Bundle;\nimport com.getcapacitor.BridgeActivity;\npublic class MainActivity extends BridgeActivity {\n @Override public void onCreate(Bundle savedInstanceState) { registerPlugin(OonJaiLocalLinkPlugin.class); super.onCreate(savedInstanceState); }\n}\n`);
+  fs.writeFileSync(path.join(dir, 'MainActivity.java'), `package org.oonjai.pos;\nimport android.os.Bundle;\nimport com.getcapacitor.BridgeActivity;\npublic class MainActivity extends BridgeActivity {\n @Override public void onCreate(Bundle savedInstanceState) { registerPlugin(OonJaiLocalLinkPlugin.class); super.onCreate(savedInstanceState); getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); }\n}\n`);
   const manifest = 'android/app/src/main/AndroidManifest.xml';
   let xml = fs.readFileSync(manifest, 'utf8');
   if (!xml.includes('android.permission.ACCESS_NETWORK_STATE')) xml = xml.replace('</manifest>', '<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /></manifest>');

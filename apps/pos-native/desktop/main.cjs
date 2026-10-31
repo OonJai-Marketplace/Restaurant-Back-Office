@@ -1,10 +1,11 @@
-const { app, BrowserWindow, protocol, net, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, protocol, net, ipcMain, shell, powerSaveBlocker } = require('electron');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { LocalLink } = require('./transport.cjs');
 protocol.registerSchemesAsPrivileged([{ scheme: 'app', privileges: { standard: true, secure: true, supportFetchAPI: true } }]);
 let window, link;
 app.whenReady().then(() => {
+  powerSaveBlocker.start('prevent-display-sleep');
   const root = path.resolve(__dirname, '../www');
   protocol.handle('app', request => {
     const url = new URL(request.url);

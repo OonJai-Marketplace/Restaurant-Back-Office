@@ -46,11 +46,10 @@ public class OonJaiLocalLinkPlugin extends Plugin {
                     Socket socket=current.accept();
                     if(!local(socket.getInetAddress().getHostAddress())||pending.size()>=8){socket.close();continue;}
                     String id=UUID.randomUUID().toString();pending.put(id,socket);
+                    new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(()->{Socket stale=pending.remove(id);try{if(stale!=null)stale.close();}catch(IOException ignored){}},5000);
                     workers.execute(()->{
                         try {
                             String payload=read(socket); JSObject event=new JSObject();event.put("id",id);event.put("payload",payload);notifyListeners("request",event);
-                            // A reply must arrive promptly; unauthenticated peers cannot hold slots open.
-                            getBridge().getActivity().runOnUiThread(()->new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(()->{Socket stale=pending.remove(id);try{if(stale!=null)stale.close();}catch(IOException ignored){}},5000));
                         } catch(Exception e){pending.remove(id);try{socket.close();}catch(IOException ignored){}}
                     });
                 }
