@@ -33,6 +33,7 @@ emit('index.html', office.replace('\n<base href="../">', '', 1))
 # POS retains the shared authenticated engine, but has its own launch URL,
 # manifest identity and scope. No redirect into the back-office app.
 pos = office.replace('<title>Oon Jai Restaurant Back Office</title>', '<title>Oon Jai POS</title>')
+pos = pos.replace('<h1>Oon Jai Restaurant</h1>', '<h1>Oon Jai POS</h1>')
 pos = pos.replace('href="manifest.webmanifest?v=150"', 'href="pos/manifest.webmanifest?v=150"')
 pos = pos.replace('name="apple-mobile-web-app-title" content="Restaurant"', 'name="apple-mobile-web-app-title" content="POS"')
 pos = pos.replace('<meta charset="utf-8"/>', '<meta charset="utf-8"/><script>const posLaunch150=new URL(location.href);posLaunch150.searchParams.set("workspace","pos");history.replaceState(history.state,"",posLaunch150);</script>', 1)
