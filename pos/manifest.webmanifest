@@ -1,0 +1,31 @@
+{
+  "name": "Oon Jai POS",
+  "short_name": "POS",
+  "start_url": "./?workspace=pos",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fffaf1",
+  "theme_color": "#bd593a",
+  "icons": [
+    {
+      "src": "../assets/app-icons/restaurant-192-v1.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../assets/app-icons/restaurant-512-v1.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../assets/app-icons/restaurant-maskable-v1.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "id": "./",
+  "description": "Oon Jai cashier workspace, orders and sales."
+}

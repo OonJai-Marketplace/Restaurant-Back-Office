@@ -8,7 +8,7 @@
   inventory:{css:['inventory-menu-v104.css'],js:['restaurant-inventory144.bundle.js']},
   menu:{depends:['inventory'],js:['menu-v108.js']},
   kitchen:{depends:['inventory'],css:['preparation-waste124.css'],js:['preparation-waste124.js']},
-  pos:{css:['pos-v118.css'],js:['restaurant-pos147.bundle.js']}
+  pos:{css:['pos-v118.css'],js:['restaurant-pos150.bundle.js']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
  const pendingFiles=new Map();
@@ -16,7 +16,7 @@
   if(files.has(name))return Promise.resolve();if(pendingFiles.has(name))return pendingFiles.get(name);
   const promise=new Promise((resolve,reject)=>{
    const node=document.createElement(kind==='js'?'script':'link');let timer,runtimeError;
-   const url=new URL((kind==='js'?'scripts/':'styles/')+name+(/14[467]\.bundle/.test(name)?'':'?v=147'),document.baseURI).href;
+   const url=new URL((kind==='js'?'scripts/':'styles/')+name+(/(?:14[467]|150)\.bundle/.test(name)?'':'?v=147'),document.baseURI).href;
    const capture=e=>{if(e.filename===url)runtimeError=e.error||Error(e.message)};
    const cleanup=()=>{clearTimeout(timer);window.removeEventListener('error',capture)};
    if(kind==='js'){node.src=url;window.addEventListener('error',capture)}else{node.rel='stylesheet';node.href=url}
