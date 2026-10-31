@@ -1,0 +1,7 @@
+{
+  "appId": "org.oonjai.pos",
+  "appName": "Oon Jai POS",
+  "webDir": "www",
+  "server": {"hostname": "localhost", "androidScheme": "https"},
+  "ios": {"contentInset": "automatic"}
+}
