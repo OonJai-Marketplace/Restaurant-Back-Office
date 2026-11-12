@@ -14,7 +14,7 @@ function restaurantTabCan125(scope,tab,action='view'){
  return !tabs||tabs[tab]===true;
 }
 window.restaurantTabCan125=restaurantTabCan125;
-window.restaurantTabId125=(id)=>({'menu-details':'menu-recipe','menu-integration132':'menu-recipe','inv-bulk132':'inv-preparation124'}[id]||id);
+window.restaurantTabId125=(id)=>({'inv-allocated':'inv-items','menu-details':'menu-recipe','menu-integration132':'menu-recipe','inv-bulk132':'inv-preparation124'}[id]||id);
 window.restaurantPosTab125=(tab,sub)=>tab==='Overview'?'pos-overview':tab==='Management'?'pos-management':({'New Order':'pos-sales-new','Open Orders':'pos-sales-open','Receipts':'pos-sales-receipts','Online Orders':'pos-sales-online'}[sub]||'pos-sales-new');
 window.restaurantFirstTab125=scope=>Object.keys(restaurantTabs125[scope]||{}).find(id=>restaurantTabCan125(scope,id));
 window.restaurantStart125=()=>{
@@ -62,6 +62,7 @@ function restaurantRouteAllowed128(id){
  if(!liveProfile||liveProfile.status!=='active')return false;
  if(id==='restaurant-no-access')return true;
  if(id==='restaurant-promotions'||id==='restaurant-overview'||id==='restaurant-website'||id==='restaurant-sales143')return isAdmin121();
+ if(id==='restaurant-pos-reports')return isAdmin121()||(restaurantTabCan125('pos','pos-management')&&restaurantTabCan125('pos','pos-sales-receipts'));
  if(id==='pos118')return !!restaurantFirstTab125('pos');
  if(id==='restaurant-settings')return !!restaurantFirstTab125('settings');
  if(typeof id!=='string')return false;

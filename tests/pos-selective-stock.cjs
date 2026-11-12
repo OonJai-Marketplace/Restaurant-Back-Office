@@ -44,3 +44,13 @@ napkin.data.posMenuUse[0].stockMode = 'all';
 assert.deepEqual(use('Dine in'), { napkin: 6 });
 assert.deepEqual(use('Dine in', {}, {}, { napkin: 0 }), {});
 console.log('PASS online allocations plus bonuses, separate dine-in totals, fractional use and eligible links');
+
+menu.data.recipe = [{ itemId: 'tea', quantity: 2 }];
+tea.data.posMenuExclude = ['drink'];
+assert.equal(use('Online', {}, {}, {}, { 'stock-tea': 10 })['stock-tea'], undefined);
+tea.data.posMenuExclude = ['another-menu'];
+assert.equal(use('Dine in')['stock-tea'], 3);
+tea.data.posMenuExclude = ['drink'];
+tea.data.posMenuUse = [rule('ingredient', 2)];
+assert.equal(use('Online')['stock-tea'], 6);
+console.log('PASS menu-specific recipe exclusion, restoration, and independently allocated stock');

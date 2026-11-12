@@ -1,5 +1,5 @@
 /* Reports use recorded menu lines and the restaurant's business dates. */
-const posReports = (() => {
+var posReports = globalThis.posReports || (() => {
  const dayFormat = new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Vientiane', year:'numeric', month:'2-digit', day:'2-digit'});
  const clock = new Intl.DateTimeFormat('en-GB', {timeZone:'Asia/Vientiane', hour:'2-digit', minute:'2-digit', second:'2-digit', hourCycle:'h23'});
  const day = value => dayFormat.format(new Date(value));
@@ -241,5 +241,5 @@ const posReports = (() => {
   setTimeout(()=>URL.revokeObjectURL(url),1000);
   showCenterStatus('Export downloaded.');
  }
- return {defaults,controls,download,clear,populate,openRange,summary,range,salesReport,shiftsReport,csv};
+ return {transactions,pages,stamp,day,defaults,controls,download,clear,populate,openRange,summary,range,salesReport,shiftsReport,csv};
 })();

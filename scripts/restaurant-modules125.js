@@ -3,12 +3,13 @@
  const groups={
   promotions:{css:['promotions146.css'],js:['promotion-kit146.js','restaurant-promotions146.js']},
   readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js']},
-  sales:{css:['restaurant-sales143.css'],js:['sales-math143.js','restaurant-sales143.js']},
+  reports:{css:['pos-operations.css?v=reports1','pos-v118.css?v=reports1'],js:['pos-reports.js?v=reports1','pos-backoffice-reports.js?v=reports1']},
+  sales:{css:['restaurant-sales143.css'],js:['sales-math143.js','restaurant-sales143.js?v=reports1']},
   settings:{js:['restaurant-settings146.bundle.js']},
-  inventory:{css:['inventory-menu-v104.css?v=stockusage2'],js:['restaurant-inventory144.bundle.js?v=stockusage2']},
+  inventory:{css:['inventory-menu-v104.css?v=stockusage2','pos-operations.css?v=reports1'],js:['restaurant-inventory144.bundle.js?v=reports1','inventory-allocated.js?v=reports1']},
   menu:{depends:['inventory'],js:['menu-v108.js?v=rowactions1']},
   kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=stocklinks1'],js:['preparation-waste124.js?v=layout2']},
-  pos:{css:['pos-v118.css?v=stockusage2'],js:['restaurant-pos150.bundle.js?v=stockusage2']}
+  pos:{css:['pos-v118.css?v=stockusage2'],js:['restaurant-pos150.bundle.js?v=reports1']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
  const pendingFiles=new Map();
@@ -31,7 +32,7 @@
   const promise=(async()=>{for(const dep of config.depends||[])await ensure(dep);for(const file of config.css||[])await style(file);for(const file of config.js||[])await script(file);ready.add(group)})();
   promises.set(group,promise);try{await promise}catch(e){promises.delete(group);throw e}
  }
- function groupFor(id){return id==='restaurant-promotions'?'promotions':id==='restaurant-sales143'?'sales':['inv-bulk132','inv-preparation124','inv-waste124'].includes(id)?'kitchen':id.startsWith('inv-')?'inventory':id.startsWith('menu-')?'menu':id==='pos118'?'pos':id==='restaurant-settings'?'settings':null}
+ function groupFor(id){return id==='restaurant-pos-reports'?'reports':id==='restaurant-promotions'?'promotions':id==='restaurant-sales143'?'sales':['inv-bulk132','inv-preparation124','inv-waste124'].includes(id)?'kitchen':id.startsWith('inv-')?'inventory':id.startsWith('menu-')?'menu':id==='pos118'?'pos':id==='restaurant-settings'?'settings':null}
  // POS uses its own current catalog. It does not load the Inventory ledger.
  window.menuStore108={state:{loaded:false,items:[],ingredients:[],moves:[],menu:[],categories:[]},
   async save(...args){await ensure('inventory');return window.menuStore108.save(...args)},
