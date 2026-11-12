@@ -150,3 +150,9 @@ body.shell113 #pos118 .pos-product118>.pos-photo118{width:100%!important;margin:
 .pos118 .pos-sync118{font:600 12px Arial,sans-serif;color:#916b14;white-space:nowrap}
 .pos118 .pos-shift-link118{background:#e8efdf;border-color:#a9c0a9;font-size:12px!important}
 .pos118 .pos-top118{gap:12px;flex-wrap:wrap}
+body.shell113 #pos118 .pos-report-controls{display:grid;justify-items:start;gap:10px;min-width:0}
+body.shell113 #pos118 .pos-report-period{display:flex;align-items:end;flex-wrap:wrap;gap:8px}
+body.shell113 #pos118 .pos-report-controls label{display:grid;gap:3px;margin:0;min-width:0}
+body.shell113 #pos118 .pos-report-controls :is(input,select){width:auto;max-width:100%;min-height:36px;box-sizing:border-box}
+body.shell113 #pos118 .pos-report-controls input{position:relative;inline-size:9.3em;cursor:pointer}
+body.shell113 #pos118 .pos-report-controls input[type=month]{inline-size:11em}

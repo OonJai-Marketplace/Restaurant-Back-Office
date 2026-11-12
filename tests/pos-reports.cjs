@@ -1,0 +1,50 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const ctx = {Intl, Date, Blob, shell113:{esc:String}, sessionEpoch121:1, liveProfile:{id:'actor'}, restaurantTabCan125:()=>true};
+vm.createContext(ctx);
+vm.runInContext(fs.readFileSync('scripts/pos-reports.js','utf8')+';globalThis.reports=posReports',ctx);
+const r=ctx.reports;
+const receipt={id:'A',number:42,status:'refunded',paid_at:'2024-02-29T16:59:59Z',refunded_at:'2024-02-29T17:00:00Z',
+ data:{subtotal:100,total:90.01,shiftId:'shift1',refundShiftId:'shift2',payment:'Cash',restocked:false,
+ lines:[{menuId:'1',name:'Soup',unitPrice:25,quantity:2,options:['Mild']},{menuId:'2',name:'Rice',unitPrice:50,quantity:1}]}};
+const sales=[{order:receipt,refund:false,at:receipt.paid_at},{order:receipt,refund:true,at:receipt.refunded_at}];
+async function test(){
+ assert.equal(r.range({period:'monthly',month:'2024-02'}).to,'2024-02-29');
+ assert.equal(r.range({period:'yearly',year:'2024'}).end,'2024-12-31T17:00:00.000Z');
+ assert.throws(()=>r.range({period:'custom',from:'2024-02-02',to:'2024-02-01'}));
+ const f={...r.defaults(),type:'items',period:'custom',from:'2024-02-29',to:'2024-02-29'};
+ const fields=r.controls(f,label=>label);
+ for(const key of ['from','to','period','type']) assert.ok(fields.includes('data-report-field="'+key+'"'));
+ assert.ok(!fields.includes('PDF'));
+ assert.ok(r.controls({...f,period:'yearly'},String).includes('data-report-field="year"'));
+ const receipts=r.salesReport(sales,false),items=r.salesReport(sales,true);
+ assert.equal(receipts[1][5],3);assert.equal(receipts[1][8],90.01);
+ assert.equal(receipts[2][0],'2024-03-01 00:00:00');assert.equal(receipts[2][8],-90.01);
+ assert.equal(items.length,5);assert.equal(items[1][6],'Mild');assert.equal(items[1][8],2);
+ assert.equal(Math.round((items[1][12]+items[2][12])*100),9001);
+ assert.equal(Math.round((items[3][12]+items[4][12])*100),-9001);
+ assert.equal(items[3][14],'No');assert.match(r.csv([['=invalid',-12,'quoted,"text"']]),/^"'=invalid","-12","quoted,""text"""$/);
+ const state={sample:true,orders:[receipt],shifts:[{id:'shift1',opened_at:'2024-02-29T15:00Z',closed_at:'2024-02-29T18:00Z',opening:5,expected:106.01,counted:105},{id:'shift2',opened_at:'2024-02-29T17:00Z',opening:200}],cash:[{shift_id:'shift1',amount:15},{shift_id:'shift1',amount:-4}]};
+ const shifts=await r.shiftsReport(state,r.range({period:'yearly',year:'2024'}),()=>{});
+ assert.equal(shifts.length,3);assert.equal(shifts[1][6],1);assert.equal(shifts[1][15],109.99);assert.equal(shifts[1][17],'');
+ assert.equal(shifts[2][5],1);assert.equal(shifts[2][15],106.01);assert.equal(shifts[2][17],-1.01);
+ let blob,link;
+ ctx.URL={createObjectURL:b=>{blob=b;return 'blob:fixture'},revokeObjectURL(){}};
+ ctx.setTimeout=()=>{};ctx.showCenterStatus=()=>{};
+ ctx.document={body:{append(){}},createElement:()=>link={click(){},remove(){}}};
+ await r.download(f,state,false);
+ assert.equal(link.download,'POS-SAMPLE-items-2024-02-29-2024-02-29.csv');
+ assert.equal((await blob.text()).split('\r\n').length,3);
+ await r.download({...f,from:'2024-03-01',to:'2024-03-01',type:'receipts'},state,false);
+ assert.match(await blob.text(),/"Refund"/);assert.doesNotMatch(await blob.text(),/"Sale"/);
+ await assert.rejects(r.download({...f,from:'2024-03-02',to:'2024-03-02'},state,false),/No transactions/);
+ let calls=0;
+ ctx.ojmDb={from(){const query={select(){return this},in(){return this},gte(){return this},lt(){return this},order(){return this},limit(){return this},gt(){this.next=true;return this},then(resolve){calls++;resolve({data:this.next?[{...receipt,id:'last'}]:Array.from({length:250},(_,i)=>({...receipt,id:String(i)}))})}};return query}};
+ let printed;await r.download({...f,type:'receipts'},{sample:false},true,rows=>{printed=rows});
+ assert.equal(calls,2);assert.equal(printed.length,251);
+ ctx.restaurantTabCan125=()=>false;
+ await assert.rejects(r.download(f,state,false),/access required/);
+ console.log('PASS POS reports: receipt and item totals, refunds, shift cash, date boundaries, CSV, permissions and paging.');
+}
+test().catch(e=>{console.error(e);process.exitCode=1});

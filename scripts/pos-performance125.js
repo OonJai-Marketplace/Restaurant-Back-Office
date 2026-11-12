@@ -45,7 +45,7 @@
     if(!s.loaded&&cached){Object.assign(s,cached.data,{loaded:true,owner});s.offlineQueue=await posOffline119.queue(owner);if(!valid())return;hooks.overlayPending();hooks.pick(hooks.catalog()[0]?.id,false)}
     s.offline=true;s.error=s.loaded?'Offline: sales remain on this device until synced.':'Connect once to prepare the POS on this device.';
    }else{s.loaded=false;s.offline=false;s.error=e.message;showCenterStatus(e.message,true)}
-  }finally{if(valid()){s.busy=false;if(!background||catalogChanged||!s.loaded||s.tab!=='Sales'||s.sub!=='New Order')pos118.render();else updateStatus(s);schedule(s.offline?30000:8000)}}
+  }finally{if(valid()){s.busy=false;if(background&&s.loaded&&s.tab==='Management'&&document.activeElement?.closest('.pos-report-controls'))updateStatus(s);else if(!background||catalogChanged||!s.loaded||s.tab!=='Sales'||s.sub!=='New Order')pos118.render();else updateStatus(s);schedule(s.offline?30000:8000)}}
  }
  function updateStatus(s){const sync=document.querySelector('.pos-tab-actions132 [data-pos118=sync]');if(sync){sync.textContent='Sync'+(s.offlineQueue.length?' · '+s.offlineQueue.length:s.offline?' · Offline':'');sync.title=s.offlineQueue.length+' pending orders';}const node=document.querySelector('.pos-sync118');if(node)node.textContent=s.offlineQueue.length?s.offlineQueue.length+' pending sync':s.offline?'Offline':'Synced';
   // Never replace focused input nodes, scroll positions or a current draft during polling.
