@@ -181,3 +181,20 @@ html body.shell113 #posChargeDialog>header :is([type=submit],[data-close]){displ
 html body.shell113 #posChargeDialog>header [data-close]{width:32px!important}
 html body.shell113 .pos-charge-dialog>footer:empty{display:none}
 .receipt-meta span:last-child{text-align:right;overflow-wrap:anywhere;max-width:52%}
+
+#pos118 .pos-menu-tile{position:relative;min-width:0;display:flex;flex-direction:column}
+#pos118 .pos-menu-tile>.pos-product118{width:100%;height:100%;touch-action:manipulation}
+#pos118 .pos-menu-tile>.pos-info{position:absolute;top:5px;right:5px;width:30px!important;height:30px!important;min-height:30px!important;padding:0!important;border-radius:50%;background:white!important;color:#174c38!important;font:bold 18px/1 sans-serif!important;box-shadow:0 1px 6px #0003}
+#pos118 .pos-menu-tile>.pos-tile-add{position:absolute;right:4px;bottom:4px;padding:3px 6px!important;min-height:24px!important;background:#174c38!important;color:white!important;font-size:12px!important}
+#pos118 .pos-menu-tile:has(.pos-tile-add)>.pos-product118 small:last-child{visibility:hidden}
+#pos118 .pos-package{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:4px 0}
+#pos118 .pos-package input{width:4.5em}
+html body.shell113 #posChargeDialog{width:min(980px,96vw)!important;max-height:94dvh!important}
+html body.shell113 #posChargeDialog>.ui-body108{max-height:none;overflow:auto}
+html body.shell113 #posChargeDialog .pos-payment-preview118{max-height:none;padding:clamp(10px,2vw,24px)}
+html body.shell113 #posChargeDialog .receipt118{width:100%;max-width:720px;box-sizing:border-box}
+html body.shell113 #posChargeDialog .pos-charge-fields label{display:grid;grid-template-rows:auto 42px;gap:6px;margin:0}
+html body.shell113 #posChargeDialog .pos-charge-fields :is(input,select,output){height:42px!important;min-height:42px!important;box-sizing:border-box;display:block;padding:8px!important;margin:0;border:1px solid #b6ccbc;border-radius:5px;line-height:24px;font:inherit}
+html body.shell113 #posChargeDialog>header button[type=submit]{background:#174c38!important;border:1px solid white!important;color:#fff!important;font-weight:700!important;white-space:nowrap}
+@media(max-width:520px){html body.shell113 #posChargeDialog .pos-charge-fields{grid-template-columns:repeat(2,minmax(0,1fr))}html body.shell113 #posChargeDialog .pos-charge-fields>label:first-child{grid-column:1/-1}}
+html body.shell113 .pos-dialog118>header .pos-preview-print{margin-left:auto;background:#174c38!important;color:white!important;border:1px solid white}

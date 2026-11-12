@@ -40,3 +40,11 @@ html body.shell113 #restaurantApp .im-card104>header>.im-toolbar-actions{display
 html body.shell113 #restaurantApp .legend108{align-items:center}
 html body.shell113 #restaurantApp :is(#menu-costing,#menu-engineering108) .legend108>.margin108{box-sizing:border-box;min-height:0!important;height:auto!important;border-radius:4px!important;padding:3px 7px!important;font-size:11px!important;font-weight:600;line-height:1.35!important;white-space:nowrap}
 html body.shell113 #restaurantApp .legend108 .costing-explain{border:1px solid #adbfaf;background:#fff;color:#264b3b;cursor:pointer}
+
+.im-sale-links{grid-column:1/-1;min-width:0;border:1px solid #bccdc1;border-radius:8px;padding:12px}
+.im-sale-links legend{font-weight:700;padding:0 6px}
+.im-link-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:8px 0}
+.im-sale-links label{display:grid;gap:4px}
+.im-sale-links [data-link-matches],.im-sale-links [data-link-list]>div{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin:5px 0}
+.im-sale-links [data-link-list]>div{justify-content:space-between}
+.im-sale-links [data-link-message]:empty,[data-similar-stock]:empty{display:none}
