@@ -38,4 +38,5 @@
 .im-warning120{padding:10px 12px;border-left:3px solid #ad6b25;background:#fff5e6;color:#603b12;border-radius:5px;font-weight:600}
 html body.shell113 #restaurantApp .im-card104>header>.im-toolbar-actions{display:flex;align-items:center;justify-content:flex-end;margin-inline-start:auto;gap:6px}
 html body.shell113 #restaurantApp .legend108{align-items:center}
-html body.shell113 #restaurantApp .legend108 .costing-explain{min-height:0!important;height:auto!important;border:1px solid #bbc9bd!important;border-radius:999px!important;padding:3px 9px!important;background:#fff!important;color:#264b3b!important;font-size:12px!important;line-height:1.35!important}
+html body.shell113 #restaurantApp :is(#menu-costing,#menu-engineering108) .legend108>.margin108{box-sizing:border-box;min-height:0!important;height:auto!important;border-radius:4px!important;padding:3px 7px!important;font-size:11px!important;font-weight:600;line-height:1.35!important;white-space:nowrap}
+html body.shell113 #restaurantApp .legend108 .costing-explain{border:1px solid #adbfaf;background:#fff;color:#264b3b;cursor:pointer}

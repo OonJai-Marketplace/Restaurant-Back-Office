@@ -464,7 +464,7 @@ function charge(){
    await save('pay',{...d,tendered,confirmed:true});
   });
  const box=root.querySelector('.pos-dialog118'),form=box.querySelector('form'),method=form.elements.payment,cash=form.elements.tendered,reference=form.elements.paymentReference;
- box.classList.add('pos-charge-dialog');
+ box.id='posChargeDialog';box.classList.add('pos-charge-dialog');
  const submit=form.querySelector('[type=submit]');
  submit.setAttribute('form',form.id);box.querySelector('[data-close]').before(submit);
  function update(){

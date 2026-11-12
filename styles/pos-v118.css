@@ -175,9 +175,9 @@ html body.shell113 .pos-charge-dialog>.ui-body108 .pos-charge-fields{display:gri
 html body.shell113 .pos-charge-dialog .pos-charge-fields :is(select,input,output){box-sizing:border-box;width:100%;min-width:0;font-variant-numeric:tabular-nums}
 html body.shell113 .pos-charge-dialog output{padding:8px;background:#edf5ef;border-radius:5px;font-weight:700}
 html body.shell113 .pos-charge-dialog [hidden]{display:none!important}
-html body.shell113 .pos-charge-dialog>header{display:flex;align-items:center;justify-content:flex-end;gap:6px}
-html body.shell113 .pos-charge-dialog>header h3{margin-inline-end:auto}
-html body.shell113 .pos-charge-dialog>header :is([type=submit],[data-close]){display:inline-flex;align-items:center;justify-content:center;width:auto!important;height:32px!important;min-height:32px!important;max-height:32px!important;padding:0 9px!important;margin:0!important}
-html body.shell113 .pos-charge-dialog>header [data-close]{width:32px!important}
+html body.shell113 #posChargeDialog>header{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+html body.shell113 #posChargeDialog>header h3{margin-inline-end:auto}
+html body.shell113 #posChargeDialog>header :is([type=submit],[data-close]){display:inline-flex;align-items:center;justify-content:center;width:auto!important;height:32px!important;min-height:32px!important;max-height:32px!important;padding:0 9px!important;margin:0!important}
+html body.shell113 #posChargeDialog>header [data-close]{width:32px!important}
 html body.shell113 .pos-charge-dialog>footer:empty{display:none}
 .receipt-meta span:last-child{text-align:right;overflow-wrap:anywhere;max-width:52%}
