@@ -44,9 +44,49 @@ async function openOnlineOrders(){if(!restaurantTabCan125('pos','pos-sales-onlin
 async function openPosManagement(){if(!restaurantTabCan125('pos','pos-management','manage'))return showCenterStatus('POS settings access required.',true);await switchTab('pos118');if(window.pos118){pos118.state.tab='Management';pos118.render()}}
 function toggleMobileNavigation(){document.body.classList.toggle('restaurant-nav-open')}
 function closeMobileNavigation(){document.body.classList.remove('restaurant-nav-open')}
-function clearRestaurantSession(){hydration132=null;window.menuStore108?.cancelLoad?.();window.kitchen124?.cancelLoad?.();window.restaurantHome139?.reset();window.restaurantSales143?.reset();window.restaurantReadiness144?.reset();window.RestaurantPromotions146?.reset();sessionEpoch121++;window.restaurantIntegration132?.reset();loginProgress132('');liveProfile=null;liveProfiles=[];restaurantMember=null;restaurantMembers=[];bannerRows={};window.resetMenuSales121?.();if(window.pos118)Object.assign(pos118.state,{busy:false,working:false,offline:false,syncError:'',loaded:false,owner:null,modeChosen:false,sample:false,schema125:false,balances125:null,catalogVersion125:null,summary125:null,receiptDate:null,acknowledged125:[],menu:[],ingredients:[],items:[],moves:[],stock:[],orders:[],shifts:[],cash:[],offlineQueue:[]});document.querySelectorAll('.restaurant-modal,.im-edit-overlay112').forEach(x=>x.remove());if(window.menuStore108)Object.assign(menuStore108.state,{owner:null,loaded:false,ledgerLoaded144:false,editing:null,items:[],moves:[],menu:[],ingredients:[],categories:[]});document.getElementById('restaurantSettings121')?.replaceChildren();document.getElementById('restaurantOverviewGrid')?.replaceChildren();document.getElementById('restaurantApp').hidden=true;document.getElementById('loginGate').hidden=false;document.getElementById('loginGate').classList.remove('is-authenticated');document.querySelectorAll('.workspace-scroll>.tab-content:not(#restaurant-settings):not(#restaurant-overview)').forEach(x=>x.innerHTML='');}
+function clearRestaurantSession(){hydration132=null;window.menuStore108?.cancelLoad?.();window.kitchen124?.cancelLoad?.();window.restaurantHome139?.reset();window.restaurantSales143?.reset();window.restaurantReadiness144?.reset();window.RestaurantPromotions146?.reset();sessionEpoch121++;window.restaurantIntegration132?.reset();loginProgress132('');liveProfile=null;liveProfiles=[];restaurantMember=null;restaurantMembers=[];bannerRows={};window.resetMenuSales121?.();if(window.pos118)Object.assign(pos118.state,{busy:false,working:false,offline:false,syncError:'',loaded:false,owner:null,modeChosen:false,sample:false,schema125:false,balances125:null,catalogVersion125:null,summary125:null,receiptDate:null,acknowledged125:[],menu:[],ingredients:[],items:[],moves:[],stock:[],orders:[],shifts:[],cash:[],offlineQueue:[]});document.querySelector('dialog.restaurant-password-dialog[open]')?.close();document.querySelectorAll('.restaurant-modal,.im-edit-overlay112').forEach(x=>x.remove());if(window.menuStore108)Object.assign(menuStore108.state,{owner:null,loaded:false,ledgerLoaded144:false,editing:null,items:[],moves:[],menu:[],ingredients:[],categories:[]});document.getElementById('restaurantSettings121')?.replaceChildren();document.getElementById('restaurantOverviewGrid')?.replaceChildren();document.getElementById('restaurantApp').hidden=true;document.getElementById('loginGate').hidden=false;document.getElementById('loginGate').classList.remove('is-authenticated');document.querySelectorAll('.workspace-scroll>.tab-content:not(#restaurant-settings):not(#restaurant-overview)').forEach(x=>x.innerHTML='');}
 async function logoutDemoUser(){clearRestaurantSession();if(ojmDb)await ojmDb.auth.signOut()}
-function passwordForm121(required=false){return new Promise(resolve=>{const overlay=document.createElement('div');overlay.className='restaurant-modal';overlay.innerHTML=`<section class="restaurant-dialog"><header><h3>${required?'Set your new password':'Change password'}</h3></header><form class="restaurant-dialog-body"><p>${required?'Replace your temporary password before entering the restaurant.':'This password is used for your Restaurant sign-in.'}</p><label>New password<input name="password" type="password" autocomplete="new-password" minlength="12" required></label><label>Confirm password<input name="confirm" type="password" autocomplete="new-password" minlength="12" required></label><p role="alert"></p><footer><button type="button">${required?'Sign out':'Cancel'}</button><button type="submit">Save password</button></footer></form></section>`;const close=()=>{overlay.remove();resolve(false);if(required)logoutDemoUser()};overlay.querySelector('[type=button]').onclick=close;if(!required)overlay.onclick=e=>{if(e.target===overlay)close()};overlay.querySelector('form').onsubmit=async e=>{e.preventDefault();const f=e.target,b=f.querySelector('[type=submit]');if(f.password.value!==f.confirm.value){f.querySelector('[role=alert]').textContent='Passwords do not match.';return}b.disabled=true;try{const r=await ojmDb.auth.updateUser({password:f.password.value});if(r.error)throw r.error;overlay.remove();resolve(true);showCenterStatus('Password changed.')}catch(err){f.querySelector('[role=alert]').textContent=err.message}finally{b.disabled=false}};document.body.append(overlay)})}
+function passwordForm121(required=false, expectedUserId=null){
+ const dialog=document.createElement('dialog');
+ dialog.className='restaurant-dialog restaurant-password-dialog';
+ const title=required?'Set your new password':'Change password';
+ dialog.setAttribute('aria-label',title);
+ dialog.innerHTML=`<header><h3>${title}</h3></header><form class="restaurant-dialog-body">
+  <p>Choose a password of at least 12 characters for your Restaurant sign-in.</p>
+  <label>New password<input name="password" type="password" autocomplete="new-password" minlength="12" required autofocus></label>
+  <label>Confirm password<input name="confirm" type="password" autocomplete="new-password" minlength="12" required></label>
+  <p role="alert"></p><footer><button type="button">${required?'Sign out':'Cancel'}</button><button type="submit">Save password</button></footer></form>`;
+ const form=dialog.querySelector('form'), cancel=form.querySelector('[type=button]'), save=form.querySelector('[type=submit]');
+ function dismiss(){
+  if(save.disabled)return;
+  dialog.close();
+  if(required)void logoutDemoUser();
+ }
+ cancel.onclick=dismiss;
+ dialog.oncancel=event=>{event.preventDefault();dismiss()};
+ form.onsubmit=async event=>{
+  event.preventDefault();
+  if(save.disabled)return;
+  const error=form.querySelector('[role=alert]');
+  if(form.password.value!==form.confirm.value){error.textContent='Passwords do not match.';return}
+  save.disabled=cancel.disabled=true;
+  try{
+   if(expectedUserId){
+    const current=await ojmDb.auth.getSession();
+    if(current.error||current.data?.session?.user.id!==expectedUserId)throw Error('Your recovery session has ended. Request a new link.');
+   }
+   const result=await ojmDb.auth.updateUser({password:form.password.value});
+   if(result.error)throw result.error;
+   if(dialog.open){dialog.close('saved');showCenterStatus('Password changed.')}
+  }catch(err){error.textContent=err.message}
+  finally{save.disabled=cancel.disabled=false}
+ };
+ return new Promise(resolve=>{
+  dialog.onclose=()=>{dialog.remove();resolve(dialog.returnValue==='saved')};
+  document.body.append(dialog);
+  dialog.showModal();
+ });
+}
 async function hydrateCore132(session){if(!session?.user){clearRestaurantSession();return}if(liveProfile?.id===session.user.id)return;const epoch=++sessionEpoch121;const [profile,member]=await loginWait140(Promise.all([ojmDb.from('profiles').select('*').eq('id',session.user.id).maybeSingle(),ojmDb.from('restaurant_members121').select('*').eq('user_id',session.user.id).maybeSingle()]),'Account verification took too long. Please sign in to retry.');if(epoch!==sessionEpoch121)return;if(profile.error||!profile.data){document.getElementById('loginError').textContent=profile.error?.message||'No user profile is available.';return}if(profile.data.status!=='active'){clearRestaurantSession();document.getElementById('loginError').textContent='This user account is inactive.';return}liveProfile=profile.data;restaurantMember=member.data;if(!isAdmin121()&&(!restaurantMember?.enabled||member.error)){liveProfile=null;document.getElementById('loginError').textContent='Restaurant access has not been enabled. Ask your administrator.';return}if(!isAdmin121()&&restaurantMember.must_change_password){loginProgress132('');const ok=await passwordForm121(true);if(!ok||epoch!==sessionEpoch121)return;loginProgress132('');const r=await loginWait140(ojmDb.from('restaurant_members121').select('*').eq('user_id',session.user.id).single(),'Account verification took too long. Please sign in to retry.');if(epoch!==sessionEpoch121)return;restaurantMember=r.data;if(!restaurantMember||restaurantMember.must_change_password){clearRestaurantSession();document.getElementById('loginError').textContent='Password updated. Sign in again; contact your administrator if access is still blocked.';return}}
  liveProfiles=[liveProfile];document.getElementById('currentUserChip').textContent=liveProfile.full_name||session.user.email;document.getElementById('sidebarUserRole').textContent=isAdmin121()?'Administrator':'Restaurant team';document.getElementById('headerAccountInitials').textContent=(liveProfile.full_name||'OJ').split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase();if(epoch!==sessionEpoch121)return;syncNav121();let id=restaurantStart125();try{const last=JSON.parse(localStorage.getItem('restaurant-location121:'+liveProfile.id));if(last&&Date.now()-last.at<7*3600000&&restaurantRouteAllowed128(last.id))id=last.id}catch{}
  const requested={pos:'pos118',kitchen:'inv-preparation124',website:'restaurant-website'}[new URLSearchParams(location.search).get('workspace')];if(requested&&restaurantRouteAllowed128(requested))id=requested;
@@ -86,17 +126,21 @@ function decorate121(){document.querySelectorAll('[data-im-action],[data-m108],[
 // Attach controls before any session or network work. A stalled restore must not lock the form.
 function loginWait140(work,message,ms=15000){let timer;return Promise.race([Promise.resolve(work),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(message)),ms)})]).finally(()=>clearTimeout(timer))}
 let loginConnection140=null,loginRecovery140=false,loginAutomatic140=true,loginAction140=0;
+let recoveryToken140=null;
 function loginStatus140(message){const node=document.getElementById('loginStatus140');if(node)node.textContent=message}
 async function connectLogin140(){
  if(loginConnection140)return loginConnection140;
  loginConnection140=(async()=>{
   if(!window.supabase||!window.OJM_SUPABASE_URL)throw Error('Sign-in could not start. Reload this page to try again.');
-  loginRecovery140=location.hash.includes('type=recovery')||new URLSearchParams(location.search).get('type')==='recovery';
+  const fragment=new URLSearchParams(location.hash.slice(1)),query=new URLSearchParams(location.search);
+  // Capture the callback before Supabase consumes its fragment. A saved session
+  // alone is insufficient to identify the account selected by a recovery link.
+  loginRecovery140=fragment.get('type')==='recovery'||query.get('type')==='recovery'||query.has('password-recovery')||fragment.has('error')||query.has('error');
+  if(loginRecovery140&&!fragment.has('error')&&!query.has('error'))recoveryToken140=fragment.get('access_token');
   const client=await restaurantAuth123.connect({recovery:loginRecovery140});ojmDb=client;
   client.auth.onAuthStateChange((event,session)=>{
    if(event==='SIGNED_OUT')clearRestaurantSession();
-   if(event==='PASSWORD_RECOVERY'){loginRecovery140=true;setTimeout(async()=>{loginProgress132('');if(await passwordForm121(true)){loginRecovery140=false;await hydrate(session)}},0)}
-   else if(event==='SIGNED_IN'&&session&&!loginRecovery140)setTimeout(()=>{if(!loginAutomatic140&&!liveProfile)return;if(liveProfile&&liveProfile.id!==session.user.id)clearRestaurantSession();hydrate(session)},0);
+   if(event==='SIGNED_IN'&&session&&!loginRecovery140)setTimeout(()=>{if(!loginAutomatic140&&!liveProfile)return;if(liveProfile&&liveProfile.id!==session.user.id)clearRestaurantSession();hydrate(session)},0);
   });
   return client;
  })().catch(error=>{loginConnection140=null;throw error});
@@ -124,7 +168,19 @@ async function startRestaurantLogin140(){
  };
  controls(false);loginProgress132('');loginStatus140('');const action=loginAction140;
  try{const current=await loginWait140(connectLogin140().then(client=>client.auth.getSession()),'Saved sign-in could not be restored. You can sign in below.');
-  if(action!==loginAction140)return;if(current.error)throw current.error;loginStatus140('');if(current.data?.session&&!loginRecovery140)await hydrate(current.data.session);
+  if(action!==loginAction140)return;if(current.error)throw current.error;loginStatus140('');const session=current.data?.session;
+   if(loginRecovery140){
+    const matches=!!recoveryToken140&&session?.access_token===recoveryToken140;
+    recoveryToken140=null;
+    const url=new URL(location.href);
+    url.hash='';
+    for(const field of ['password-recovery','type','error','error_code','error_description'])url.searchParams.delete(field);
+    history.replaceState(history.state,'',url);
+    if(!matches)throw Error('This recovery link is expired, has already been used, or is incomplete. Enter your email and select Forgot password? for a new link.');
+    const saved=await passwordForm121(true,session.user.id);
+    loginRecovery140=false;
+    if(saved)await hydrate(session);
+   }else if(session)await hydrate(session);
  }catch(err){if(action===loginAction140){loginAutomatic140=false;error.textContent=err.message}}
  finally{if(action===loginAction140)loginStatus140('')}
 }
