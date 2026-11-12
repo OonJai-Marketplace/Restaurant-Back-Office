@@ -156,3 +156,28 @@ body.shell113 #pos118 .pos-report-controls label{display:grid;gap:3px;margin:0;m
 body.shell113 #pos118 .pos-report-controls :is(input,select){width:auto;max-width:100%;min-height:36px;box-sizing:border-box}
 body.shell113 #pos118 .pos-report-controls input{position:relative;inline-size:9.3em;cursor:pointer}
 body.shell113 #pos118 .pos-report-controls input[type=month]{inline-size:11em}
+
+body.shell113 #pos118 .pos-report-controls{align-self:stretch;align-content:space-between;justify-items:stretch;gap:12px;flex:1}
+body.shell113 #pos118 .pos-card118:has(.pos-report-controls){display:flex;flex-direction:column}
+body.shell113 #pos118 .pos-report-fields{display:grid;grid-template-columns:minmax(4.5em,.85fr) minmax(4.8em,.8fr) minmax(8em,1.55fr);gap:6px;align-items:end}
+body.shell113 #pos118 .pos-report-fields :is(select,input,button){width:100%!important;min-width:0;min-height:36px!important;margin:0;line-height:1.2}
+body.shell113 #pos118 .pos-report-summary{padding:10px 0;border-block:1px solid #dce4dd;font-variant-numeric:tabular-nums}
+body.shell113 #pos118 .pos-report-controls .pos-actions118{justify-content:flex-start}
+.pos-range-dialog{width:min(350px,calc(100vw - 32px));box-sizing:border-box;color:#204832;border:1px solid #9db8a5;border-radius:12px;padding:15px;background:#fffdf8}
+.pos-range-dialog::backdrop{background:#102c2580}
+.pos-range-dialog header,.pos-calendar-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.pos-range-dialog button,.pos-range-dialog input{font:inherit;border:1px solid #c0cfc5;border-radius:5px;background:white;color:inherit;min-height:32px}
+.pos-calendar-days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
+.pos-calendar-days .in-range{background:#e3f2e7}.pos-calendar-days .endpoint{background:#165d40;color:white}
+.pos-range-dialog form{border-top:1px solid #d6dfd8;padding-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pos-range-dialog label{display:grid;gap:4px}.pos-range-dialog input{min-width:0;width:100%;box-sizing:border-box}.pos-range-dialog button{cursor:pointer}.pos-range-dialog [type=submit]{grid-column:1/-1}
+html body.shell113 .pos-charge-dialog>.ui-body108 .pos-charge-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:end}
+html body.shell113 .pos-charge-dialog .pos-charge-fields :is(select,input,output){box-sizing:border-box;width:100%;min-width:0;font-variant-numeric:tabular-nums}
+html body.shell113 .pos-charge-dialog output{padding:8px;background:#edf5ef;border-radius:5px;font-weight:700}
+html body.shell113 .pos-charge-dialog [hidden]{display:none!important}
+html body.shell113 .pos-charge-dialog>header{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+html body.shell113 .pos-charge-dialog>header h3{margin-inline-end:auto}
+html body.shell113 .pos-charge-dialog>header :is([type=submit],[data-close]){display:inline-flex;align-items:center;justify-content:center;width:auto!important;height:32px!important;min-height:32px!important;max-height:32px!important;padding:0 9px!important;margin:0!important}
+html body.shell113 .pos-charge-dialog>header [data-close]{width:32px!important}
+html body.shell113 .pos-charge-dialog>footer:empty{display:none}
+.receipt-meta span:last-child{text-align:right;overflow-wrap:anywhere;max-width:52%}

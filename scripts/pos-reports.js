@@ -37,10 +37,55 @@ const posReports = (() => {
    const years={};
    for(let y=Number(day(Date.now()).slice(0,4))+1;y>=2000;y--) years[y]=String(y);
    picker=select('Year','year',years);
-  } else picker=input('From','from','date')+input('Through','to','date');
-  return '<div class="pos-report-controls">'+select('Report','type',types)+'<div class="pos-report-period">'+select('Period','period',{monthly:'Monthly',yearly:'Yearly',custom:'Custom'})+picker+'</div>'+
-   (f.type==='shifts'?'<small>Shifts are selected by opening date.</small>':'')+
-   '<div class="pos-actions118">'+button('Export CSV','export')+(f.type==='receipts'?button('Export Receipts (PDF)','export-pdf'):'')+'</div></div>';
+  } else picker='<label>Date range<button type="button" data-report-range aria-haspopup="dialog">'+shell113.esc(f.from)+' – '+shell113.esc(f.to)+'</button></label>';
+  return '<div class="pos-report-controls"><div class="pos-report-fields">'+select('Report','type',types)+select('Period','period',{monthly:'Monthly',yearly:'Yearly',custom:'Custom'})+picker+'</div>'+
+   '<div class="pos-report-summary" role="status">Loading summary…</div><div class="pos-actions118">'+button('Export CSV','export')+button('Export PDF','export-pdf')+'</div></div>';
+ }
+ function openRange(trigger,f,apply) {
+  const dialog=document.createElement('dialog');
+  dialog.className='pos-range-dialog';
+  dialog.setAttribute('aria-label','Choose report dates');
+  dialog.innerHTML='<header><strong>Choose report dates</strong><button type="button" data-dismiss aria-label="Close">×</button></header><div class="pos-calendar-nav"><button type="button" data-prev aria-label="Previous month">‹</button><strong data-month></strong><button type="button" data-next aria-label="Next month">›</button></div><div class="pos-calendar-days"></div><p role="status"></p><form><label>Start date<input type="date" name="start" required></label><label>End date<input type="date" name="end" required></label><button type="submit">Apply dates</button></form>';
+  const form=dialog.querySelector('form'), grid=dialog.querySelector('.pos-calendar-days');
+  const start=form.elements.start,end=form.elements.end;
+  let month=new Date(f.from.slice(0,7)+'-01T00:00:00Z'), awaitingEnd=false;
+  start.value=f.from;end.value=f.to;
+  function draw(){
+   const y=month.getUTCFullYear(),m=month.getUTCMonth();
+   dialog.querySelector('[data-month]').textContent=month.toLocaleDateString('en-GB',{timeZone:'UTC',month:'long',year:'numeric'});
+   grid.replaceChildren();
+   for(const label of ['Mo','Tu','We','Th','Fr','Sa','Su']){const el=document.createElement('small');el.textContent=label;grid.append(el)}
+   for(let i=0;i<(month.getUTCDay()+6)%7;i++)grid.append(document.createElement('span'));
+   const last=new Date(Date.UTC(y,m+1,0)).getUTCDate();
+   for(let d=1;d<=last;d++){
+    const iso=new Date(Date.UTC(y,m,d)).toISOString().slice(0,10),b=document.createElement('button');
+    b.type='button';b.dataset.day=iso;b.textContent=d;b.setAttribute('aria-label',iso);
+    b.classList.toggle('endpoint',iso===start.value||iso===end.value);
+    b.classList.toggle('in-range',iso>start.value&&iso<end.value);
+    grid.append(b);
+   }
+   dialog.querySelector('[role=status]').textContent=awaitingEnd?'Choose the end date.':'Choose the start date.';
+  }
+  function finish(){
+   if(!form.reportValidity())return;
+   if(start.value>end.value){end.setCustomValidity('Choose an end date on or after the start date.');end.reportValidity();return}
+   const from=start.value,to=end.value;
+   dialog.close();apply(from,to);
+  }
+  grid.onclick=e=>{
+   const value=e.target.closest('[data-day]')?.dataset.day;if(!value)return;
+   end.setCustomValidity('');
+   if(!awaitingEnd){start.value=value;end.value='';awaitingEnd=true;draw();grid.querySelector('[data-day="'+value+'"]').focus()}
+   else {const first=start.value;start.value=value<first?value:first;end.value=value<first?first:value;finish()}
+  };
+  form.oninput=()=>{end.setCustomValidity('');awaitingEnd=false;if(start.value)month=new Date(start.value.slice(0,7)+'-01T00:00:00Z');draw()};
+  form.onsubmit=e=>{e.preventDefault();finish()};
+  dialog.querySelector('[data-prev]').onclick=()=>{month.setUTCMonth(month.getUTCMonth()-1);draw()};
+  dialog.querySelector('[data-next]').onclick=()=>{month.setUTCMonth(month.getUTCMonth()+1);draw()};
+  dialog.querySelector('[data-dismiss]').onclick=()=>dialog.close();
+  dialog.onclick=e=>{if(e.target===dialog){const b=dialog.getBoundingClientRect();if(e.clientX<b.left||e.clientX>b.right||e.clientY<b.top||e.clientY>b.bottom)dialog.close()}};
+  dialog.onclose=()=>{dialog.remove();if(trigger.isConnected)trigger.focus()};
+  document.body.append(dialog);draw();dialog.showModal();
  }
  async function pages(query,check) {
   const rows=[];
@@ -132,29 +177,63 @@ const posReports = (() => {
    return '"'+v.replaceAll('"','""')+'"';
   }).join(',')).join('\r\n');
  }
- async function download(filter,state,pdf,printReceipts) {
-  const epoch=sessionEpoch121,owner=liveProfile?.id,sample=state.sample,r=range(filter),type=filter.type;
-  const check=()=>{
+ function reportCheck(state) {
+  const epoch=sessionEpoch121,owner=liveProfile?.id,sample=state.sample;
+  return ()=>{
    if(!owner||owner!==liveProfile?.id||epoch!==sessionEpoch121||sample!==state.sample) throw Error('The POS session changed. Open the report again.');
    if(!restaurantTabCan125('pos','pos-management')||!restaurantTabCan125('pos','pos-sales-receipts')) throw Error('Report access required.');
   };
-  check();
-  let rows;
-  if(type==='shifts') rows=await shiftsReport(state,r,check);
-  else {
-   const events=await transactions(state,r,check,pdf);
-   check();
-   if(pdf) {
-    if(!events.length) throw Error('No receipts in this period.');
-    return printReceipts(events.map(e=>e.order),false,true);
-   }
-   rows=salesReport(events,type==='items');
+ }
+ async function readReport(type,state,r,check){
+  const events=type==='shifts'?[]:await transactions(state,r,check);
+  const rows=type==='shifts'?await shiftsReport(state,r,check):salesReport(events,type==='items');
+  check();return {rows,events};
+ }
+ let cached=null;
+ function clear(){cached=null}
+ function selected(filter,state){
+  const check=reportCheck(state);check();
+  const r=range(filter),key=JSON.stringify([liveProfile.id,sessionEpoch121,state.sample,state.writeGeneration125,filter.type,r.from,r.to]);
+  if(!cached||cached.key!==key) {
+   const entry={key,job:readReport(filter.type,state,r,check)};
+   cached=entry;entry.job.catch(()=>{if(cached===entry)clear()});
   }
-  check();
+  return cached.job;
+ }
+ function summary(rows,type){
+  const data=rows.slice(1),index={items:12,receipts:8,shifts:9}[type];
+  const net=data.reduce((sum,row)=>sum+cents(row[index]),0)/100;
+  const count=type==='items'?new Set(data.map(row=>row[4]||row[5])).size:data.length;
+  const name={items:'menu items',receipts:'receipts',shifts:'shifts'}[type];
+  const details=type==='items'?' · '+data.length+' item lines':'';
+  return (count?count+' '+name+details:'No '+name+' in this period')+' · Net total '+net.toLocaleString('en-US',{maximumFractionDigits:2})+' LAK';
+ }
+ async function populate(root,filter,state){
+  const el=root.querySelector('.pos-report-summary');if(!el)return;
+  const key=JSON.stringify(filter);el.dataset.selection=key;
+  try{
+   const {rows}=await selected(filter,state);
+   if(el.isConnected&&el.dataset.selection===key)el.textContent=summary(rows,filter.type);
+  }catch(error){if(el.isConnected&&el.dataset.selection===key)el.textContent=error.message}
+ }
+ function printTable(type,rows,r,sample){
+  const cols=type==='items'?[0,1,2,5,6,8,9,11,12]:[2,3,1,4,5,6,9,15,16,17];
+  const esc=shell113.esc,frame=document.createElement('iframe');frame.style.cssText='position:fixed;width:0;height:0;border:0';document.body.append(frame);
+  const doc=frame.contentDocument,title='Oon Jai Marketplace · '+types[type];
+  doc.open();doc.write('<!doctype html><meta charset="utf-8"><title>'+title+'</title><style>@page{size:A4 landscape;margin:10mm}body{font:11px Arial;color:#203b30}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid #ccc;padding:5px}thead{display:table-header-group}tr{break-inside:avoid}</style><h2>'+title+'</h2><p>'+(sample?'SAMPLE · ':'')+r.from+' – '+r.to+' · '+summary(rows,type)+'</p><table><thead><tr>'+cols.map(c=>'<th>'+esc(rows[0][c])+'</th>').join('')+'</tr></thead><tbody>'+rows.slice(1).map(row=>'<tr>'+cols.map(c=>'<td>'+esc(row[c]??'')+'</td>').join('')+'</tr>').join('')+'</tbody></table>');doc.close();
+  frame.contentWindow.addEventListener('afterprint',()=>frame.remove(),{once:true});frame.contentWindow.focus();frame.contentWindow.print();
+ }
+ async function download(filter,state,pdf,printReceipts) {
+  const r=range(filter),type=filter.type,sample=state.sample,check=reportCheck(state);
+  clear(); // An explicit export includes records posted since the summary was opened.
+  const {rows,events}=await selected(filter,state);check();
   if(rows.length===1) throw Error('No '+(type==='shifts'?'shifts':'transactions')+' in this period.');
-  rows[0].push('Sample');
-  for(let i=1;i<rows.length;i++) rows[i].push(sample?'YES':'NO');
-  const url=URL.createObjectURL(new Blob(['\ufeff'+csv(rows)],{type:'text/csv;charset=utf-8'}));
+  if(pdf){
+   if(type==='receipts')return printReceipts(events.map(e=>({...e.order,status:e.refund?'refunded':'paid',paid_at:e.at})),false,true);
+   return printTable(type,rows,r,sample);
+  }
+  const exportRows=rows.map((row,i)=>[...row,i===0?'Sample':sample?'YES':'NO']);
+  const url=URL.createObjectURL(new Blob(['\ufeff'+csv(exportRows)],{type:'text/csv;charset=utf-8'}));
   const a=document.createElement('a');
   a.href=url;
   a.download='POS-'+(sample?'SAMPLE-':'')+type+'-'+r.from+'-'+r.to+'.csv';
@@ -162,5 +241,5 @@ const posReports = (() => {
   setTimeout(()=>URL.revokeObjectURL(url),1000);
   showCenterStatus('Export downloaded.');
  }
- return {defaults,controls,download,range,salesReport,shiftsReport,csv};
+ return {defaults,controls,download,clear,populate,openRange,summary,range,salesReport,shiftsReport,csv};
 })();

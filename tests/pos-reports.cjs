@@ -15,13 +15,13 @@ async function test(){
  assert.throws(()=>r.range({period:'custom',from:'2024-02-02',to:'2024-02-01'}));
  const f={...r.defaults(),type:'items',period:'custom',from:'2024-02-29',to:'2024-02-29'};
  const fields=r.controls(f,label=>label);
- for(const key of ['from','to','period','type']) assert.ok(fields.includes('data-report-field="'+key+'"'));
- assert.ok(!fields.includes('PDF'));
+ for(const key of ['period','type']) assert.ok(fields.includes('data-report-field="'+key+'"'));
+ assert.ok(fields.includes('data-report-range'));assert.ok(fields.includes('Export PDF'));assert.ok(!fields.includes('type="date"'));
  assert.ok(r.controls({...f,period:'yearly'},String).includes('data-report-field="year"'));
  const receipts=r.salesReport(sales,false),items=r.salesReport(sales,true);
  assert.equal(receipts[1][5],3);assert.equal(receipts[1][8],90.01);
  assert.equal(receipts[2][0],'2024-03-01 00:00:00');assert.equal(receipts[2][8],-90.01);
- assert.equal(items.length,5);assert.equal(items[1][6],'Mild');assert.equal(items[1][8],2);
+ assert.match(r.summary(items,'items'),/2 menu items · 4 item lines · Net total 0 LAK/);assert.match(r.summary([items[0]],'items'),/No menu items/);assert.equal(items.length,5);assert.equal(items[1][6],'Mild');assert.equal(items[1][8],2);
  assert.equal(Math.round((items[1][12]+items[2][12])*100),9001);
  assert.equal(Math.round((items[3][12]+items[4][12])*100),-9001);
  assert.equal(items[3][14],'No');assert.match(r.csv([['=invalid',-12,'quoted,"text"']]),/^"'=invalid","-12","quoted,""text"""$/);
@@ -42,7 +42,7 @@ async function test(){
  let calls=0;
  ctx.ojmDb={from(){const query={select(){return this},in(){return this},gte(){return this},lt(){return this},order(){return this},limit(){return this},gt(){this.next=true;return this},then(resolve){calls++;resolve({data:this.next?[{...receipt,id:'last'}]:Array.from({length:250},(_,i)=>({...receipt,id:String(i)}))})}};return query}};
  let printed;await r.download({...f,type:'receipts'},{sample:false},true,rows=>{printed=rows});
- assert.equal(calls,2);assert.equal(printed.length,251);
+ assert.equal(calls,4);assert.equal(printed.length,502);assert.equal(printed.filter(r=>r.status==='refunded').length,251);
  ctx.restaurantTabCan125=()=>false;
  await assert.rejects(r.download(f,state,false),/access required/);
  console.log('PASS POS reports: receipt and item totals, refunds, shift cash, date boundaries, CSV, permissions and paging.');
