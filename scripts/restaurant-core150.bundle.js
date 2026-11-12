@@ -330,9 +330,9 @@ window.restaurantPosMode128=()=> 'live';
   readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js']},
   sales:{css:['restaurant-sales143.css'],js:['sales-math143.js','restaurant-sales143.js']},
   settings:{js:['restaurant-settings146.bundle.js']},
-  inventory:{css:['inventory-menu-v104.css?v=layoutcheck1'],js:['restaurant-inventory144.bundle.js?v=rowactions1']},
+  inventory:{css:['inventory-menu-v104.css?v=layoutcheck1'],js:['restaurant-inventory144.bundle.js?v=kitchenworksheet1']},
   menu:{depends:['inventory'],js:['menu-v108.js?v=rowactions1']},
-  kitchen:{depends:['inventory'],css:['preparation-waste124.css'],js:['preparation-waste124.js?v=layout2']},
+  kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=kitchenworksheet1'],js:['preparation-waste124.js?v=layout2']},
   pos:{css:['pos-v118.css?v=layoutcheck1'],js:['restaurant-pos150.bundle.js?v=layoutcheck1']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
