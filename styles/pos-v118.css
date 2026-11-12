@@ -198,3 +198,12 @@ html body.shell113 #posChargeDialog .pos-charge-fields :is(input,select,output){
 html body.shell113 #posChargeDialog>header button[type=submit]{background:#174c38!important;border:1px solid white!important;color:#fff!important;font-weight:700!important;white-space:nowrap}
 @media(max-width:520px){html body.shell113 #posChargeDialog .pos-charge-fields{grid-template-columns:repeat(2,minmax(0,1fr))}html body.shell113 #posChargeDialog .pos-charge-fields>label:first-child{grid-column:1/-1}}
 html body.shell113 .pos-dialog118>header .pos-preview-print{margin-left:auto;background:#174c38!important;color:white!important;border:1px solid white}
+
+#pos118 .pos-linked-stock{margin:7px 0;border-top:1px solid #d6dfd5;padding-top:5px}
+#pos118 .pos-linked-stock summary{cursor:pointer;color:#195b3a;font-weight:650;padding:4px 0}
+#pos118 .pos-stock-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(84px,auto);column-gap:10px;align-items:center;border-bottom:1px solid #d6dfd5;padding:7px 0}
+#pos118 .pos-stock-row .pos-stock-name{display:flex;align-items:center;gap:5px;grid-area:1/1}
+#pos118 .pos-stock-row small{grid-area:2/1}
+#pos118 .pos-stock-row>label:not(.pos-stock-name){grid-area:1/2/3/3;display:grid;gap:3px}
+#pos118 .pos-stock-row input[type=number]{box-sizing:border-box;width:6em;max-width:100%}
+#pos118 .pos-stock-row>span{grid-column:1/-1}

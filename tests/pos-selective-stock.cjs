@@ -15,9 +15,9 @@ const state = { menu: [menu], items: [tea, bottle, ice], ingredients: [
 ] };
 const context = { S: state, n: v => Number(v) || 0 };
 vm.createContext(context);
-vm.runInContext(source.slice(source.indexOf('function optionAvailable'), source.indexOf('function packagingFields')), context);
-function use(service, choices = {}, packaging = {}) {
-  const result = context.recipeUsage124({ service, lines: [{ menuId: 'drink', quantity: 3, choices, packaging }] });
+vm.runInContext(source.slice(source.indexOf('function optionAvailable'), source.indexOf('function linkedStockFields')), context);
+function use(service, choices = {}, packaging = {}, stockUsed = {}, onlineStockExtra = {}) {
+  const result = context.recipeUsage124({ service, lines: [{ menuId: 'drink', quantity: 3, choices, packaging, stockUsed, onlineStockExtra }] });
   return { ...result };
 }
 assert.deepEqual(use('Dine in'), { 'stock-tea': 3 });
@@ -31,3 +31,16 @@ menu.data.recipe = [];
 tea.data.posMenuUse = [];
 assert.deepEqual(use('Dine in'), {});
 console.log('PASS optional stock, conditional choices, packaging, and explicit-rule precedence');
+
+bottle.data.active = true;
+const napkin = { id: 'napkin', data: { posMenuUse: [rule('supply', 2, { stockMode: 'online' })] } };
+state.items.push(napkin);
+const actual = { bottle: 4, napkin: 0.5, unrelated: 10 };
+const bonus = { bottle: 2, napkin: 3, unrelated: 10 };
+assert.deepEqual(use('Dine in', {}, {}, actual, bonus), { bottle: 4, napkin: 0.5 });
+assert.deepEqual(use('Online', {}, {}, actual, bonus), { bottle: 5, napkin: 9 });
+assert.deepEqual(use('Online', {}, {}, { bottle: 0, napkin: 0 }), { bottle: 3, napkin: 6 });
+napkin.data.posMenuUse[0].stockMode = 'all';
+assert.deepEqual(use('Dine in'), { napkin: 6 });
+assert.deepEqual(use('Dine in', {}, {}, { napkin: 0 }), {});
+console.log('PASS online allocations plus bonuses, separate dine-in totals, fractional use and eligible links');

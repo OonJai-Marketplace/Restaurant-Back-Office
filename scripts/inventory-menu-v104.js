@@ -68,10 +68,11 @@
   <label>Find ingredient or menu<input type="search" data-link-search placeholder="Type an ingredient or menu name"></label>
   <div data-link-matches></div><div data-chosen-ingredient></div>
   <div class="im-link-fields"><label>Menu<select data-link-menu></select></label>
-  <label>Use as<select data-link-kind><option value="ingredient">Ingredient</option><option value="packaging">Packaging</option></select></label>
+  <label>Use as<select data-link-kind><option value="supply">Supply</option><option value="ingredient">Ingredient</option><option value="packaging">Packaging</option></select></label>
   <label>Apply to<select data-link-choice></select></label>
+  <label>Stock deduction<select data-link-mode><option value="online">Online automatic · choose for dine-in</option><option value="all">Automatic for online and dine-in</option></select></label>
   <label>Stock units per menu unit<input type="number" data-link-quantity value="1" min="0.000001" step="any"></label></div>
-  <button type="button" data-link-add>Add link</button><p data-link-message role="status"></p><div data-link-list></div></fieldset>`}
+  <button type="button" data-link-add>Add link</button><p data-link-message role="status"></p><div data-link-list></div><div data-menu-stock-list></div></fieldset>`}
  async function bindStockLinks(f,record){
   const $=s=>f.querySelector(s),search=$('[data-link-search]'),picker=$('[data-link-menu]'),choice=$('[data-link-choice]'),message=$('[data-link-message]');
   if(!search)return;
@@ -83,7 +84,21 @@
    const opts=(m.data.posOptions118||[]).flatMap(g=>g.options.flatMap(o=>[o.name,...(o.recipe||[]).map(r=>byIngredient.get(r.itemId))]));
    return [...new Set([...base,...opts,...(worksheets.get(m.id)||[])].filter(Boolean))]
   }
+  let lastMenu='';
+  function menuStockList(menuId){
+   const panel=$('[data-menu-stock-list]');
+   const menu=state.menu.find(m=>m.id===menuId);if(!menu){panel.innerHTML='';return}
+   const items=workingRows('items').filter(i=>i.data.active!==false&&i.id!==record?.id)
+     .map(i=>({name:i.data.name,unit:i.data.unit,links:i.data.posMenuUse||[]}));
+   items.push({name:f.elements.name.value.trim()||'This item',unit:f.elements.unit?.value,links:rules});
+   const entries=items.flatMap(i=>i.links.filter(r=>r.menuId===menuId).map(r=>{
+    const opt=menu.data.posOptions118?.find(g=>g.id===r.groupId)?.options.find(o=>o.id===r.optionId);
+    return '<li>'+esc(i.name)+' · '+esc(String(r.quantity))+' '+esc(i.unit||'units')+(opt?' · '+esc(opt.name):'')+'</li>'
+   }));
+   panel.innerHTML='<strong>Online stock links · '+esc(menu.data.name)+'</strong>'+(entries.length?'<ul>'+entries.join('')+'</ul>':'<p>No explicit stock links yet.</p>')
+  }
   function paintChoices(){
+   if(picker.value)lastMenu=picker.value;menuStockList(picker.value||lastMenu);
    const groups=menus.find(m=>m.id===picker.value)?.data.posOptions118||[];
    choice.innerHTML='<option value="">Every order of this menu</option>'+groups.flatMap(g=>g.options.filter(o=>o.available!==false).map(o=>`<option data-group="${esc(g.id)}" value="${esc(o.id)}">${esc(g.name+' · '+o.name)}</option>`)).join('');
    const matching=[...choice.options].filter(o=>o.value&&o.textContent.split(' · ').at(-1).toLowerCase()===matchedName.toLowerCase());
@@ -103,22 +118,23 @@
   }
   function paintRules(){
    $('[data-link-list]').innerHTML=rules.map((r,i)=>{const m=state.menu.find(m=>m.id===r.menuId);const opt=m?.data.posOptions118?.find(g=>g.id===r.groupId)?.options.find(o=>o.id===r.optionId);
-    return `<div><span>${esc(m?.data.name||'Unavailable menu')} · ${esc(r.ingredientName||r.kind)} × ${fmt(r.quantity)}${opt?' · '+esc(opt.name):''}</span><button type="button" data-remove-link="${i}">Remove</button></div>`}).join('')
+    return `<div><span>${esc(m?.data.name||'Unavailable menu')} · ${esc(r.ingredientName||r.kind)} × ${esc(String(r.quantity))} · ${(r.stockMode|| (r.kind==='ingredient'?'all':'online'))==='all'?'Automatic for both':'Choose for dine-in'}${opt?' · '+esc(opt.name):''}</span><button type="button" data-remove-link="${i}">Remove</button></div>`}).join('')
   }
   function similarItems(){
    const q=f.elements.name.value.trim();const matches=workingRows('items').filter(r=>r.id!==record?.id&&q&&stockMatch(q,r.data.name)).slice(0,6);
    $('[data-similar-stock]').textContent=matches.length?'Existing inventory names · '+matches.map(r=>r.data.name).join(', '):''
   }
+  $('[data-link-kind]').onchange=()=>{$('[data-link-mode]').value=$('[data-link-kind]').value==='ingredient'?'all':'online'};
   similarItems();f.elements.name.addEventListener('input',similarItems);search.oninput=()=>{matchedName='';showMatch();filter()};picker.onchange=paintChoices;filter();paintRules();
-  $('[data-link-matches]').onclick=e=>{const b=e.target.closest('[data-match-name]');if(b){matchedName=b.dataset.matchName;search.value=matchedName;showMatch();filter()}};
+  $('[data-link-matches]').onclick=e=>{const b=e.target.closest('[data-match-name]');if(b){matchedName=b.dataset.matchName;search.value=matchedName;$('[data-link-kind]').value='ingredient';$('[data-link-kind]').onchange();showMatch();filter()}};
   $('[data-chosen-ingredient]').onclick=()=>{matchedName='';search.value='';showMatch();filter()};
-  $('[data-link-list]').onclick=e=>{const b=e.target.closest('[data-remove-link]');if(b){rules.splice(Number(b.dataset.removeLink),1);paintRules()}};
+  $('[data-link-list]').onclick=e=>{const b=e.target.closest('[data-remove-link]');if(b){rules.splice(Number(b.dataset.removeLink),1);paintRules();menuStockList(picker.value||lastMenu)}};
   $('[data-link-add]').onclick=()=>{
    const menuId=picker.value,quantity=Number($('[data-link-quantity]').value);
    if(!menuId||!Number.isFinite(quantity)||quantity<=0){message.textContent='Choose a menu and a positive stock quantity.';return}
    if(rules.some(r=>r.menuId===menuId)){message.textContent='This stock item already has a link for that menu. Remove it to change the rule.';return}
    const kind=$('[data-link-kind]').value,ingredient=state.ingredients.find(i=>i.data.name.toLowerCase()===matchedName.toLowerCase());
-   rules.push({menuId,quantity,kind,...(kind==='ingredient'&&matchedName?{ingredientName:matchedName,...(ingredient?{ingredientId:ingredient.id}:{})}:{}),...(choice.value?{groupId:choice.selectedOptions[0].dataset.group,optionId:choice.value}:{})});
+   rules.push({menuId,quantity,kind,stockMode:$('[data-link-mode]').value,...(kind==='ingredient'&&matchedName?{ingredientName:matchedName,...(ingredient?{ingredientId:ingredient.id}:{})}:{}),...(choice.value?{groupId:choice.selectedOptions[0].dataset.group,optionId:choice.value}:{})});
    picker.value='';paintChoices();paintRules();message.textContent='Link added. Save item to keep it.'
   };
   const owner=liveProfile?.id;
