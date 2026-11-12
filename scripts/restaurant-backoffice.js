@@ -52,9 +52,9 @@ function passwordForm121(required=false, expectedUserId=null){
  const title=required?'Set your new password':'Change password';
  dialog.setAttribute('aria-label',title);
  dialog.innerHTML=`<header><h3>${title}</h3></header><form class="restaurant-dialog-body">
-  <p>Choose a password of at least 12 characters for your Restaurant sign-in.</p>
-  <label>New password<input name="password" type="password" autocomplete="new-password" minlength="12" required autofocus></label>
-  <label>Confirm password<input name="confirm" type="password" autocomplete="new-password" minlength="12" required></label>
+  <p>Choose a password of at least 8 characters for your Restaurant sign-in.</p>
+  <label>New password<input name="password" type="password" autocomplete="new-password" minlength="8" required autofocus></label>
+  <label>Confirm password<input name="confirm" type="password" autocomplete="new-password" minlength="8" required></label>
   <p role="alert"></p><footer><button type="button">${required?'Sign out':'Cancel'}</button><button type="submit">Save password</button></footer></form>`;
  const form=dialog.querySelector('form'), cancel=form.querySelector('[type=button]'), save=form.querySelector('[type=submit]');
  function dismiss(){
