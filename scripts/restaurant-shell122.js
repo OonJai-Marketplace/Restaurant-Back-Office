@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id);let focus=false,nativeOwned=false,queued=false;
 function hidden(node,value){if(node&&node.hidden!==value)node.hidden=value}
 function closePanels(){for(const id of ['workspaceApps122','headerNotices104'])$(id)?.remove();$('upcomingBell101')?.setAttribute('aria-expanded','false')}
-function sync(){queued=false;const signed=!!liveProfile&&!$('restaurantApp').hidden;hidden($('workspaceTools108'),!signed);hidden($('switchAccount110'),!signed||liveProfile?.role!=='admin');if(!signed){closePanels();if(focus)leaveFocus();return}
+function sync(){queued=false;window.restaurantTableRows?.restore();const signed=!!liveProfile&&!$('restaurantApp').hidden;hidden($('workspaceTools108'),!signed);hidden($('switchAccount110'),!signed||liveProfile?.role!=='admin');if(!signed){closePanels();if(focus)leaveFocus();return}
  const active=document.querySelector('.workspace-scroll>.tab-content.active'),pos=active?.id==='pos118'?active:null;
  const area=['inv-bulk132','inv-preparation124','inv-waste124'].includes(active?.id)?'kitchen':active?.dataset.module||'dashboard';
  for(const cat of document.querySelectorAll('#appSidebar .nav-category')){const selected=restaurantNavSelected(cat,area,active?.id);cat.classList.toggle('current-module136',selected);cat.classList.toggle('active-category',selected);if(cat.classList.contains('module-active121'))cat.classList.remove('module-active121');const h=cat.querySelector('.nav-header');if(selected)h.setAttribute('aria-current','page');else h.removeAttribute('aria-current')}

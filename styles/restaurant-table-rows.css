@@ -1,0 +1,11 @@
+html body.shell113 table tr.restaurant-row-selected> :is(td,th),
+html body.shell113 table tr.restaurant-row-selected:hover> :is(td,th){background-color:#f7e8bf!important;color:#30291b;box-shadow:inset 0 1px #d1ad63,inset 0 -1px #d1ad63}
+html body.shell113 table tr.restaurant-row-selected>:first-child{border-inline-start:3px solid #aa7723}
+.restaurant-row-dialog{box-sizing:border-box;width:min(440px,calc(100vw - 28px));max-height:80dvh;overflow:auto;border:1px solid #b4c9bc;border-top:4px solid #20704e;border-radius:10px;padding:0;background:#fffdf8;color:#203e30;font:14px/1.45 'Plus Jakarta Sans',Arial,sans-serif}
+.restaurant-row-dialog::backdrop{background:#17312755}
+.restaurant-row-dialog header,.restaurant-row-dialog footer{display:flex;align-items:center;gap:6px;padding:10px 14px}
+.restaurant-row-dialog header{justify-content:space-between;background:#edf4ee}.restaurant-row-dialog h3{margin:0;font-size:16px}
+.restaurant-row-dialog dl{margin:12px 14px;display:grid;grid-template-columns:minmax(6em,1fr) minmax(0,1.6fr);gap:6px 12px}
+.restaurant-row-dialog dt{font-weight:600}.restaurant-row-dialog dd{margin:0;overflow-wrap:anywhere;white-space:pre-line}
+.restaurant-row-dialog button{min-height:32px;padding:4px 10px;border:1px solid #aabfb0;border-radius:6px;background:#fff;color:#234b37;cursor:pointer}
+.restaurant-row-dialog footer{justify-content:flex-end;flex-wrap:wrap}.restaurant-row-dialog footer:empty{display:none}
