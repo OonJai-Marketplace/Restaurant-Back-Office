@@ -189,7 +189,7 @@ html body.shell113 .pos-charge-dialog>footer:empty{display:none}
 #pos118 .pos-menu-tile:has(.pos-tile-add)>.pos-product118 small:last-child{visibility:hidden}
 #pos118 .pos-package{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:4px 0}
 #pos118 .pos-package input{width:4.5em}
-html body.shell113 #posChargeDialog{width:min(980px,96vw)!important;max-height:94dvh!important}
+html body.shell113 #posChargeDialog{width:min(980px,96vw)!important}
 html body.shell113 #posChargeDialog>.ui-body108{max-height:none;overflow:auto}
 html body.shell113 #posChargeDialog .pos-payment-preview118{max-height:none;padding:10px}
 
@@ -202,7 +202,7 @@ html body.shell113 .pos-dialog118>header .pos-preview-print{margin-left:auto;bac
 
 
 /* Transparent touch target around the circled information glyph. */
-html body.shell113 #restaurantApp #pos118 .pos-menu-tile>button.pos-info{display:grid!important;place-items:center;width:36px!important;height:36px!important;min-width:0!important;min-height:0!important;padding:0!important;margin:0!important;border:0!important;border-radius:50%!important;box-shadow:none!important;background:transparent!important;color:#163f2d!important;font:700 24px/1 Arial,sans-serif!important;text-shadow:0 0 2px white,0 0 4px white,0 0 6px white}
+html body.shell113 #restaurantApp #pos118 .pos-menu-tile>button.pos-info{display:grid!important;place-items:center;width:36px!important;height:36px!important;min-width:0!important;min-height:0!important;padding:0!important;margin:0!important;border:0!important;border-radius:50%!important;box-shadow:none!important;background:transparent!important;color:#163f2d!important;font:700 21px/1 Arial,sans-serif!important;text-shadow:0 0 2px white,0 0 4px white,0 0 6px white}
 html body.shell113 #restaurantApp #pos118 button.pos-info:focus-visible{outline:2px solid #175136;outline-offset:1px}
 html body.shell113 .pos-menu-detail-dialog{width:min(780px,95vw)!important;max-height:90dvh;overflow:auto}
 .pos-customer-menu{display:grid;gap:16px;align-items:start}
@@ -210,11 +210,10 @@ html body.shell113 .pos-menu-detail-dialog{width:min(780px,95vw)!important;max-h
 .pos-customer-menu>.pos-photo118 img{height:100%;width:100%;object-fit:contain}
 .pos-customer-recipe p,.pos-customer-recipe h4{margin:0 0 8px}.pos-customer-recipe ul{padding-inline-start:1.25em}
 @media(min-width:640px){.pos-customer-menu:has(>.pos-photo118){grid-template-columns:minmax(210px,1fr) minmax(0,1fr)}}
-html body.shell113 :is(#posChargeDialog,.pos-dialog118,.receipt-wrap118) .receipt118{width:var(--receipt-width,80mm)!important;max-width:100%!important;box-sizing:border-box;margin-inline:auto;padding:3mm;font:12px/1.28 Arial,sans-serif}
-html body.shell113 .receipt118 header img{width:20mm!important;height:12mm!important;object-fit:contain}
-html body.shell113 .receipt118 hr{margin:4px 0!important}
-html body.shell113 .receipt118 .receipt-row118{margin:2px 0!important;gap:2mm}
-html body.shell113 .receipt118 .receipt-foot118{margin:5px 0 0}
+html body.shell113 .pos-receipt-overlay :is(#posChargeDialog,.pos-dialog118){min-width:0!important;max-height:calc(var(--view-height118,100dvh) - 32px)!important;max-width:100%!important;overflow:hidden}
+html body.shell113 .pos-receipt-overlay .ui-body108{min-height:0;overflow:auto;overscroll-behavior:contain}
+html body.shell113 #posChargeDialog .pos-payment-preview118{padding:clamp(10px,2vw,24px);overflow:visible}
+html body.shell113 .pos-receipt-overlay .receipt118{width:100%;max-width:720px;box-sizing:border-box;overflow-wrap:anywhere}
 html body.shell113 #posChargeDialog [data-adjustment]{padding:10px;background:#f1f5ed;border-radius:8px}
 #posChargeDialog [data-adjustment] fieldset{margin:0 0 6px;padding:7px;border:1px solid #c9d4c8}
 #posChargeDialog .pos-adjust-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -222,4 +221,10 @@ html body.shell113 #posChargeDialog [data-adjustment]{padding:10px;background:#f
 #posChargeDialog .pos-adjust-row input[type=number]{width:7em!important;display:block}
 #posChargeDialog .pos-adjust-row input[type=checkbox]{width:auto!important}
 html body.shell113 #posChargeDialog>header{flex-wrap:wrap}
-html body.shell113 #posChargeDialog>header [data-toggle-adjustment]{height:32px!important;min-height:32px!important;padding:0 9px!important}
+html body.shell113 #posChargeDialog>header [data-toggle-adjustment]{background:#fffdf7!important;color:#174c38!important;border:1px solid #b6ccbc!important;height:32px!important;min-height:32px!important;padding:0 9px!important}
+
+#pos118 .pos-line-values{display:flex;align-items:center;justify-content:space-between;gap:4px;flex-wrap:wrap;margin-top:4px}
+#pos118 .pos-line-values .pos-amount118{float:none;margin:0}
+html body.shell113 #restaurantApp #pos118 .pos-line-values .pos-qty118{margin:0 0 0 auto;white-space:nowrap}
+html body.shell113 #restaurantApp #pos118 .pos-line-values .pos-qty118 button{width:24px!important;height:24px!important;min-width:24px!important;min-height:24px!important;padding:0!important;line-height:1}
+#pos118 .pos-line-values .pos-qty118 span{padding:0 4px}
