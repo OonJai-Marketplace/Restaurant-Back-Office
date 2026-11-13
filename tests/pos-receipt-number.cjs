@@ -46,6 +46,31 @@ const {PGlite}=require('@electric-sql/pglite');
   const rolloverDate=year+'-12-31T17:00:00Z';
   const rotated=await query("update pos_orders118 set status='paid',paid_at=$2,data='{\"lines\":[]}' where id=$1 returning data",[rollover,rolloverDate]);
   assert.equal(rotated.data.receiptCode,'OJM'+String(newYear).slice(-2)+'-4A001');
+  const reserve=async(token,yr=year)=>(await query('select pos_reserve_receipts($1,$2) as block',[yr,token])).block;
+  const first=await reserve(randomUUID()),second=await reserve(randomUUID());
+  assert.equal(second.first,first.last+1);
+  assert.deepEqual(await reserve(first.token),first);
+  const issue=async(id,ordinal,block=first,extra={})=>{
+   const code=(await query('select restaurant_private.receipt_code($1,$2) as code',[year,ordinal])).code;
+   const packet={...data,offlineNonce:'sale-'+id,receiptTicket:{token:block.token,ordinal,code},
+    receiptIssuedAt:new Date().toISOString(),receiptFooter:'Saved receipt footer',...extra};
+   return run(id,0,'pay',packet);
+  };
+  const offlineId=randomUUID(),at=new Date().toISOString(),receipt=await issue(offlineId,first.first,first,{offlineCapturedAt:at,offlineTotal:2000});
+  assert.equal(receipt.data.receiptCode,prefix+'A003');
+  assert.equal(receipt.data.receiptFooter,'Saved receipt footer');
+  assert.equal(Date.parse(receipt.paid_at),Date.parse(at));
+  assert.equal(receipt.data.localReceiptRef,null);
+  assert.equal((await issue(offlineId,first.first)).data.receiptCode,receipt.data.receiptCode);
+  await assert.rejects(()=>issue(randomUUID(),first.first),/duplicate key/);
+  await assert.rejects(()=>issue(randomUUID(),second.first,first),/reservation/);
+  await assert.rejects(()=>issue(randomUUID(),first.first+1,first,{receiptTicket:{token:first.token,ordinal:first.first+1,code:'OJM26-4Z999'}}),/reservation/);
+  const online=await issue(randomUUID(),second.first,second);
+  assert.equal(online.data.receiptCode,prefix+'A131');
+  const legacy=await run(randomUUID(),0,'pay',data);
+  assert.equal(legacy.data.receiptCode,prefix+'A259');
+  assert.equal((await reserve(randomUUID(),year+1)).first,2);
+  console.log('PASS two register ranges, reissued response, identical offline receipt, duplicate protection and legacy coexistence');
   console.log('PASS real POS RPC, reviewed basket, retry, refund, annual Laos rollover and A–Z boundaries');
  }finally{await db.close()}
 })().catch(e=>{console.error(e.message);process.exitCode=1});

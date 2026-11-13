@@ -38,6 +38,9 @@
    // Keep the compact snapshot separate from Inventory's complete ledger/cache.
    const snapshot={...data,menu:s.menu,ingredients:s.ingredients,items:s.items,categories:s.categories};
    await posOffline119.saveSnapshot(cacheKey(owner),snapshot);
+   if(!background||catalogChanged)await pos118.prepareReceiptNumbers().catch(e=>{
+    if(valid())s.error='Offline receipt setup: '+e.message;
+   });
    navigator.storage?.persist?.().catch(()=>{});
   }catch(e){if(!valid())return;
    if(network(e)||!navigator.onLine){

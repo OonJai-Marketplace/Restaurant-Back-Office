@@ -9,15 +9,21 @@ const catalog={menu:[{id:menuId,version:1,data:{code:'TACO',name:'Taco',currency
 function snapshot(uid,args){const closed=orders.filter(o=>['paid','refunded'].includes(o.status)&&new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Vientiane'}).format(new Date(o.paid_at))===(args.p_receipt_date||date()));
  return {schema125:true,catalogVersion125:'v1',...(args.p_catalog_version==='v1'?{}:catalog),config:{methods:['Cash'],discountLimit:10,receiptWidth:80,receiptFooter:'Thank you.'},configVersion:1,balances125:{[itemId]:staleBalance??stock},acknowledged125:[],moves:[],stock:[],orders:[...orders.filter(o=>o.status==='unpaid'),...closed.sort((a,b)=>b.number-a.number).slice(0,100)],receiptCount125:closed.length,shifts:[{id:uid,cashier:uid,opening:0,closed_at:null}],cash:[],shiftExpected125:orders.filter(o=>o.created_by===uid&&o.status==='paid').reduce((n,o)=>n+o.data.total,0),summary125:{received:orders.filter(o=>o.status==='paid').reduce((n,o)=>n+o.data.total,0),refunds:0,paidCount:closed.length,openCount:orders.filter(o=>o.status==='unpaid').length},refreshedAt125:new Date().toISOString()};
 }
+const reservations=new Map(),annual=new Map();
 const server=http.createServer(async(req,res)=>{
  const url=new URL(req.url,'http://localhost');
  if(url.pathname.startsWith('/fixture/')){let raw='';for await(const chunk of req)raw+=chunk;const {uid,args}=JSON.parse(raw),name=url.pathname.split('/').at(-1);calls.push({name,uid});let data,error;
   if(name==='pos_cashier_snapshot125'){data=snapshot(uid,args);if(slow)await new Promise(r=>setTimeout(r,1800))}
+  else if(name==='pos_reserve_receipts'){
+   if(!reservations.has(args.p_token)){const first=(annual.get(args.p_year)||0)+1,last=first+127;
+    reservations.set(args.p_token,{token:args.p_token,year:args.p_year,first,last});annual.set(args.p_year,last)}
+   data=reservations.get(args.p_token);
+  }
   else if(name==='pos_order118'){
    const old=orders.find(o=>o.id===args.p_id);if(old?.status==='paid')data=old;
    else if(old&&old.version!==args.p_version)error={message:'Order changed on another device. Reload before continuing'};
    else {const paid=args.p_action==='pay',qty=args.p_data.lines.reduce((n,l)=>n+l.quantity*.2,0);if(paid&&stock<qty)error={message:'Insufficient stock'};
-    else{if(paid)stock-=qty;const total=args.p_data.lines.reduce((n,l)=>n+l.quantity*1000,0);data={id:args.p_id,number:old?.number||number++,version:(old?.version||0)+1,status:paid?'paid':'unpaid',created_by:uid,created_at:old?.created_at||new Date().toISOString(),paid_at:paid?new Date().toISOString():null,data:{...args.p_data,total,subtotal:total,discount:0,cashier:users.find(u=>u.id===uid).full_name,shiftId:uid}};orders=[data,...orders.filter(o=>o.id!==data.id)]}}
+    else{if(paid)stock-=qty;const total=args.p_data.lines.reduce((n,l)=>n+l.quantity*1000,0);data={id:args.p_id,number:old?.number||number++,version:(old?.version||0)+1,status:paid?'paid':'unpaid',created_by:uid,created_at:old?.created_at||new Date().toISOString(),paid_at:paid?new Date().toISOString():null,data:{...args.p_data,receiptCode:args.p_data.receiptTicket?.code,total,subtotal:total,discount:0,cashier:users.find(u=>u.id===uid).full_name,shiftId:uid}};orders=[data,...orders.filter(o=>o.id!==data.id)]}}
   }else if(name==='pos_receipt_page125')data=orders.filter(o=>o.status==='paid'&&o.number<args.p_before_number).sort((a,b)=>b.number-a.number).slice(0,100);
   else error={message:'Unexpected fixture request '+name};res.setHeader('Content-Type','application/json');res.end(JSON.stringify({data,error}));return;
  }
