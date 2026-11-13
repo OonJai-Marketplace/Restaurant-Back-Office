@@ -23,7 +23,7 @@ async function test(){
  assert.equal(receipts[1][1],'R-42');assert.equal(items[1][1],'R-42');
  assert.equal(receipts[1][5],3);assert.equal(receipts[1][8],90.01);
  assert.equal(receipts[2][0],'2024-03-01 00:00:00');assert.equal(receipts[2][8],-90.01);
- assert.match(r.summary(items,'items'),/2 menu items · 4 item lines · Net total 0 LAK/);assert.match(r.summary([items[0]],'items'),/No menu items/);assert.equal(items.length,5);assert.equal(items[1][6],'Mild');assert.equal(items[1][8],2);
+ assert.match(r.summary(items,'items'),/2 menu items · 4 item lines · Net sales 0 LAK/);assert.match(r.summary([items[0]],'items'),/No menu items/);assert.equal(items.length,5);assert.equal(items[1][6],'Mild');assert.equal(items[1][8],2);
  assert.equal(Math.round((items[1][12]+items[2][12])*100),9001);
  assert.equal(Math.round((items[3][12]+items[4][12])*100),-9001);
  assert.equal(items[3][14],'No');assert.match(r.csv([['=invalid',-12,'quoted,"text"']]),/^"'=invalid","-12","quoted,""text"""$/);

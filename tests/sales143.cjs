@@ -11,11 +11,17 @@ check('Percentage and fixed LAK discounts agree',()=>{assert.equal(m.simulate(50
 check('Fee basis, tax and target floor are algebraically consistent',()=>{for(const feeBasis of ['discounted','original']){const a={value:20,fee:15,tax:10,packaging:2000,target:25,feeBasis};const s=m.simulate(50000,15000,a);assert.equal(s.status,'good');const floor=m.simulate(50000,15000,{...a,type:'price',value:s.floor});assert(Math.abs(floor.margin-25)<.001)}});
 check('Break-even, below-target and loss are separate states',()=>{assert.equal(m.simulate(50000,40000,{value:20}).status,'break-even');assert.equal(m.simulate(50000,33000,{value:20,target:20}).status,'low');assert.equal(m.simulate(50000,42000,{value:20}).status,'loss')});
 check('Invalid discounts, absent costs and impossible targets stay unavailable',()=>{assert.equal(m.simulate(50000,null,{value:20}).status,'unknown');assert.equal(m.simulate(50000,15000,{type:'amount',value:60000}).status,'invalid');assert.equal(m.simulate(50000,49000,{target:20}).maxDiscount,null);assert.throws(()=>m.simulate(50000,1,{target:100}));assert.equal(m.simulate(50000,15000,{value:100}).extraUnitsPercent,null)});
-check('Order-wide allocation preserves cents without duplicate discounts',()=>{assert.deepEqual(m.allocate([{quantity:1,unitPrice:1},{quantity:1,unitPrice:1},{quantity:1,unitPrice:1}],1),[.33,.33,.34]);assert.equal(report([receipt()]).sales,80000);assert.equal(report([receipt()]).contribution,50000)});
+check('Order-wide allocation preserves cents without duplicate discounts',()=>{assert.deepEqual(m.allocate([{quantity:1,unitPrice:1},{quantity:1,unitPrice:1},{quantity:1,unitPrice:1}],1),[.33,.34,.33]);assert.equal(report([receipt()]).sales,80000);assert.equal(report([receipt()]).contribution,50000)});
 check('Repeated IDs, unpaid and unsynced receipts are excluded',()=>{const r=receipt();const s=report([r,r,receipt('unpaid',{status:'unpaid'}),receipt('offline',{offlinePending:true})]);assert.equal(s.orders,1);assert.equal(s.units,2)});
 check('Historical costs ignore current ingredient prices',()=>{catalog.ingredients[0].data.cost=90000;assert.equal(report([receipt()]).cost,30000);catalog.ingredients[0].data.cost=7500});
 check('Missing historical costs hide total contribution instead of guessing',()=>{const r=receipt();delete r.data.lines[0].cost143;const s=report([r]);assert.equal(s.sales,80000);assert.equal(s.contribution,null);assert.equal(s.unknownOrders,1)});
 check('Refund without restocking retains consumed food costs',()=>{const r=receipt();r.status='refunded';r.data.restocked=false;let s=report([r]);assert.equal(s.sales,0);assert.equal(s.contribution,-30000);r.data.restocked=true;s=report([r]);assert.equal(s.contribution,0)});
 check('No orders remain a genuine empty state',()=>{const s=report([]);assert.equal(s.hasSales,false);assert.equal(m.returns(s,1000,10000).roi,null);assert.equal(m.campaign(s,s,1000).roi,null)});
 check('Operating ROI and incremental campaign return are distinct',()=>{const a=report([receipt()]),b=report([receipt('b')]);b.contribution=30000;const c=m.campaign(a,b,5000);assert.equal(c.incremental,15000);assert.equal(c.roi,300);const r=m.returns(a,20000,100000);assert.equal(r.operating,30000);assert.equal(r.roi,30);assert.equal(r.breakEven,32000)});
+check('Separate refund business date and tax assumption leave receipt sales intact',()=>{
+ const r=receipt();r.status='refunded';r.refunded_at='2026-10-23T10:00:00Z';
+ assert.equal(m.summarize([r],catalog,'2026-10-22','2026-10-22','All',{tax:10}).sales,80000);
+ assert.equal(m.summarize([r],catalog,'2026-10-23','2026-10-23').sales,-80000);
+ assert.deepEqual(m.allocate(Array(4).fill({quantity:1,unitPrice:.01}),.02),[.01,0,.01,0]);
+});
 console.log('COMPLETE',count);

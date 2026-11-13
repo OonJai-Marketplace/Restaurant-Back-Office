@@ -15,11 +15,12 @@
   if(!m||seen.has(id)||seen.size>12)return {amount:null,reason:'Missing or circular recipe'};
   if(m.recipeReview135?.length)return {amount:null,reason:'Recipe quantities need review'};
   const next=new Set(seen).add(id);let total=0;
-  const lines=[...(m.recipe||[])];
+  let lines=[...(m.recipe||[])];
   if((m.posOptions118||[]).length&&choices===null)return {amount:null,reason:'Select recipe options to cost this item'};
   for(const group of m.posOptions118||[]){
    const selected=choices?.[group.id]||[];
    if(selected.length<Number(group.min||0))return {amount:null,reason:'Required recipe options are missing'};
+   if(selected.length)lines=lines.filter(l=>!(group.replaces||[]).includes(l.itemId));
    for(const optionId of selected){const option=group.options?.find(x=>x.id===optionId);if(!option||!option.recipe?.length)return {amount:null,reason:'Option recipe is incomplete'};lines.push(...option.recipe.map(r=>({...r,option:true})));}
   }
   if(!lines.length)return {amount:null,reason:'No saved recipe quantities'};
@@ -55,38 +56,57 @@
  function allocate(lines,total){
   const bases=lines.map(l=>{const q=num(l.quantity),p=num(l.unitPrice);if(q===null||q<=0||p===null||p<0)throw Error('A receipt contains an invalid quantity or price.');return round(q*p)}),sum=bases.reduce((a,b)=>a+b,0);
   if(total<0||!finite(total)||(!sum&&total!==0)||total>sum+.02)throw Error('Receipt totals do not match its menu lines.');
-  let used=0;return bases.map((base,i)=>{const v=i===bases.length-1?round(total-used):round(sum?total*base/sum:0);used=round(used+v);return v;});
+  const paid=Math.round(total*100),gross=bases.map(v=>Math.round(v*100)),grossSum=gross.reduce((a,b)=>a+b,0);
+  let accumulated=0,previous=0;
+  return gross.map((v,i)=>{
+   accumulated+=v;
+   const next=i===gross.length-1?paid:grossSum?Math.round(paid*accumulated/grossSum):0;
+   const share=next-previous;previous=next;return share/100;
+  });
  }
  function summarize(orders,catalog,from,to,service='All',input={}){
   const range=period(from,to),a=assumptions(input),seen=new Set();
   const products=new Map(catalog.menu.filter(m=>m.data.currency==='LAK'&&m.data.stage131!=='archived').map(m=>[m.id,{id:m.id,name:m.data.name,category:m.data.category||'',units:0,sales:0,cost:0,contribution:0,incomplete:false,refunded:0,orders:0,active:m.data.active!==false}]));
   const days=Array.from({length:range.days},(_,i)=>({date:new Date(Date.parse(from)+i*86400000).toISOString().slice(0,10),sales:0,contribution:0,incomplete:false,orders:0})),byDay=new Map(days.map(d=>[d.date,d]));
-  const out={sales:0,discounts:0,refunds:0,orders:0,units:0,cost:0,contribution:0,unknownOrders:0,excludedCurrency:0,days,products:[],hasSales:false};
+  const out={gross:0,sales:0,discounts:0,refunds:0,orders:0,units:0,cost:0,contribution:0,unknownOrders:0,excludedCurrency:0,days,products:[],hasSales:false};
   for(const order of orders){
    if(seen.has(order.id)||order.offlinePending||!['paid','refunded'].includes(order.status)||!order.paid_at)continue;seen.add(order.id);
-   const d=order.data||{},date=day(order.paid_at);if(date<from||date>to||(service!=='All'&&d.service!==service))continue;
+   const d=order.data||{},sold=byDay.get(day(order.paid_at));
+   const returned=order.status==='refunded'&&byDay.get(day(order.refunded_at||order.paid_at));
+   if((!sold&&!returned)||(service!=='All'&&d.service!==service))continue;
    if(d.currency!=='LAK'){out.excludedCurrency++;continue;}
    const total=num(d.total),discount=num(d.discount),lines=d.lines;
    if(total===null||discount===null||total<0||discount<0||!Array.isArray(lines)||!lines.length)throw Error('A receipt has missing totals or menu lines. Review it before reporting.');
-   const allocated=allocate(lines,total),daily=byDay.get(date);let unknown=false;
-   const refund=order.status==='refunded',restocked=refund&&d.restocked===true;
-   if(refund)out.refunds+=total;else{out.sales+=total/(1+a.tax/100);out.discounts+=discount;out.orders++;daily.orders++;out.hasSales=true;}
+   const allocated=allocate(lines,total),restocked=d.restocked===true;
+   const sameDay=sold&&sold===returned;
+   let unknown=false;
+   out.hasSales=true;
+   if(sold){out.gross+=total+discount;out.discounts+=discount;out.sales+=total;out.orders++;sold.orders++;}
+   if(returned){out.refunds+=total;out.sales-=total;}
    for(let i=0;i<lines.length;i++){
-    const line=lines[i],q=Number(line.quantity),sales=refund?0:allocated[i]/(1+a.tax/100),original=Number(line.unitPrice)*q;
-    let p=products.get(line.menuId);if(!p){p={id:line.menuId,name:line.name||'Removed menu item',category:'',units:0,sales:0,cost:0,contribution:0,incomplete:false,refunded:0,orders:0,active:false};products.set(p.id,p);}
+    const line=lines[i],q=Number(line.quantity),net=allocated[i],original=Number(line.unitPrice)*q;
+    let p=products.get(line.menuId);
+    if(!p){p={id:line.menuId,name:line.name||'Removed menu item',category:'',units:0,sales:0,cost:0,contribution:0,incomplete:false,refunded:0,orders:0,active:false};products.set(p.id,p);}
     const snapshot=line.cost143,unit=snapshot?.basis==='ingredient-recipe'&&snapshot.currency==='LAK'?num(snapshot.unitCost):null;
-    const c=restocked?0:unit===null?null:unit*q;
-    const pack=restocked?0:a.packaging*q;
-    // Fee estimates are retained on refunds unless an actual fee reversal is recorded separately.
-    const fees=(a.feeBasis==='original'?original:allocated[i])*a.fee/100;
-    p.sales+=sales;daily.sales+=sales;if(refund)p.refunded+=q;else{p.units+=q;p.orders++;out.units+=q;}
-    if(c===null){unknown=true;p.incomplete=true;daily.incomplete=true;}
-    else{const contribution=sales-c-pack-fees;p.cost+=c;p.contribution+=contribution;daily.contribution+=contribution;out.cost+=c;out.contribution+=contribution;}
+    const factor=Number(!!sold)-Number(!!returned&&restocked),costUnknown=unit===null&&factor!==0;
+    if(costUnknown){unknown=true;p.incomplete=true;}
+    if(unit!==null){const cost=unit*q*factor;p.cost+=cost;out.cost+=cost;}
+    for(const [daily,sign] of [[sold,1],[returned,-1]]){
+     if(!daily)continue;
+     const revenue=sign*net;
+     daily.sales+=revenue;p.sales+=revenue;p.units+=sign*q;out.units+=sign*q;
+     if(sign===1)p.orders++;else p.refunded+=q;
+     const usage=sign===1?1:restocked?-1:0;
+     if(unit===null&&usage&&!(sameDay&&restocked))daily.incomplete=true;
+     const fee=sign===1?(a.feeBasis==='original'?original:net)*a.fee/100:0;
+     const contribution=revenue/(1+a.tax/100)-usage*q*((unit??0)+a.packaging)-fee;
+     p.contribution+=contribution;out.contribution+=contribution;daily.contribution+=contribution;
+    }
    }
    if(unknown)out.unknownOrders++;
   }
   out.products=[...products.values()];if(out.unknownOrders){out.cost=null;out.contribution=null;}
-  out.averageOrder=out.orders?out.sales/out.orders:null;return out;
+  out.averageOrder=out.orders?(out.gross-out.discounts)/out.orders:null;return out;
  }
  function campaign(current,baseline,spend){
   spend=num(spend);if(spend===null||spend<0)throw Error('Enter a nonnegative campaign spend.');

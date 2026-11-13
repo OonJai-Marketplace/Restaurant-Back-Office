@@ -211,12 +211,12 @@ var posReports = globalThis.posReports || (() => {
   return cached.job;
  }
  function summary(rows,type){
-  const data=rows.slice(1),index={items:12,receipts:25,shifts:9}[type];
+  const data=rows.slice(1),index={items:12,receipts:8,shifts:9}[type];
   const net=data.reduce((sum,row)=>sum+cents(row[index]),0)/100;
   const count=type==='items'?new Set(data.map(row=>row[4]||row[5])).size:data.length;
   const name={items:'menu items',receipts:'receipts',shifts:'shifts'}[type];
   const details=type==='items'?' · '+data.length+' item lines':'';
-  return (count?count+' '+name+details:'No '+name+' in this period')+' · Net total '+net.toLocaleString('en-US',{maximumFractionDigits:2})+' LAK';
+  return (count?count+' '+name+details:'No '+name+' in this period')+' · '+(type==='shifts'?'Net collected ':'Net sales ')+net.toLocaleString('en-US',{maximumFractionDigits:2})+' LAK';
  }
  async function populate(root,filter,state){
   const el=root.querySelector('.pos-report-summary');if(!el)return;
@@ -227,10 +227,17 @@ var posReports = globalThis.posReports || (() => {
   }catch(error){if(el.isConnected&&el.dataset.selection===key)el.textContent=error.message}
  }
  function printTable(type,rows,r,sample,summaryRows){
-  const cols=type==='items'?[0,1,2,5,6,8,9,11,12]:[2,3,1,4,5,6,9,15,16,17];
-  const esc=shell113.esc,frame=document.createElement('iframe');frame.style.cssText='position:fixed;width:0;height:0;border:0';document.body.append(frame);
-  const doc=frame.contentDocument,title='Oon Jai Marketplace · '+types[type];
-  doc.open();doc.write('<!doctype html><meta charset="utf-8"><title>'+title+'</title><style>@page{size:A4 landscape;margin:10mm}body{font:11px Arial;color:#203b30}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid #ccc;padding:5px}thead{display:table-header-group}tr{break-inside:avoid}</style><h2>'+title+'</h2><p>'+(sample?'SAMPLE · ':'')+r.from+' – '+r.to+' · '+summary(rows,type)+'</p>'+restaurantReportSummary.table(summaryRows,esc)+'<h3>Details</h3><table><thead><tr>'+cols.map(c=>'<th>'+esc(rows[0][c])+'</th>').join('')+'</tr></thead><tbody>'+rows.slice(1).map(row=>'<tr>'+cols.map(c=>'<td>'+esc(row[c]??'')+'</td>').join('')+'</tr>').join('')+'</tbody></table>');doc.close();
+  const cols=type==='items'?[0,1,2,5,6,8,9,10,11,12]:[2,3,1,4,5,6,9,15,16,17];
+  printRows('Oon Jai Marketplace · '+types[type],(sample?'SAMPLE · ':'')+r.from+' – '+r.to+' · '+summary(rows,type),summaryRows,rows.map(row=>cols.map(c=>row[c])));
+ }
+ function printRows(title,subtitle,summaryRows,rows){
+  const esc=shell113.esc,frame=document.createElement('iframe');
+  frame.title=title;frame.style.cssText='position:fixed;width:0;height:0;border:0';document.body.append(frame);
+  const doc=frame.contentDocument;
+  const headers=rows[0],tender=headers.indexOf('Original tender currency');
+  const table=cols=>'<table><thead><tr>'+cols.map(i=>'<th>'+esc(headers[i])+'</th>').join('')+'</tr></thead><tbody>'+rows.slice(1).map(row=>'<tr>'+cols.map(i=>'<td>'+esc(String(row[i]??''))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+  const columns=headers.map((_,i)=>i),detail=tender>0?table(columns.slice(0,tender))+'<h3>Original tender by receipt</h3>'+table([0,1,2,...columns.slice(tender)]):table(columns);
+  doc.open();doc.write('<!doctype html><meta charset="utf-8"><title>'+esc(title)+'</title><style>@page{size:A4 landscape;margin:9mm}body{font:10px Arial;color:#203b30}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid #ccc;padding:3px;overflow-wrap:break-word}thead{display:table-header-group}tr{break-inside:avoid}td:first-child{white-space:nowrap}</style><h2>'+esc(title)+'</h2><p>'+esc(subtitle)+'</p>'+restaurantReportSummary.table(summaryRows,esc)+'<h3>Details</h3>'+detail);doc.close();
   frame.contentWindow.addEventListener('afterprint',()=>frame.remove(),{once:true});frame.contentWindow.focus();frame.contentWindow.print();
  }
  async function download(filter,state,pdf,printReceipts) {
@@ -252,5 +259,5 @@ var posReports = globalThis.posReports || (() => {
   setTimeout(()=>URL.revokeObjectURL(url),1000);
   showCenterStatus('Export downloaded.');
  }
- return {numberFor,fxDescription,receiptId,transactions,pages,stamp,day,defaults,controls,download,clear,populate,openRange,summary,range,salesReport,shiftsReport,csv};
+ return {printRows,numberFor,fxDescription,receiptId,transactions,pages,stamp,day,defaults,controls,download,clear,populate,openRange,summary,range,salesReport,shiftsReport,csv};
 })();

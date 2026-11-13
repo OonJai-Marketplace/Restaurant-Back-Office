@@ -17,8 +17,7 @@ window.RestaurantPublic127=(()=>{'use strict';
  async function load(){
   const base=window.OJM_SUPABASE_URL,key=window.OJM_SUPABASE_ANON_KEY;
   if(!/^https:\/\/[a-z0-9]+\.supabase\.co$/.test(base||'')||!key)return {stale:true};
-  const cacheKey='oonjai_public127:'+base;let cached=null;
-  try{cached=JSON.parse(localStorage.getItem(cacheKey)||'null');if(cached&&Date.now()-cached.savedAt>86400000)cached=null;}catch{}
+  const cacheKey='oonjai_public127:'+base;
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),3500);
   try{
    const get=async path=>{const r=await fetch(base+'/rest/v1/'+path,{headers:{apikey:key},signal:controller.signal,cache:'no-store'});if(!r.ok)throw Error('Public content unavailable');return r.json();};
@@ -27,8 +26,7 @@ window.RestaurantPublic127=(()=>{'use strict';
    try{localStorage.setItem(cacheKey,JSON.stringify({rows,page,savedAt:Date.now()}));}catch{}
    return {menu,page,stale:false};
   }catch{
-   if(cached)try{return {menu:normalize(cached.rows),page:cached.page,stale:true};}catch{}
-   return {stale:true};
+   return cached()||{stale:true};
   }finally{clearTimeout(timer);}
  }
  return {load,cached,normalize,safeImage};

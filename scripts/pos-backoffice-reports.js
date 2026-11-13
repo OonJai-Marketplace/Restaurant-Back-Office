@@ -92,7 +92,9 @@
   const match=(...parts)=>parts.join(' ').toLowerCase().includes(q);
   if(state.view==='receipts'){
    headers=['Receipt','Date & time','Type','Dining option','Payment','Quantity',...moneyCols];
-   model.receipts.forEach(({e,value,lines},j)=>{if(match(posReports.numberFor(e.order),e.day,e.order.data.cashier,...lines.map(l=>l[5])))rows.push([btn(posReports.numberFor(e.order),'receipt',j),esc(posReports.stamp(e.at)),e.refund?'Refund':'Sale',esc(e.service),esc(e.payment),num(value.qty),...amounts(value)])});
+   const tender=exporting&&!state.item;
+   if(tender)headers.push('Tip LAK','Collected LAK','Original tender currency','Original foreign amount','LAK per unit','Original equivalent LAK','Original change LAK');
+   model.receipts.forEach(({e,value,lines},j)=>{if(match(posReports.numberFor(e.order),e.day,e.order.data.cashier,...lines.map(l=>l[5])))rows.push([btn(posReports.numberFor(e.order),'receipt',j),esc(posReports.stamp(e.at)),e.refund?'Refund':'Sale',esc(e.service),esc(e.payment),num(value.qty),...amounts(value),...(tender?[value.tip/100,(value.net+value.tip)/100,...['currency','amount','rate','equivalentLak','changeLak'].map(k=>e.order.data.fxTender?.[k]??'')]:[])])});
   }else if(state.view==='items'){
    headers=['Menu item','Sale receipts','Refunds (count)','Net quantity',...moneyCols];
    for(const [id,v] of [...model.items].sort((a,b)=>b[1].net-a[1].net)){const name=state.items.get(id);if(match(name))rows.push([btn(name,'item',id),v.sales,v.returns,num(v.qty),...amounts(v)])}
@@ -107,7 +109,8 @@
   }
   if(exporting){
    const decode=value=>{if(typeof value!=='string')return value;const el=document.createElement('template');el.innerHTML=value;return el.content.textContent};
-   return [headers,...rows.map(r=>r.map(decode))];
+   const numeric=new Set([...moneyCols,'Quantity','Sale receipts','Refunds (count)','Net quantity','Opening cash','Expected at close','Counted at close','Closing difference']);
+   return [headers,...rows.map(r=>r.map((v,i)=>{const value=decode(v);return numeric.has(headers[i])&&value!=='—'?Number(String(value).replaceAll(',','')):value;}))];
   }
   const size=30,last=Math.max(0,Math.ceil(rows.length/size)-1);state.page=Math.min(last,state.page);
   return '<div class="ops-scroll"><table><thead><tr>'+headers.map(h=>'<th scope="col">'+h+'</th>').join('')+'</tr></thead><tbody>'+ (rows.slice(state.page*size,(state.page+1)*size).map(row=>'<tr>'+row.map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('')||'<tr><td colspan="'+headers.length+'">'+(q?'No matching rows.':'No records for these filters.')+'</td></tr>')+'</tbody></table></div><footer>'+rows.length+' rows'+(last?' · '+btn('Previous','page',-1,state.page===0?'disabled':'')+' '+(state.page+1)+' / '+(last+1)+' '+btn('Next','page',1,state.page===last?'disabled':''):'')+'</footer>';
@@ -153,13 +156,13 @@
  }
  function render(){
   if(!active())return;const el=root(),m=summarize(state.events,state),v=m.summary;
-  el.innerHTML='<section class="ops-panel"><header><h2>POS sales reports</h2><div>'+(isAdmin121()?btn('Discounts','discounts')+' '+btn('Profitability','profit'):'')+' '+btn('Refresh','refresh')+' '+btn('Download CSV','download','',state.loading||state.error?'disabled':'')+'</div></header>'+controls()+(state.error?'<p role="alert">'+esc(state.error)+'</p>':state.loading?'<p role="status">Loading sales…</p>':'<div class="ops-kpis">'+moneyCols.map((label,j)=>'<button type="button" data-op="metric" data-value="'+['gross','discount','refund','net'][j]+'" aria-pressed="'+(state.metric===['gross','discount','refund','net'][j])+'"><small>'+label+' (LAK)</small><strong>'+amounts(v)[j]+'</strong></button>').join('')+(state.item?'':'<div><small>Net tips (LAK)</small><strong>'+amount(v.tip)+'</strong></div><div><small>Total collected (LAK)</small><strong>'+amount(v.net+v.tip)+'</strong></div>')+'</div><p class="ops-note">'+v.sales+' sale receipts · '+v.returns+' refunds · '+num(v.qty)+' net items. Refunds use the amount returned on the date issued.</p>'+graph(m)+'<div class="ops-table-head"><h3>'+views[state.view]+'</h3><input aria-label="Search report rows" type="search" placeholder="Search rows" value="'+esc(state.find)+'"></div><div data-list>'+listing(m)+'</div>')+'</section>';
+  el.innerHTML='<section class="ops-panel"><header><h2>POS sales reports</h2><div>'+(isAdmin121()?btn('Discounts','discounts')+' '+btn('Profitability','profit'):'')+' '+btn('Refresh','refresh')+' '+btn('Download CSV','download','',state.loading||state.error?'disabled':'')+' '+btn('Print / Save PDF','print','',state.loading||state.error?'disabled':'')+'</div></header>'+controls()+(state.error?'<p role="alert">'+esc(state.error)+'</p>':state.loading?'<p role="status">Loading sales…</p>':'<div class="ops-kpis">'+moneyCols.map((label,j)=>'<button type="button" data-op="metric" data-value="'+['gross','discount','refund','net'][j]+'" aria-pressed="'+(state.metric===['gross','discount','refund','net'][j])+'"><small>'+label+' (LAK)</small><strong>'+amounts(v)[j]+'</strong></button>').join('')+(state.item?'':'<div><small>Net tips (LAK)</small><strong>'+amount(v.tip)+'</strong></div><div><small>Total collected (LAK)</small><strong>'+amount(v.net+v.tip)+'</strong></div>')+'</div><p class="ops-note">'+v.sales+' sale receipts · '+v.returns+' refunds · '+num(v.qty)+' net items. Refunds use the amount returned on the date issued.</p>'+graph(m)+'<div class="ops-table-head"><h3>'+views[state.view]+'</h3><input aria-label="Search report rows" type="search" placeholder="Search rows" value="'+esc(state.find)+'"></div><div data-list>'+listing(m)+'</div>')+'</section>';
   const query=el.querySelector('input[type=search]');if(query)query.oninput=()=>{state.find=query.value;state.page=0;el.querySelector('[data-list]').innerHTML=listing(m)};
   el.onchange=e=>{const k=e.target.dataset.key;if(!k)return;const v=e.target.value;if(['period','month','year'].includes(k)){
    if(!v)return;state.dates[k]=v;if(k==='period'&&v==='today')state.dates.from=state.dates.to=posReports.day(Date.now());state.find='';state.shift=state.item=state.payment=state.service='';load();
   }else{state[k]=v;state.find='';state.page=0;render()}};
   el.onclick=e=>{const b=e.target.closest('[data-op]');if(!b)return;const a=b.dataset.op,v=b.dataset.value;
-   if(a==='download'){
+   if(a==='download'||a==='print'){
     if(!active()||owner!==liveProfile?.id||epoch!==sessionEpoch121||state.loading||state.error)return;
     // Search narrows the visible list. Download all rows within the selected report filters.
     const search=state.find;let detail;try{state.find='';detail=listing(m,true)}finally{state.find=search}
@@ -172,9 +175,10 @@
     let summary=restaurantReportSummary.rows(events);
     if(state.item){summary=summary.slice(0,summary.findIndex(r=>r[0]==='Currency')).filter(r=>!['Net tips','Total collected after refunds'].includes(r[0])).map(r=>r.length===4?r.slice(0,2):r);summary.push(['Foreign tender and change are recorded per receipt. Clear the item filter for currency totals.'])}
     const criteria=[state.item?state.items.get(state.item):'',state.payment,state.service,state.shift?shiftName(state.shift):''].filter(Boolean);
+    if(a==='print'){posReports.printRows('Oon Jai Restaurant · '+views[state.view],[range.from+' – '+range.to,...criteria].join(' · '),summary,detail);return;}
     const rows=[['Oon Jai Restaurant',views[state.view],range.from,range.to,...criteria],...summary,[],['Details'],...detail];
-    const url=URL.createObjectURL(new Blob(['\ufeff'+posReports.csv(rows)],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');
-    a.href=url;a.download='Restaurant-'+state.view+'-'+range.from+'-'+range.to+'.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);return;
+    const url=URL.createObjectURL(new Blob(['\ufeff'+posReports.csv(rows)],{type:'text/csv;charset=utf-8'})),link=document.createElement('a');
+    link.href=url;link.download='Restaurant-'+state.view+'-'+range.from+'-'+range.to+'.csv';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);return;
    }
    if(a==='discounts'){manageDiscounts().catch(err=>showCenterStatus(err.message,true));return}
    if(a==='metric'){state.metric=v;render()}else if(a==='refresh')load();else if(a==='profit')switchTab('restaurant-sales143');else if(a==='range')posReports.openRange(b,state.dates,(from,to)=>{Object.assign(state.dates,{from,to});state.shift=state.item=state.payment=state.service='';load()});
