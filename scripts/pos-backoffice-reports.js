@@ -92,7 +92,7 @@
   const match=(...parts)=>parts.join(' ').toLowerCase().includes(q);
   if(state.view==='receipts'){
    headers=['Receipt','Date & time','Type','Dining option','Payment','Quantity',...moneyCols];
-   model.receipts.forEach(({e,value,lines},j)=>{if(match(e.order.number,e.day,e.order.data.cashier,...lines.map(l=>l[5])))rows.push([btn('#'+e.order.number,'receipt',j),esc(posReports.stamp(e.at)),e.refund?'Refund':'Sale',esc(e.service),esc(e.payment),num(value.qty),...amounts(value)])});
+   model.receipts.forEach(({e,value,lines},j)=>{if(match(posReports.receiptId(e.order.number),e.day,e.order.data.cashier,...lines.map(l=>l[5])))rows.push([btn(posReports.receiptId(e.order.number),'receipt',j),esc(posReports.stamp(e.at)),e.refund?'Refund':'Sale',esc(e.service),esc(e.payment),num(value.qty),...amounts(value)])});
   }else if(state.view==='items'){
    headers=['Menu item','Sale receipts','Refunds (count)','Net quantity',...moneyCols];
    for(const [id,v] of [...model.items].sort((a,b)=>b[1].net-a[1].net)){const name=state.items.get(id);if(match(name))rows.push([btn(name,'item',id),v.sales,v.returns,num(v.qty),...amounts(v)])}
@@ -110,8 +110,8 @@
  }
  function detail(record){
   if(!record)return;const {e}=record,d=e.order.data,dialog=document.createElement('dialog');dialog.className='ops-dialog';
-  dialog.setAttribute('aria-label','Receipt '+e.order.number);
-  dialog.innerHTML='<header><h2>'+esc((e.refund?'Refund · receipt #':'Receipt #')+e.order.number)+'</h2>'+btn('Close','close')+'</header><p>'+esc([posReports.stamp(e.at),e.payment,e.service,d.cashier].filter(Boolean).join(' · '))+'</p><div class="ops-scroll"><table><thead><tr><th>Menu item</th><th>Quantity</th><th>Unit price</th><th>Line total</th></tr></thead><tbody>'+e.lines.map(l=>'<tr><td>'+esc(l[5])+(l[6]?'<small>'+esc(l[6])+'</small>':'')+'</td><td>'+num(l[8])+'</td><td>'+amount(cents(l[9]))+'</td><td>'+amount(cents(l[12]))+'</td></tr>').join('')+'</tbody></table></div><p><b>Receipt total · '+amount(e.value.net)+' LAK</b></p>'+(e.refund&&d.reason?'<p>Refund reason · '+esc(d.reason)+'</p>':'');
+  dialog.setAttribute('aria-label','Receipt '+posReports.receiptId(e.order.number));
+  dialog.innerHTML='<header><h2>'+esc((e.refund?'Refund · receipt ':'Receipt ')+posReports.receiptId(e.order.number))+'</h2>'+btn('Close','close')+'</header><p>'+esc([posReports.stamp(e.at),e.payment,e.service,d.cashier].filter(Boolean).join(' · '))+'</p><div class="ops-scroll"><table><thead><tr><th>Menu item</th><th>Quantity</th><th>Unit price</th><th>Line total</th></tr></thead><tbody>'+e.lines.map(l=>'<tr><td>'+esc(l[5])+(l[6]?'<small>'+esc(l[6])+'</small>':'')+'</td><td>'+num(l[8])+'</td><td>'+amount(cents(l[9]))+'</td><td>'+amount(cents(l[12]))+'</td></tr>').join('')+'</tbody></table></div><p><b>Receipt total · '+amount(e.value.net)+' LAK</b></p>'+(e.refund&&d.reason?'<p>Refund reason · '+esc(d.reason)+'</p>':'');
   dialog.querySelector('button').onclick=()=>dialog.close();dialog.onclick=ev=>{if(ev.target===dialog&&(ev.clientX<dialog.getBoundingClientRect().left||ev.clientX>dialog.getBoundingClientRect().right||ev.clientY<dialog.getBoundingClientRect().top||ev.clientY>dialog.getBoundingClientRect().bottom))dialog.close()};dialog.onclose=()=>dialog.remove();root().append(dialog);dialog.showModal();
  }
  function render(){

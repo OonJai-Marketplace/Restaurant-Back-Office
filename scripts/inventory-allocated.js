@@ -50,12 +50,12 @@ window.inventoryAllocated = (() => {
     for(const {i,r,index} of rules){
      const option=m.data.posOptions118?.find(g=>g.id===r.groupId)?.options.find(o=>o.id===r.optionId);
      const both=(r.stockMode|| (r.kind==='ingredient'?'all':'online'))==='all';
-     lines.push('<div class="alloc-line"><div><strong>'+esc(i.data.name)+'</strong> · '+fmt(r.quantity)+' '+esc(i.data.unit||'units')+'<small>'+esc([r.kind,option?.name,both?'Automatic online and dine-in':'Automatic online · optional dine-in',i.data.active===false?'Inactive stock':''].filter(Boolean).join(' · '))+'</small></div>'+(edit?'<span>'+act('Edit','edit','data-stock="'+esc(i.id)+'" data-index="'+index+'"')+' '+act('Remove','remove','data-stock="'+esc(i.id)+'" data-index="'+index+'"')+'</span>':'')+'</div>');
+     lines.push('<div class="alloc-line"><div><strong>'+esc(i.data.name)+'</strong> · '+fmt(r.quantity)+' '+esc(i.data.unit||'units')+'<small>'+esc([r.kind,option?.name,both?'Automatic online and dine-in':'Automatic online · optional dine-in',i.data.active===false?'Inactive stock':''].filter(Boolean).join(' · '))+'</small></div>'+(edit?'<span>'+act('Edit','edit','data-stock="'+esc(i.id)+'" data-index="'+index+'"')+' '+act('Unlink','remove','data-stock="'+esc(i.id)+'" data-index="'+index+'"')+'</span>':'')+'</div>');
     }
     for(const [id,parts] of links){
      const i=stockById.get(id),off=i.data.posMenuExclude?.includes(m.id);
      const override=rules.some(v=>v.i.id===id&&['ingredient','supply'].includes(v.r.kind));
-     lines.push('<div class="alloc-line"><div><strong>'+esc(i.data.name)+'</strong><small>'+esc(parts.map(r=>r.scope+' · '+r.name+' × '+fmt(r.quantity)+' '+(i.data.unit||'units')).join(' / '))+'</small>'+(off?'<small>Recipe link turned off for this menu</small>':override?'<small>Explicit ingredient or supply quantities take priority when applicable</small>':'')+'</div>'+(edit?act(off?'Restore':'Unlink recipe',off?'restore':'exclude','data-stock="'+esc(id)+'"'):'')+'</div>');
+     lines.push('<div class="alloc-line"><div><strong>'+esc(i.data.name)+'</strong><small>'+esc(parts.map(r=>r.scope+' · '+r.name+' × '+fmt(r.quantity)+' '+(i.data.unit||'units')).join(' / '))+'</small>'+(off?'<small>Recipe link turned off for this menu</small>':override?'<small>Explicit ingredient or supply quantities take priority when applicable</small>':'')+'</div>'+(edit?act(off?'Link':'Unlink',off?'restore':'exclude','data-stock="'+esc(id)+'"'):'')+'</div>');
     }
     return '<tr data-menu="'+esc(m.id)+'"><td><strong>'+esc(m.data.name)+'</strong></td><td>'+ (lines.join('')||'No stock linked')+'</td><td>'+(edit?act('Add stock','add'):'—')+'</td></tr>';
    }).join('')||'<tr><td colspan="3">No matching menus.</td></tr>';

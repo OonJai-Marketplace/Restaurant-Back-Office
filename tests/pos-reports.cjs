@@ -19,6 +19,7 @@ async function test(){
  assert.ok(fields.includes('data-report-range'));assert.ok(fields.includes('Export PDF'));assert.ok(!fields.includes('type="date"'));
  assert.ok(r.controls({...f,period:'yearly'},String).includes('data-report-field="year"'));
  const receipts=r.salesReport(sales,false),items=r.salesReport(sales,true);
+ assert.equal(receipts[1][1],'R-42');assert.equal(items[1][1],'R-42');
  assert.equal(receipts[1][5],3);assert.equal(receipts[1][8],90.01);
  assert.equal(receipts[2][0],'2024-03-01 00:00:00');assert.equal(receipts[2][8],-90.01);
  assert.match(r.summary(items,'items'),/2 menu items · 4 item lines · Net total 0 LAK/);assert.match(r.summary([items[0]],'items'),/No menu items/);assert.equal(items.length,5);assert.equal(items[1][6],'Mild');assert.equal(items[1][8],2);

@@ -191,19 +191,35 @@ html body.shell113 .pos-charge-dialog>footer:empty{display:none}
 #pos118 .pos-package input{width:4.5em}
 html body.shell113 #posChargeDialog{width:min(980px,96vw)!important;max-height:94dvh!important}
 html body.shell113 #posChargeDialog>.ui-body108{max-height:none;overflow:auto}
-html body.shell113 #posChargeDialog .pos-payment-preview118{max-height:none;padding:clamp(10px,2vw,24px)}
-html body.shell113 #posChargeDialog .receipt118{width:100%;max-width:720px;box-sizing:border-box}
+html body.shell113 #posChargeDialog .pos-payment-preview118{max-height:none;padding:10px}
+
 html body.shell113 #posChargeDialog .pos-charge-fields label{display:grid;grid-template-rows:auto 42px;gap:6px;margin:0}
 html body.shell113 #posChargeDialog .pos-charge-fields :is(input,select,output){height:42px!important;min-height:42px!important;box-sizing:border-box;display:block;padding:8px!important;margin:0;border:1px solid #b6ccbc;border-radius:5px;line-height:24px;font:inherit}
 html body.shell113 #posChargeDialog>header button[type=submit]{background:#174c38!important;border:1px solid white!important;color:#fff!important;font-weight:700!important;white-space:nowrap}
 @media(max-width:520px){html body.shell113 #posChargeDialog .pos-charge-fields{grid-template-columns:repeat(2,minmax(0,1fr))}html body.shell113 #posChargeDialog .pos-charge-fields>label:first-child{grid-column:1/-1}}
 html body.shell113 .pos-dialog118>header .pos-preview-print{margin-left:auto;background:#174c38!important;color:white!important;border:1px solid white}
 
-#pos118 .pos-linked-stock{margin:7px 0;border-top:1px solid #d6dfd5;padding-top:5px}
-#pos118 .pos-linked-stock summary{cursor:pointer;color:#195b3a;font-weight:650;padding:4px 0}
-#pos118 .pos-stock-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(84px,auto);column-gap:10px;align-items:center;border-bottom:1px solid #d6dfd5;padding:7px 0}
-#pos118 .pos-stock-row .pos-stock-name{display:flex;align-items:center;gap:5px;grid-area:1/1}
-#pos118 .pos-stock-row small{grid-area:2/1}
-#pos118 .pos-stock-row>label:not(.pos-stock-name){grid-area:1/2/3/3;display:grid;gap:3px}
-#pos118 .pos-stock-row input[type=number]{box-sizing:border-box;width:6em;max-width:100%}
-#pos118 .pos-stock-row>span{grid-column:1/-1}
+
+
+/* Transparent touch target around the circled information glyph. */
+html body.shell113 #restaurantApp #pos118 .pos-menu-tile>button.pos-info{display:grid!important;place-items:center;width:36px!important;height:36px!important;min-width:0!important;min-height:0!important;padding:0!important;margin:0!important;border:0!important;border-radius:50%!important;box-shadow:none!important;background:transparent!important;color:#163f2d!important;font:700 24px/1 Arial,sans-serif!important;text-shadow:0 0 2px white,0 0 4px white,0 0 6px white}
+html body.shell113 #restaurantApp #pos118 button.pos-info:focus-visible{outline:2px solid #175136;outline-offset:1px}
+html body.shell113 .pos-menu-detail-dialog{width:min(780px,95vw)!important;max-height:90dvh;overflow:auto}
+.pos-customer-menu{display:grid;gap:16px;align-items:start}
+.pos-customer-menu>.pos-photo118{width:100%;background:#f6f4ed;border-radius:8px;overflow:hidden;aspect-ratio:4/3}
+.pos-customer-menu>.pos-photo118 img{height:100%;width:100%;object-fit:contain}
+.pos-customer-recipe p,.pos-customer-recipe h4{margin:0 0 8px}.pos-customer-recipe ul{padding-inline-start:1.25em}
+@media(min-width:640px){.pos-customer-menu:has(>.pos-photo118){grid-template-columns:minmax(210px,1fr) minmax(0,1fr)}}
+html body.shell113 :is(#posChargeDialog,.pos-dialog118,.receipt-wrap118) .receipt118{width:var(--receipt-width,80mm)!important;max-width:100%!important;box-sizing:border-box;margin-inline:auto;padding:3mm;font:12px/1.28 Arial,sans-serif}
+html body.shell113 .receipt118 header img{width:20mm!important;height:12mm!important;object-fit:contain}
+html body.shell113 .receipt118 hr{margin:4px 0!important}
+html body.shell113 .receipt118 .receipt-row118{margin:2px 0!important;gap:2mm}
+html body.shell113 .receipt118 .receipt-foot118{margin:5px 0 0}
+html body.shell113 #posChargeDialog [data-adjustment]{padding:10px;background:#f1f5ed;border-radius:8px}
+#posChargeDialog [data-adjustment] fieldset{margin:0 0 6px;padding:7px;border:1px solid #c9d4c8}
+#posChargeDialog .pos-adjust-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+#posChargeDialog .pos-adjust-row small{display:block;font-weight:400}
+#posChargeDialog .pos-adjust-row input[type=number]{width:7em!important;display:block}
+#posChargeDialog .pos-adjust-row input[type=checkbox]{width:auto!important}
+html body.shell113 #posChargeDialog>header{flex-wrap:wrap}
+html body.shell113 #posChargeDialog>header [data-toggle-adjustment]{height:32px!important;min-height:32px!important;padding:0 9px!important}

@@ -6,6 +6,7 @@ var posReports = globalThis.posReports || (() => {
  const stamp = value => value ? day(value)+' '+clock.format(new Date(value)) : '';
  const cents = amount => Math.round((Number(amount) + Number.EPSILON) * 100);
  const types = {receipts:'By receipt', items:'By item', shifts:'By shift'};
+ const receiptId=number=>number==null?'':'R-'+number;
  function defaults() {
   const today = day(Date.now());
   return {type:'receipts', period:'monthly', month:today.slice(0,7), year:today.slice(0,4), from:today, to:today};
@@ -119,7 +120,7 @@ var posReports = globalThis.posReports || (() => {
   const rows=[items?itemHeader:receiptHeader];
   for(const {order,refund,at} of events) {
    const d=order.data,lines=d.lines||[],sign=refund?-1:1;
-   const common=[stamp(at),order.number,refund?'Refund':'Sale',refund?d.refundShiftId:d.shiftId];
+   const common=[stamp(at),receiptId(order.number),refund?'Refund':'Sale',refund?d.refundShiftId:d.shiftId];
    const gross=lines.map(l=>cents(Number(l.quantity)*Number(l.unitPrice)));
    const grossSum=gross.reduce((sum,x)=>sum+x,0);
    const paid=cents(d.total), subtotal=d.subtotal==null?grossSum:cents(d.subtotal);
@@ -241,5 +242,5 @@ var posReports = globalThis.posReports || (() => {
   setTimeout(()=>URL.revokeObjectURL(url),1000);
   showCenterStatus('Export downloaded.');
  }
- return {transactions,pages,stamp,day,defaults,controls,download,clear,populate,openRange,summary,range,salesReport,shiftsReport,csv};
+ return {receiptId,transactions,pages,stamp,day,defaults,controls,download,clear,populate,openRange,summary,range,salesReport,shiftsReport,csv};
 })();
