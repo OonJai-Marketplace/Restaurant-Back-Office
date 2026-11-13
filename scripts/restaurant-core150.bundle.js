@@ -362,13 +362,13 @@ window.restaurantPosMode128=()=> 'live';
  const groups={
   promotions:{css:['promotions146.css'],js:['promotion-kit146.js','restaurant-promotions146.js']},
   readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js']},
-  reports:{css:['pos-operations.css?v=register6','pos-v118.css?v=checkout13'],js:['pos-reports.js?v=restaurant11','pos-backoffice-reports.js?v=restaurant11']},
+  reports:{css:['pos-operations.css?v=register6','pos-v118.css?v=checkout15'],js:['pos-reports.js?v=checkout15','pos-backoffice-reports.js?v=checkout15']},
   sales:{css:['restaurant-sales143.css'],js:['sales-math143.js','restaurant-sales143.js?v=reports1']},
   settings:{js:['restaurant-settings146.bundle.js']},
   inventory:{css:['inventory-menu-v104.css?v=stockusage2','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=review2','inventory-allocated.js?v=checkout3']},
   menu:{depends:['inventory'],js:['menu-v108.js?v=rowactions1']},
   kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=stocklinks1'],js:['preparation-waste124.js?v=layout2']},
-  pos:{css:['pos-v118.css?v=checkout13','pos-receipt.css?v=checkout13'],js:['restaurant-pos150.bundle.js?v=receipt14']}
+  pos:{css:['pos-v118.css?v=checkout15','pos-receipt.css?v=checkout15'],js:['restaurant-pos150.bundle.js?v=checkout15']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
  const pendingFiles=new Map();
@@ -694,33 +694,37 @@ window.restaurantAccounting124={sync,tablet};if(document.readyState==='loading')
 var restaurantReportSummary = (() => {
  const cents=v=>Math.round((Number(v)||0)*100);
  function rows(events){
-  let gross=0,discount=0,refunds=0,fxNet=0,drawerChange=0;
-  const adjustments=new Map();
+  let gross=0,discount=0,refunds=0,tips=0,fxNet=0,drawerChange=0;
+  const adjustments=new Map(),methodTips=new Map();
   const methods=new Map(['Cash','BCEL QR','Bank'].map(name=>[name,0])),currencies=new Map();
   for(const {order,refund} of events){
    const d=order.data,net=cents(d.total),sign=refund?-1:1,method=d.payment||'Unspecified';
    const before=d.subtotal==null?(d.lines?.length?d.lines.reduce((v,l)=>v+cents(l.quantity*l.unitPrice),0):net+cents(d.discount)):cents(d.subtotal);
    if(refund)refunds+=net;else {gross+=before;discount+=before-net}
    methods.set(method,(methods.get(method)||0)+sign*net);
-   const fx=d.fxTender;if(!fx)continue;
+   const tip=cents(d.tip);tips+=sign*tip;
+   methodTips.set(method,(methodTips.get(method)||0)+sign*tip);
+   const fx=d.fxTender;
+   if(!refund&&method!=='Cash'){
+    const change=fx?cents(fx.changeLak):d.tip!=null?Math.max(0,cents(d.tendered)-net-tip):0;
+    drawerChange+=change;adjustments.set(method,(adjustments.get(method)||0)+change);
+   }
+   if(!fx)continue;
    fxNet+=sign*net;
    if(refund)continue; // The refund reverses the sale; its foreign tender was received only once.
    const v=currencies.get(fx.currency)||{amount:0,lak:0,change:0};
    v.amount+=cents(fx.amount);v.lak+=cents(fx.equivalentLak);v.change+=cents(fx.changeLak);
-   currencies.set(fx.currency,v);if(method!=='Cash'){
-    const change=cents(fx.changeLak);drawerChange+=change;
-    adjustments.set(method,(adjustments.get(method)||0)+change);
-   }
+   currencies.set(fx.currency,v);
   }
   return [
-   ['Sales summary','LAK'],['Gross sales',gross/100],['Discounts on sales',discount/100],['Refunds after discounts',refunds/100],['Net sales',(gross-discount-refunds)/100],[],
-   ['Payment method','Net sales (LAK)','Net received after kip change (LAK)'],
-   ...[...methods].map(([method,value])=>[method,value/100,(value+(method==='Cash'?-drawerChange:adjustments.get(method)||0))/100]),[],
+   ['Sales summary','LAK'],['Gross sales',gross/100],['Discounts on sales',discount/100],['Refunds after discounts',refunds/100],['Net sales',(gross-discount-refunds)/100],['Net tips',tips/100],['Total collected after refunds',(gross-discount-refunds+tips)/100],[],
+   ['Payment method','Net sales (LAK)','Net tips (LAK)','Net received after kip change (LAK)'],
+   ...[...methods].map(([method,value])=>[method,value/100,(methodTips.get(method)||0)/100,(value+(methodTips.get(method)||0)+(method==='Cash'?-drawerChange:adjustments.get(method)||0))/100]),[],
    ['Foreign-currency payments','Net sales (LAK), included above'],['Paid in foreign currency',fxNet/100],
    ['Currency','Foreign amount received','Valuation at recorded rates (LAK)','Change given (LAK)'],
    ...[...currencies].map(([currency,v])=>[currency,v.amount/100,v.lak/100,v.change/100]),
    ['Total foreign tender valued (LAK)',[...currencies.values()].reduce((s,v)=>s+v.lak,0)/100],
-   ['Cash change on foreign bank or QR payments (LAK)',drawerChange/100]
+   ['Cash change on bank or QR payments (LAK)',drawerChange/100]
   ];
  }
  function table(rows,esc){return '<table class="sales-summary"><tbody>'+rows.filter(r=>r.length).map(r=>'<tr>'+r.map(v=>'<td>'+esc(typeof v==='number'?v.toLocaleString('en-US',{maximumFractionDigits:2}):String(v))+'</td>').join('')+'</tr>').join('')+'</tbody></table>'}

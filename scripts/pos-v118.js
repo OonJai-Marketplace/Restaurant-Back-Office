@@ -133,6 +133,10 @@ async function pending(){S.offlineQueue=await posOffline119.queue(offlineOwner()
 function overlayPending(){
  if(draft&&S.offlineQueue.some(e=>e.action==='pay'&&e.order.id===draft.id)){fresh();rememberDraft()}
  for(const entry of S.offlineQueue){const order={...entry.order,offlinePending:true};S.orders=[order,...S.orders.filter(o=>o.id!==order.id)]}}
+function matchesPayment(saved,sent){
+ if(sent.tip==null)return true;
+ return ['tip','tendered','collectedTotal'].every(key=>saved?.[key]!=null&&Number(saved[key])===Number(sent[key]));
+}
 async function syncPending(){if(S.sample||!navigator.onLine||!offlineOwner())return;const owner=offlineOwner(),epoch=sessionEpoch121,valid=()=>owner===offlineOwner()&&epoch===sessionEpoch121;const entries=await posOffline119.queue(owner);if(!valid())return;S.offlineQueue=entries;S.syncError='';for(const entry of entries){if(!valid())return;try{
  let version=entry.order.version||0;
  if(!version&&entry.data.checkoutSaveNonce){
@@ -143,7 +147,7 @@ async function syncPending(){if(S.sample||!navigator.onLine||!offlineOwner())ret
 
  const acknowledged=await rpc('pos_order118',{p_id:entry.order.id,p_version:version,p_action:entry.action,p_data:entry.data});
  if(!valid())return;
- if(acknowledged?.id!==entry.order.id||acknowledged.status!==(entry.action==='pay'?'paid':'unpaid')||acknowledged.data?.offlineNonce!==entry.data.offlineNonce||entry.data.receiptTicket&&acknowledged.data?.receiptCode!==entry.data.receiptTicket.code)throw Error('Receipt differs from this device. The local copy is retained for review.');
+ if(entry.action==='pay'&&!matchesPayment(acknowledged?.data,entry.data)||acknowledged?.id!==entry.order.id||acknowledged.status!==(entry.action==='pay'?'paid':'unpaid')||acknowledged.data?.offlineNonce!==entry.data.offlineNonce||entry.data.receiptTicket&&acknowledged.data?.receiptCode!==entry.data.receiptTicket.code)throw Error('Receipt differs from this device. The local copy is retained for review.');
  await posOffline119.acknowledge(entry,acknowledged);
  if(valid()&&entry.action==='pay')S.orders=[acknowledged,...S.orders.filter(o=>o.id!==acknowledged.id)];
  if(valid()&&draft?.id===entry.order.id&&acknowledged.status==='unpaid'){draft.version=acknowledged.version;draft.number=acknowledged.number}
@@ -166,7 +170,7 @@ function discountLabel(d){
  if(!n(d.discount))return 'None';
  return (d.discountName?d.discountName+' · ':'')+(d.discountType==='percent'?fmt(d.discount)+'%':money(d.discount));
 }
-function chooseDiscount(){
+function chooseDiscount(onApply){
  if(draft.data.promotionClaim146||!restaurantCan('pos','sell'))throw Error('Discount changes are unavailable for this order.');
  const presets=S.config.discountPresets||[],d=draft.data;
  const selected=presets.find(p=>p.id===d.discountPresetId&&p.type===d.discountType&&p.value===d.discount);
@@ -179,7 +183,7 @@ function chooseDiscount(){
   const trial={...d,discount:value,discountType:type},t=total(trial);
   if(t.discount>t.subtotal)throw Error('Discount exceeds the order subtotal.');
   if(!admin()&&t.discount>t.subtotal*n(S.config.discountLimit)/100)throw Error('This discount requires administrator approval.');
-  Object.assign(d,{discount:value,discountType:type,discountName:preset?.name||'',discountPresetId:preset?.id||''});updateDraftPanel();
+  Object.assign(d,{discount:value,discountType:type,discountName:preset?.name||'',discountPresetId:preset?.id||''});updateDraftPanel();onApply?.();
  });
  const form=root.querySelector('form'),choice=form.elements.choice,kind=form.elements.kind,input=form.elements.value;
  choice.value=selected?.id||'manual';kind.value=d.discountType||'percent';
@@ -235,7 +239,7 @@ function wireSwipe(host){
 function updateDraftPanel(removedIndex){
  rememberDraft();
  const panel=$('#pos118 .order-pane');
- if(!panel)return;
+ if(!panel?.querySelector('.pos-discount-button'))return;
  if(removedIndex!==undefined){
   panel.querySelectorAll('.pos-swipe-row')[removedIndex]?.remove();
   panel.querySelectorAll('.pos-swipe-row').forEach((row,index)=>{
@@ -351,28 +355,41 @@ function printerSetup(){
 
  };
 }
-function receipt(o,kitchen=false,checkout=false,fx=o.data.fxTender){
+async function previewNumber(order){
+ if(!order.data.lines.length||['paid','refunded'].includes(order.status))return;
+ const owner=offlineOwner(),epoch=sessionEpoch121,stamp=Date.now();
+ if(S.sample){
+  order.previewCode='OJM'+String(posReceiptBook.yearOf(stamp)).slice(-2)+'-4A'+String(((Number(order.number)||1)-1)%999+1).padStart(3,'0');
+ }else{
+  const ticket=await posReceiptBook.issue(owner,order.id,stamp,rpc,!S.offline&&navigator.onLine);
+  if(owner!==offlineOwner()||epoch!==sessionEpoch121)throw Error('The signed-in cashier changed.');
+  order.previewCode=ticket.code;
+ }
+}
+function receipt(o,kitchen=false,checkout=false,fx=o.data.fxTender,tip=n(o.data.tip)){
  const d=o.data,paid=['paid','refunded'].includes(o.status);
  const t=checkout||o===draft||d.total==null?total(d):d;
  const printedAt=paid?o.paid_at:o.created_at||new Date();
- const reference=paid?'Receipt '+posReports.numberFor(o):Number(o.number)?'Order OJ-'+o.number:'Current order';
+ const reference=paid?posReports.numberFor(o):o.previewCode||(Number(o.number)?'OJ-'+o.number:'');
  const row=(label,value)=>'<div class="receipt-row118"><span>'+label+'</span><span>'+value+'</span></div>';
  const tendered=d.tendered==null||d.tendered===''?null:Number(d.tendered);
- const localReference=d.localReceiptRef||(d.offlineNonce?.startsWith('receipt-'+o.id+':')?restaurantReportSummary.localReference(o):'');
- return `<article class="pos-thermal-paper" style="--receipt-width:${paperWidth()}mm"><div class="paper-brand"><img src="assets/brand/oonjai-logo.png" alt="Oon Jai Marketplace"><strong>${kitchen?'Kitchen ticket':'Oon Jai Marketplace'}</strong>${S.sample?'<b>SAMPLE · NOT A SALE</b>':o.offlinePending?'<b>LOCAL COPY · PENDING SYNC</b>':''}</div><hr>
- <div>${date(printedAt)} ${time(printedAt)}</div><div class="paper-reference">${esc(reference)}</div>${paid&&d.receiptCode&&localReference?'<div>Local reference: '+esc(localReference)+'</div>':''}
- <div>${esc([d.service,d.customer].filter(Boolean).join(' · '))}</div><div>Cashier: ${esc(d.cashier||currentUser())}</div><hr>
+ const collected=(Math.round(t.total*100)+Math.round(tip*100))/100;
+ return `<article class="pos-thermal-paper" style="--receipt-width:${paperWidth()}mm"><div class="paper-brand"><img src="assets/brand/oonjai-logo.png" alt="Oon Jai Marketplace"><strong>${kitchen?'Kitchen ticket':'Oon Jai Marketplace'}</strong>${S.sample?'<b>SAMPLE · NOT A SALE</b>':o.offlinePending&&paid?'<b>LOCAL COPY · PENDING SYNC</b>':''}</div><hr>
+ <div class="receipt-row118 paper-meta"><span>${esc(d.service)}</span><strong>${esc(reference)}</strong></div>
+ <div>Cashier: ${esc(d.cashier||currentUser())}</div>${d.customer?'<div>'+esc(d.customer)+'</div>':''}<hr>
  ${d.lines.map(l=>row('<b>'+fmt(l.quantity)+' × '+esc(l.name)+'</b>',kitchen?'':fmt(lineAmount(l)))+
  (l.options?.length?'<div>+ '+esc(l.options.join(', '))+'</div>':'')+(l.note?'<div><b>Note:</b> '+esc(l.note)+'</div>':'')).join('')}
  ${d.note?'<p><b>Order note:</b> '+esc(d.note)+'</p>':''}${d.promotion146?'<p>Offer: '+esc(d.promotion146.name)+'<br>Reference: '+esc(d.promotion146.code)+(d.promotion146.voucher?'<br>Voucher: '+esc(d.promotion146.voucher):'')+'</p>':''}
- ${kitchen?'':('<hr>'+row('Subtotal',fmt(t.subtotal))+row(d.discountName?'Discount · '+esc(d.discountName):'Discount',fmt(t.discount))+'<hr>'+row('<b>TOTAL</b>','<b>'+money(t.total)+'</b>')+'<hr>'+
- (paid?'<div>'+esc(o.status==='refunded'?'REFUNDED':'Paid · '+d.payment)+'</div>':'<div>UNPAID</div>')+
- (paid&&d.payment==='Cash'&&Number.isFinite(tendered)?row('Cash received',money(tendered))+row('Change',money((Math.round(tendered*100)-Math.round(t.total*100))/100)):'')+
- (fx?'<p>'+esc(posReports.fxDescription(fx))+'</p>':'')+(d.paymentReference?'<div>Reference: '+esc(d.paymentReference)+'</div>':'')+'<p class="receipt-foot118">'+esc(d.receiptFooter??S.config.receiptFooter)+'</p>')}</article>`;
+ ${kitchen?'':('<hr>'+row('Subtotal',fmt(t.subtotal))+row(d.discountName?'Discount · '+esc(d.discountName):'Discount',fmt(t.discount))+
+ (tip?row('Tip',fmt(tip)):'')+'<hr>'+row('<b>TOTAL</b>','<b>'+money(collected)+'</b>')+
+ (paid?'<hr><div>'+esc(o.status==='refunded'?'REFUNDED':'Paid · '+d.payment)+'</div>':'')+
+ (paid&&Number.isFinite(tendered)&&(d.payment==='Cash'||d.tip!=null||fx)?row('Amount received',money(tendered))+row('Change',money((Math.round(tendered*100)-Math.round(collected*100))/100)):'')+
+ (fx?'<p>'+esc(posReports.fxDescription(fx))+'</p>':'')+(d.paymentReference?'<div>Reference: '+esc(d.paymentReference)+'</div>':'')+'<p class="receipt-foot118">'+esc(d.receiptFooter??S.config.receiptFooter)+'</p>')}
+ <small class="paper-timestamp">${date(printedAt)} · ${time(printedAt)}</small></article>`;
 }
-function receipts(){const rows=S.orders.filter(o=>['paid','refunded'].includes(o.status)&&(S.sample||!S.receiptDate||new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Vientiane'}).format(new Date(o.paid_at))===S.receiptDate)&&(S.filter==='All'||S.filter==='Refunds'&&o.status==='refunded'||o.data.payment===S.filter)&&[posReports.numberFor(o),restaurantReportSummary.localReference(o)].some(ref=>ref.toLowerCase().includes(S.query.toLowerCase().replace(/^#/,''))));const selected=rows.find(o=>o.id===S.selected)||rows[0];if(selected)S.selected=selected.id;return `<div class="pos-grid118"><section class="pos-card118"><header><h2>Receipts</h2><input type="date" aria-label="Receipt date" data-receipt-date118 value="${esc(S.receiptDate||'')}"></header><div class="pos-filter118"><input data-search118 placeholder="Search receipt number…" aria-label="Search receipt number" value="${esc(S.query)}"><div class="pos-pills118">${['All','Cash','BCEL QR','Bank','Refunds'].map(v=>button(v,'filter',S.filter===v?'active':'','data-value118="'+v+'"')).join('')}</div></div><table><thead><tr><th>Receipt</th><th>Time</th><th>Payment</th><th>Status</th><th>Amount</th></tr></thead><tbody>${rows.slice(0,S.visibleOrders).map(o=>`<tr tabindex="0" data-order118="${o.id}" class="${o===selected?'selected':''}"><td>${esc(posReports.numberFor(o))}</td><td>${time(o.paid_at)}</td><td>${esc(o.data.payment)}</td><td><span class="status-pill118 ${o.status}">${o.status==='paid'?'● Paid':'● Refunded'}</span></td><td>${money(o.data.total)}</td></tr>`).join('')||'<tr><td colspan="5">No receipts for this selection.</td></tr>'}</tbody></table><div class="pos-table-footer118">${S.schema125?'Showing '+rows.length+' of '+n(S.receiptCount125)+' receipts · ':''}${rows.filter(o=>o.status==='paid').length} paid receipts · ${money(rows.filter(o=>o.status==='paid').reduce((a,o)=>a+n(o.data.total),0))}　|　Refunds · ${money(rows.filter(o=>o.status==='refunded').reduce((a,o)=>a+n(o.data.total),0))}${(rows.length>S.visibleOrders||S.schema125&&S.receiptCount125>S.orders.filter(o=>['paid','refunded'].includes(o.status)).length)?button('Show more','more'):''}</div></section><section class="pos-card118 gold"><h2>Receipt Preview</h2>${selected?`<div class="receipt-wrap118">${receipt(selected)}</div><div class="pos-actions118">${button('Reprint Receipt','print','primary')}${button('Save PDF','pdf')}${button('Refund','refund','danger',selected.status==='paid'&&restaurantCan('pos','refund')?'':'disabled')}</div><p class="muted">PDF uses your browser’s Save as PDF option. Refunds require administrator access.</p>`:'<p>Select a receipt.</p>'}</section></div>`}
+function receipts(){const rows=S.orders.filter(o=>['paid','refunded'].includes(o.status)&&(S.sample||!S.receiptDate||new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Vientiane'}).format(new Date(o.paid_at))===S.receiptDate)&&(S.filter==='All'||S.filter==='Refunds'&&o.status==='refunded'||o.data.payment===S.filter)&&[posReports.numberFor(o),restaurantReportSummary.localReference(o)].some(ref=>ref.toLowerCase().includes(S.query.toLowerCase().replace(/^#/,''))));const selected=rows.find(o=>o.id===S.selected)||rows[0];if(selected)S.selected=selected.id;return `<div class="pos-grid118"><section class="pos-card118"><header><h2>Receipts</h2><input type="date" aria-label="Receipt date" data-receipt-date118 value="${esc(S.receiptDate||'')}"></header><div class="pos-filter118"><input data-search118 placeholder="Search receipt number…" aria-label="Search receipt number" value="${esc(S.query)}"><div class="pos-pills118">${['All','Cash','BCEL QR','Bank','Refunds'].map(v=>button(v,'filter',S.filter===v?'active':'','data-value118="'+v+'"')).join('')}</div></div><table><thead><tr><th>Receipt</th><th>Time</th><th>Payment</th><th>Status</th><th>Amount</th></tr></thead><tbody>${rows.slice(0,S.visibleOrders).map(o=>`<tr tabindex="0" data-order118="${o.id}" class="${o===selected?'selected':''}"><td>${esc(posReports.numberFor(o))}</td><td>${time(o.paid_at)}</td><td>${esc(o.data.payment)}</td><td><span class="status-pill118 ${o.status}">${o.status==='paid'?'● Paid':'● Refunded'}</span></td><td>${money((o.data.collectedTotal??o.data.total))}</td></tr>`).join('')||'<tr><td colspan="5">No receipts for this selection.</td></tr>'}</tbody></table><div class="pos-table-footer118">${S.schema125?'Showing '+rows.length+' of '+n(S.receiptCount125)+' receipts · ':''}${rows.filter(o=>o.status==='paid').length} paid receipts · ${money(rows.filter(o=>o.status==='paid').reduce((a,o)=>a+n((o.data.collectedTotal??o.data.total)),0))}　|　Refunds · ${money(rows.filter(o=>o.status==='refunded').reduce((a,o)=>a+n((o.data.collectedTotal??o.data.total)),0))}${(rows.length>S.visibleOrders||S.schema125&&S.receiptCount125>S.orders.filter(o=>['paid','refunded'].includes(o.status)).length)?button('Show more','more'):''}</div></section><section class="pos-card118 gold"><h2>Receipt Preview</h2>${selected?`<div class="receipt-wrap118">${receipt(selected)}</div><div class="pos-actions118">${button('Reprint Receipt','print','primary')}${button('Save PDF','pdf')}${button('Refund','refund','danger',selected.status==='paid'&&restaurantCan('pos','refund')?'':'disabled')}</div><p class="muted">PDF uses your browser’s Save as PDF option. Refunds require administrator access.</p>`:'<p>Select a receipt.</p>'}</section></div>`}
 function overview(){if(S.schema125&&!S.sample)return posPerformance125.overview(S);const relevant=S.orders.filter(o=>S.sample||date(o.paid_at||o.created_at)===date(new Date())),paid=relevant.filter(o=>['paid','refunded'].includes(o.status)),refunds=S.orders.filter(o=>o.status==='refunded'&&(S.sample||date(o.refunded_at)===date(new Date()))),refTotal=refunds.reduce((a,o)=>a+n(o.data.total),0),net=paid.reduce((a,o)=>a+n(o.data.total),0)-refTotal,open=S.orders.filter(o=>o.status==='unpaid'),shift=S.shifts.find(s=>(S.sample||s.cashier===liveProfile?.id)&&!s.closed_at),cashNet=paid.filter(o=>o.data.payment==='Cash').reduce((a,o)=>a+n(o.data.total),0)-refunds.filter(o=>o.data.payment==='Cash').reduce((a,o)=>a+n(o.data.total),0),pop={};paid.filter(o=>o.status==='paid').forEach(o=>o.data.lines.forEach(l=>{pop[l.menuId]??={...l,sold:0};pop[l.menuId].sold+=n(l.quantity)}));let popular=Object.values(pop).sort((a,b)=>b.sold-a.sold).slice(0,5);if(S.sample)popular=[0,1,2,5,7].map((i,k)=>({...sampleLine(i),sold:[12,9,8,7,6][k]}));const alerts=S.items.filter(i=>i.data.active!==false&&stock(i.id)<=n(i.data.reorder));return `<header class="pos-top118"><h2>Today at a glance</h2><span>${S.sample?'28 Sep 2026':date(new Date())}</span>${button('Shift: '+(shift?'Open':'Closed'),'shift-view')}${button('⊕ New Order','new','primary')}</header><div class="pos-metrics118">${[['▥','Net Sales',money(net)],['♧','Paid Orders',paid.filter(o=>o.status==='paid').length],['▤','Open Orders',open.length],['↶','Refunds',money(refTotal)]].map(([icon,label,value])=>`<section class="pos-card118 pos-metric118"><span>${icon}</span><div>${label}<strong>${value}</strong></div></section>`).join('')}</div><div class="pos-overview118"><section class="pos-card118"><h2>Payment summary</h2><table><thead><tr><th>Method</th><th>Received</th><th>Refunded</th><th>Net</th></tr></thead><tbody>${S.config.methods.map(method=>{const received=paid.filter(o=>o.data.payment===method).reduce((a,o)=>a+n(o.data.total),0),refunded=refunds.filter(o=>o.data.payment===method).reduce((a,o)=>a+n(o.data.total),0);return `<tr><td>${esc(method)}</td><td>${money(received)}</td><td>${money(refunded)}</td><td>${money(received-refunded)}</td></tr>`}).join('')}</tbody></table><div class="pos-totals118"><div class="total"><span>Net sales</span><strong>${money(net)}</strong></div></div></section><section class="pos-card118"><header><h2>Current Shift</h2><span class="status-pill118">${shift?'● Open':'Closed'}</span></header>${shift?`<div class="pos-shift118"><div><span>Cashier</span><span>${esc(currentUser())}</span></div><div><span>Opened at</span><span>${time(shift.opened_at)}</span></div><div><span>Opening float</span><span>${money(shift.opening)}</span></div><hr><div><span>Cash in / out</span><span>${money(S.cash.filter(c=>c.shift_id===shift.id).reduce((a,c)=>a+n(c.amount),0))}</span></div><div><span>Expected drawer</span><strong>${money(shiftExpected(shift))}</strong></div></div><div class="pos-actions118">${button('Cash In / Out','cash')}${button('Close Shift','close-shift','primary')}</div>`:`<p>Enter the opening cash float before taking payments.</p>${button('Open Shift','open-shift','primary')}`}</section><section class="pos-card118"><h2>Popular items today</h2><div class="pos-popular118">${popular.map(l=>`<div>${photo(l)}<strong>${esc(l.name)}</strong><small>${l.sold} sold</small></div>`).join('')||'<p>No paid orders today.</p>'}</div></section><section class="pos-card118"><header><h2>Inventory alerts</h2>${button('View Inventory ›','inventory')}</header>${S.sample?'<div class="pos-setting-row118"><strong>Tofu</strong><span class="status-pill118 refunded">Low stock</span></div><div class="pos-setting-row118"><strong>Avocado</strong><span class="status-pill118 refunded">Low stock</span></div>':alerts.map(i=>`<div class="pos-setting-row118"><strong>${esc(i.data.name)}</strong><span>${fmt(stock(i.id))} ${esc(i.data.unit)} · Low stock</span></div>`).join('')||'<p>Stock levels are above configured reorder points.</p>'}</section></div>`}
-function shiftExpected(s){if(S.schema125)return n(S.shiftExpected125);return n(s.opening)+S.cash.filter(c=>c.shift_id===s.id).reduce((a,c)=>a+n(c.amount),0)+S.orders.filter(o=>o.data.shiftId===s.id&&['paid','refunded'].includes(o.status)&&o.data.payment==='Cash').reduce((a,o)=>a+n(o.data.total),0)-S.orders.filter(o=>o.status==='refunded'&&o.data.payment==='Cash'&&o.data.refundShiftId===s.id).reduce((a,o)=>a+n(o.data.total),0)}
+function shiftExpected(s){if(S.schema125)return n(S.shiftExpected125);return n(s.opening)+S.cash.filter(c=>c.shift_id===s.id).reduce((a,c)=>a+n(c.amount),0)+S.orders.filter(o=>o.data.shiftId===s.id&&['paid','refunded'].includes(o.status)&&o.data.payment==='Cash').reduce((a,o)=>a+n(o.data.collectedTotal??o.data.total),0)-S.orders.filter(o=>o.status==='refunded'&&o.data.payment==='Cash'&&o.data.refundShiftId===s.id).reduce((a,o)=>a+n(o.data.collectedTotal??o.data.total),0)}
 function management(){const row=(name,value,action)=>`<div class="pos-setting-row118"><span>${name}</span><small>${value}</small>${button('›',action,'','aria-label="'+name+'"')}</div>`,card=(title,body)=>`<section class="pos-card118 gold"><h2>${title}</h2>${body}</section>`;return `<div class="pos-management118">${card('Menu & Categories',row('Menu items','Shared with Menu','menu')+row('Categories','Shared with Menu','categories')+row('Prices & display','Shared website and POS menu','menu-display')+button('Open Menu','menu','wide')+(isAdmin121()?button('Menu Display','menu-display','wide'):''))}${card('Customizations',(restaurantRouteAllowed128('inv-allocated')?button('Allocated stock by menu','allocated-stock','wide'):'')+row('Base & protein','Required choices','options')+row('Toppings & extras','Portions and add-on prices','options')+row('Ingredient links','Connected to Inventory','links')+button('Manage Options','options','wide'))}${card('Discounts',row('Percentage / fixed amount','Per order','settings')+row('Cashier discount limit',n(S.config.discountLimit)+'%','settings')+row('Restricted discounts','Administrator approval','settings')+button('Manage Discounts','settings','wide'))}${card('Printing',row('Receipt printer','Select in print window','printer-setup')+row('Kitchen ticket','Selected options and notes','kitchen')+row('Receipt layout',paperWidth()+' mm','printer-setup')+`<div class="pos-actions118">${button('Configure Printing','printer-setup')}${button('Preview Layout','preview')}</div>`)}${card('Payments & Access',row('Payment methods',S.config.methods.join(', '),'settings')+row('Employee permissions',S.config.cashiers.length+' cashiers','settings')+row('Refunds & voids','Reason recorded','settings')+button('Payment Settings','settings','wide'))}${card('Reports & Export',(restaurantRouteAllowed128('restaurant-pos-reports')?button('View sales reports','backoffice-sales','wide'):'')+posReports.controls(S.reportFilter ||= posReports.defaults(),button))}</div>`}
 function patchOpenOrder(host,html){
  const template=document.createElement('template');template.innerHTML=html;
@@ -422,9 +439,9 @@ async function save(action='save',extra={},order=draft,checkout=false){if(order.
  const data={...order.data,...extra};
  // A receipt can carry a stored empty or old FX field. Only this checkout's explicit choice is tender.
  if(action!=='pay'||!extra.fxTender)delete data.fxTender;
- if(!restaurantCan('pos','sell'))throw Error('Sales access required');if(S.working)throw Error('Another order action is still saving. Please retry.');if(!order.data.lines.length)throw Error('Add an item first');if(total(order.data).discount>total(order.data).subtotal)throw Error('Discount exceeds subtotal');return task(action==='pay'?'Recording payment and stock…':'Saving order…',async()=>{S.writeGeneration125=(S.writeGeneration125||0)+1;const usage125=!S.sample&&action==='pay'?recipeUsage124(order.data):{};let result;if(S.sample){result={...structuredClone(order),number:order.number||Math.max(1053,...S.orders.map(o=>Number(o.number)||0))+1,status:action==='pay'?'paid':'unpaid',created_at:order.created_at||new Date().toISOString(),paid_at:action==='pay'?new Date().toISOString():null,data:{...structuredClone(data),...storedTotals(order.data),cashier:currentUser(),shiftId:S.shifts.find(s=>!s.closed_at)?.id}};S.orders=[result,...S.orders.filter(o=>o.id!==result.id)];
- if(action==='pay'&&extra.payment!=='Cash'&&extra.fxTender?.changeLak>0){
-  const shift=S.shifts.find(x=>!x.closed_at);if(shift)S.cash.push({id:uuid(),shift_id:shift.id,amount:-extra.fxTender.changeLak,reason:'FX change · '+result.number})
+ if(!restaurantCan('pos','sell'))throw Error('Sales access required');if(S.working)throw Error('Another order action is still saving. Please retry.');if(!order.data.lines.length)throw Error('Add an item first');if(total(order.data).discount>total(order.data).subtotal)throw Error('Discount exceeds subtotal');return task(action==='pay'?'Recording payment and stock…':'Saving order…',async()=>{S.writeGeneration125=(S.writeGeneration125||0)+1;const usage125=!S.sample&&action==='pay'?recipeUsage124(order.data):{};let result;if(S.sample){result={...structuredClone(order),number:order.number||Math.max(1053,...S.orders.map(o=>Number(o.number)||0))+1,status:action==='pay'?'paid':'unpaid',created_at:order.created_at||new Date().toISOString(),paid_at:action==='pay'?new Date().toISOString():null,data:{...structuredClone(data),...storedTotals(order.data),cashier:currentUser(),...(action==='pay'?{receiptCode:order.previewCode}:{}),shiftId:S.shifts.find(s=>!s.closed_at)?.id}};S.orders=[result,...S.orders.filter(o=>o.id!==result.id)];
+ if(action==='pay'&&extra.payment!=='Cash'&&extra.tendered>extra.collectedTotal){
+  const shift=S.shifts.find(x=>!x.closed_at);if(shift)S.cash.push({id:uuid(),shift_id:shift.id,amount:extra.collectedTotal-extra.tendered,reason:'Change · '+result.number})
  }
  }else{
  let issuedAt;
@@ -432,11 +449,12 @@ async function save(action='save',extra={},order=draft,checkout=false){if(order.
   issuedAt=new Date().toISOString();
   const ticket=await posReceiptBook.issue(saveOwner,order.id,issuedAt,rpc,!S.offline&&navigator.onLine);
   if(saveOwner!==offlineOwner()||saveEpoch!==sessionEpoch121)throw Error('Account changed before payment.');
+  if(order.previewCode&&ticket.code!==order.previewCode)throw Error('The receipt year changed. Reopen checkout to review the new receipt number.');
   Object.assign(data,{receiptTicket:ticket,receiptIssuedAt:issuedAt,receiptFooter:S.config.receiptFooter,
    offlineNonce:'paid-'+order.id+':'+ticket.token+':'+ticket.ordinal});
  }
- const offline=async()=>{if(order.data.promotionClaim146)throw Error('Promotion or voucher payment needs a live connection. Nothing was recorded locally; reconnect and retry.');const captureOwner=offlineOwner(),captureEpoch=sessionEpoch121,usage=action==='pay'?recipeUsage124(order.data):{};if(action==='pay'&&extra.payment!=='Cash'&&String(extra.paymentReference||'').trim().length<3)throw Error('Enter the verified bank payment reference.');if(action==='pay')for(const [id,q] of Object.entries(usage))if(q>stock(id))throw Error('Insufficient stock on this device');if(action==='pay'&&!S.shifts.some(x=>x.cashier===liveProfile?.id&&!x.closed_at))throw Error('Open your shift online before accepting offline payments.');result={...structuredClone(order),number:order.number||'LOCAL',status:action==='pay'?'paid':'unpaid',created_at:order.created_at||new Date().toISOString(),paid_at:action==='pay'?issuedAt:null,offlinePending:true,data:{...structuredClone(data),...(action==='pay'?{receiptCode:data.receiptTicket.code}:{}),...storedTotals(order.data),cashier:currentUser()}};await posOffline119.save(captureOwner,result,action,{...data,...(order.data.offlineNonce?.startsWith('checkout-')?{checkoutSaveNonce:order.data.offlineNonce}:{}),offlineUsage124:usage,offlineNonce:data.offlineNonce,...(action==='pay'?{offlineCapturedAt:result.paid_at,offlineTotal:result.data.total}:{})});if(captureOwner!==offlineOwner()||captureEpoch!==sessionEpoch121)throw Error('Account changed during local capture');await pending();S.orders=[result,...S.orders.filter(o=>o.id!==result.id)];S.offline=true};if(S.offline||!navigator.onLine)await offline();else try{result=await rpc('pos_order118',{p_id:order.id,p_version:order.version||0,p_action:action,p_data:data});
- if(result?.id!==order.id||result.status!==(action==='pay'?'paid':'unpaid')||result.data?.offlineNonce!==data.offlineNonce||data.receiptTicket&&result.data?.receiptCode!==data.receiptTicket.code)throw Error('This order changed. Review its saved receipt before continuing.');
+ const offline=async()=>{if(order.data.promotionClaim146)throw Error('Promotion or voucher payment needs a live connection. Nothing was recorded locally; reconnect and retry.');const captureOwner=offlineOwner(),captureEpoch=sessionEpoch121,usage=action==='pay'?recipeUsage124(order.data):{};if(action==='pay')for(const [id,q] of Object.entries(usage))if(q>stock(id))throw Error('Insufficient stock on this device');if(action==='pay'&&!S.shifts.some(x=>x.cashier===liveProfile?.id&&!x.closed_at))throw Error('Open your shift online before accepting offline payments.');result={...structuredClone(order),number:order.number||'LOCAL',status:action==='pay'?'paid':'unpaid',created_at:order.created_at||new Date().toISOString(),paid_at:action==='pay'?issuedAt:null,offlinePending:true,data:{...structuredClone(data),...(action==='pay'?{receiptCode:data.receiptTicket.code}:{}),...storedTotals(order.data),cashier:currentUser()}};await posOffline119.save(captureOwner,result,action,{...data,...(order.data.offlineNonce?.startsWith('checkout-')?{checkoutSaveNonce:order.data.offlineNonce}:{}),offlineUsage124:usage,offlineNonce:data.offlineNonce,...(action==='pay'?{offlineCapturedAt:result.paid_at,offlineTotal:result.data.total}:{})});if(captureOwner!==offlineOwner()||captureEpoch!==sessionEpoch121)throw Error('Account changed during local capture');await pending();S.orders=[result,...S.orders.filter(o=>o.id!==result.id)];S.offline=true};if(S.offline||!navigator.onLine)await offline();else try{result=await rpc('pos_order118',{p_id:order.id,p_version:order.version||0,p_action:action,p_data:data});
+ if(action==='pay'&&!matchesPayment(result?.data,data)||result?.id!==order.id||result.status!==(action==='pay'?'paid':'unpaid')||result.data?.offlineNonce!==data.offlineNonce||data.receiptTicket&&result.data?.receiptCode!==data.receiptTicket.code)throw Error('This order changed. Review its saved receipt before continuing.');
  if(saveOwner!==offlineOwner()||saveEpoch!==sessionEpoch121)return;if(window.posPerformance125)await posPerformance125.accepted(S,result,usage125);else await load()}catch(e){if(saveOwner!==offlineOwner()||saveEpoch!==sessionEpoch121)return;if(window.posPerformance125?posPerformance125.network(e):!navigator.onLine||/failed to fetch|networkerror|network request failed|load failed/i.test(e.message))await offline();else throw e}}if(saveOwner!==offlineOwner()||saveEpoch!==sessionEpoch121)return;if(order===draft||draft.id===order.id)draft=editableOrder(result);S.selected=result.id;showCenterStatus(S.sample?'Sample order updated. No live records changed.':result.offlinePending?'Saved on this device. Pending sync before shift close.':action==='pay'?'Payment recorded and stock updated.':'Order saved unpaid.');if(action==='pay'){if(!S.sample)prepareReceiptNumbers().catch(()=>{});fresh();rememberDraft();S.sub=window.posPerformance125?'New Order':'Receipts';S.selected=result.id}else {rememberDraft();if(!checkout)S.sub='Open Orders'}return result})}
 function fitReceiptViewport(root,closed){
  const viewport=window.visualViewport;
@@ -465,7 +483,7 @@ function foreignPayment(previous,payment,totalLak,apply){
  <label>Currency received<select name="currency">${currencies.map(v=>'<option>'+v+'</option>').join('')}</select></label>
  ${field('Amount received','amount',previous?.amount??'','number','min="0.01" max="9999999999.99" step="0.01" required inputmode="decimal"')}
  ${field('Exchange rate · LAK per 1 foreign unit','rate',previous?.rate??'','number','min="0.000001" max="99999999.999999" step="0.000001" required inputmode="decimal"')}
- <dl><div><dt>Order total after discount</dt><dd>${money(totalLak)}</dd></div><div><dt>Received in kip</dt><dd data-converted>—</dd></div><div><dt data-balance-label>Change in kip</dt><dd data-balance aria-live="polite">—</dd></div></dl>
+ <dl><div><dt>Total including tip</dt><dd>${money(totalLak)}</dd></div><div><dt>Received in kip</dt><dd data-converted>—</dd></div><div><dt data-balance-label>Change in kip</dt><dd data-balance aria-live="polite">—</dd></div></dl>
  <div>${previous?'<button type="button" data-clear-fx>Clear FX</button>':''}<button type="submit">Use FX payment</button></div></form>`,async()=>{
   const result=calculate();
   if(!result||result.changeLak<0)throw Error('The converted payment must cover the discounted total.');
@@ -504,29 +522,32 @@ async function charge(){
   if(epoch!==sessionEpoch121||owner!==offlineOwner()||draft.id!==id||!document.querySelector('#pos118.active'))return;
  }
  const order=draft;
+ await previewNumber(order);
+ if(order!==draft||!document.querySelector('#pos118.active')||document.getElementById('posChargeDialog'))return;
  if(!S.sample&&!(S.offline||!navigator.onLine))prepareReceiptNumbers().catch(()=>{});
  const checkoutKey=tabDraftKey()+':payment:'+order.id;
  let savedInputs={};try{savedInputs=JSON.parse(sessionStorage.getItem(checkoutKey))||{}}catch{}
- const t=total(draft.data);t.total=Math.round((t.total+Number.EPSILON)*100)/100;if(!draft.data.lines.length)throw Error('Add an item first');
+ let t=total(order.data);
  const stockFields=draft.data.lines.map((line,i)=>linkedStockFields(line,i,draft.data.service)).join('');
- let fx=null;
+ let fx=null,manual=false;
  const root=dialog('Confirm payment',`<form id="pos-charge-form">
   <div class="pos-payment-preview118">${receipt(draft,false,true,fx)}</div><div class="pos-payment-controls">
   <div class="pos-charge-fields"><label>Payment method<select name="payment">${S.config.methods.map(v=>'<option>'+esc(v)+'</option>').join('')}</select></label>
-  ${field('Cash received (LAK)','tendered','0','text','inputmode="decimal" autocomplete="off"')}
+  ${field('Tip (LAK)','tip',savedInputs.tip||0,'number','min="0" max="9999999999.99" step="0.01" inputmode="decimal"')}
+  ${field('Amount received (LAK)','tendered','','text','inputmode="decimal" autocomplete="off"')}
   <label data-change-label><span>Change (LAK)</span><output name="change" aria-live="polite"></output></label></div>
-  ${field('Bank / QR transaction reference','paymentReference','','text','minlength="3"')}
+  <button type="button" data-checkout-discount ${order.data.promotionClaim146?'disabled':''}>Discount</button>
   <section id="checkout-adjustment" data-adjustment hidden></section>
   </div><button type="submit">Paid</button></form>`,async d=>{
    const close=box.querySelector('[data-close]');
    if(order!==draft)throw Error('This order changed. Close checkout and review the order.');
 
-   const tendered=fx?.equivalentLak??(d.payment==='Cash'?Number(d.tendered.replaceAll(',','')):0);
-   if(d.payment==='Cash'&&(!Number.isFinite(tendered)||tendered<t.total))throw Error('Cash received must cover the receipt total.');
+   const tendered=fx?.equivalentLak??received();
+   if(!Number.isFinite(tendered)||tendered<amountDue())throw Error('Amount received must cover the total including tip.');
    if(!applyAdjustment())throw Error('Check the quantities in Adjustment.');
    close.disabled=true;
    try{
-    const result=await save('pay',{payment:d.payment,paymentReference:d.payment==='Cash'?'':d.paymentReference,
+    const result=await save('pay',{payment:d.payment,paymentReference:'',tip:Number(tip.value),collectedTotal:amountDue(),
      offlineNonce:paymentNonce,reviewedTotal:t.total,...(fx?{fxTender:fx}:{}),tendered,confirmed:true},order);
     if(!result||!root.isConnected)return;
     try{sessionStorage.removeItem(checkoutKey)}catch{}
@@ -538,7 +559,7 @@ async function charge(){
     printButton.onclick=()=>print(result);
    }finally{close.disabled=false}
   },{explicitClose:true,keepOpen:true});
- const box=root.querySelector('.pos-dialog118'),form=box.querySelector('form'),method=form.elements.payment,cash=form.elements.tendered,reference=form.elements.paymentReference;
+ const box=root.querySelector('.pos-dialog118'),form=box.querySelector('form'),method=form.elements.payment,cash=form.elements.tendered,tip=form.elements.tip;
  box.id='posChargeDialog';box.classList.add('pos-charge-dialog');
  const paymentNonce=(Number(order.number)&&!S.offline&&navigator.onLine?'pay-':'receipt-')+order.id+':'+uuid();
  const submit=form.querySelector('[type=submit]'),printButton=document.createElement('button');
@@ -547,36 +568,48 @@ async function charge(){
  const toggle=document.createElement('button');toggle.type='button';toggle.textContent='Adjustment';toggle.dataset.toggleAdjustment='';
  toggle.setAttribute('aria-controls','checkout-adjustment');toggle.setAttribute('aria-expanded','false');submit.before(toggle);
  const fxButton=document.createElement('button');fxButton.type='button';fxButton.dataset.fxPayment='';fxButton.textContent='Foreign FX';submit.before(fxButton);
+ const amountDue=()=>(Math.round(t.total*100)+Math.round(n(tip.value)*100))/100;
+ const received=()=>fx?.equivalentLak??(manual&&cash.value!==''?Number(cash.value.replaceAll(',','')):amountDue());
  function rememberInputs(){
   if(S.sample)return;
-  try{sessionStorage.setItem(checkoutKey,JSON.stringify({payment:method.value,tendered:cash.value,reference:reference.value,fx}))}catch{}
+  try{sessionStorage.setItem(checkoutKey,JSON.stringify({payment:method.value,manual,tendered:cash.value,tip:tip.value,fx}))}catch{}
  }
  function setFx(value,payment){
-  fx=value;method.value=payment;cash.readOnly=!!fx;
-  cash.value=fx?fmt(fx.equivalentLak):'0';
+  fx=value;method.value=payment;cash.readOnly=!!fx;manual=false;
   fxButton.setAttribute('aria-pressed',String(!!fx));fxButton.textContent=fx?'FX · '+fx.currency:'Foreign FX';
-  form.querySelector('.pos-payment-preview118').innerHTML=receipt(draft,false,true,fx);
-  update();rememberInputs();
+  refreshTotals();rememberInputs();
  }
- fxButton.onclick=()=>foreignPayment(fx,method.value,t.total,setFx);
+ fxButton.onclick=()=>foreignPayment(fx,method.value,amountDue(),setFx);
+ form.querySelector('[data-checkout-discount]').onclick=()=>chooseDiscount(refreshTotals);
  const section=form.querySelector('[data-adjustment]');
  const applyAdjustment=checkoutStock(form,draft.data.service,stockFields);
  toggle.onclick=()=>{section.hidden=!section.hidden;toggle.setAttribute('aria-expanded',String(!section.hidden))};
  form.addEventListener('invalid',e=>{if(section.contains(e.target)){section.hidden=false;toggle.setAttribute('aria-expanded','true')}},true);
  box.style.setProperty('--receipt-width',paperWidth()+'mm');
  function update(){
-  const bank=method.value!=='Cash',raw=cash.value.replaceAll(',','');
-  reference.required=bank;reference.closest('label').hidden=!bank;
-  cash.disabled=bank;cash.required=!bank;cash.closest('label').hidden=bank;form.querySelector('[data-change-label]').hidden=bank;
-  const valid=/^\d+(?:\.\d{0,2})?$/.test(raw)&&Number.isFinite(Number(raw));
-  cash.setCustomValidity(bank||valid&&Number(raw)>=t.total?'':valid?'Cash received is below the total.':'Enter a valid cash amount.');
-  const difference=Math.round(Number(raw)*100)-Math.round(t.total*100);
-  form.querySelector('[data-change-label] span').textContent=valid&&difference<0?'Amount due (LAK)':'Change (LAK)';
+  const raw=cash.value.replaceAll(',',''),value=received();
+  const valid=(!raw||/^\d+(?:\.\d{0,2})?$/.test(raw))&&Number.isSafeInteger(Math.round(value*100));
+  const difference=Math.round(value*100)-Math.round(amountDue()*100);
+  cash.setCustomValidity(valid&&difference>=0?'':valid?'Amount received is below the total.':'Enter a valid amount.');
+  form.querySelector('[data-change-label] span').textContent=difference>0?'Change (LAK)':'Amount due (LAK)';
   form.elements.change.value=valid?fmt(Math.abs(difference)/100):'—';
  }
- cash.addEventListener('focus',()=>{if(cash.value==='0')cash.select()});
+ function refreshTotals(){
+  t=total(order.data);
+  if(fx)fx.changeLak=(Math.round(fx.equivalentLak*100)-Math.round(amountDue()*100))/100;
+  if(!manual)cash.value=fmt(fx?.equivalentLak??amountDue());
+  cash.placeholder=fmt(amountDue());
+  form.querySelector('[data-checkout-discount]').textContent='Discount · '+discountLabel(order.data);
+  form.querySelector('.pos-payment-preview118').innerHTML=receipt(order,false,true,fx,n(tip.value));
+  update();
+ }
+ tip.onfocus=()=>{if(!n(tip.value))tip.select()};
+ tip.oninput=refreshTotals;
+ cash.addEventListener('focus',()=>{if(!manual&&!fx)cash.select()});
+ cash.addEventListener('click',()=>{if(!manual&&!fx)cash.select()});
+ cash.addEventListener('blur',()=>{if(!cash.value){manual=false;refreshTotals();rememberInputs()}});
  cash.addEventListener('input',()=>{
-  const raw=cash.value.replaceAll(',','');
+  const raw=cash.value.replaceAll(',','');manual=raw!=='';
   if(/^\d+(?:\.\d{0,2})?$/.test(raw)){
    const pos=cash.selectionStart,offset=cash.value.slice(0,pos).replaceAll(',','').length;
    const [whole,fraction]=raw.split('.');
@@ -587,12 +620,12 @@ async function charge(){
   update();
  });
  if(S.config.methods.includes(savedInputs.payment)){
-  method.value=savedInputs.payment;reference.value=savedInputs.reference||'';
-  cash.value=savedInputs.tendered||'0';
-  if(savedInputs.fx&&Number.isFinite(savedInputs.fx.equivalentLak))setFx({...savedInputs.fx,changeLak:(Math.round(savedInputs.fx.equivalentLak*100)-Math.round(t.total*100))/100},method.value);
+  method.value=savedInputs.payment;manual=savedInputs.manual===true;
+  if(manual)cash.value=savedInputs.tendered||'';
+  if(savedInputs.fx&&Number.isFinite(savedInputs.fx.equivalentLak))setFx(savedInputs.fx,method.value);
  }
  form.addEventListener('input',rememberInputs);
- method.addEventListener('change',()=>{if(fx)setFx(null,method.value);else update();rememberInputs()});update();
+ method.addEventListener('change',()=>{if(fx)setFx(null,method.value);else update();rememberInputs()});refreshTotals();
 }
 
 function print(o,kitchen=false,pdf=false,report=null){
@@ -627,7 +660,7 @@ function printPaper(width,title,content){
 }
 function settings(){if(!restaurantCan('pos','manage'))throw Error('Administrator access required');const c=S.config;dialog('POS settings',`<form><h3>Payments & discounts</h3>${['Cash','BCEL QR','Bank'].map(m=>`<label class="check"><input type="checkbox" name="methods" value="${m}" ${c.methods.includes(m)?'checked':''}>${m}</label>`).join('')}${field('Cashier discount limit (%)','discountLimit',c.discountLimit,'number','min="0" max="100" required')}<h3>Legacy cashier list</h3><p>Restaurant sign-in and permissions are managed in Settings → Users & Access. This legacy list does not grant restaurant access.</p>${(typeof liveProfiles!=='undefined'?liveProfiles:[]).filter(p=>p.role!=='admin').map(p=>`<label class="check"><input type="checkbox" name="cashiers" value="${esc(p.id)}" ${c.cashiers.includes(p.id)?'checked':''}>${esc(p.full_name||p.email)}</label>`).join('')||'<p>No additional staff profiles loaded.</p>'}<h3>Printing</h3><label>Receipt paper<select name="receiptWidth"><option value="80" ${n(c.receiptWidth)===80?'selected':''}>80 mm</option><option value="58" ${n(c.receiptWidth)===58?'selected':''}>58 mm</option></select></label>${field('Receipt footer','receiptFooter',c.receiptFooter)}<p>Choose your printer in the print window. For a USB test print or a device-specific paper size, open Management → Configure Printing.</p><button type="submit">Save settings</button></form>`,async(d,f)=>{const values={...c,...d,discountLimit:n(d.discountLimit),receiptWidth:n(d.receiptWidth),methods:new FormData(f).getAll('methods'),cashiers:new FormData(f).getAll('cashiers')};if(!values.methods.length)throw Error('Enable at least one payment method');if(S.sample)S.config=values;else{await rpc('pos_manage118',{p_action:'config',p_data:values,p_version:S.configVersion});await load()}showCenterStatus(S.sample?'Sample settings updated.':'POS settings saved.')})}
 function shift(action){const closing=action==='close',cash=action==='cash';if(!S.sample&&(closing||cash)&&(!navigator.onLine||S.offline||S.offlineQueue.length))throw Error(S.offlineQueue.length?'Sync all pending sales before cash movement or closing the shift.':'Connect to the internet before changing the shift.');if(!S.sample&&action==='open'&&(!navigator.onLine||S.offline))throw Error('Connect once to open a shift before taking offline payments.');dialog(closing?'Close shift':cash?'Cash in / out':'Open shift',`<form>${field(closing?'Counted cash (LAK)':cash?'Amount (positive = in, negative = out)':'Opening float (LAK)','amount',0,'number',(cash?'':'min="0" ')+'step="any" required')}${cash?field('Reason / reference','reason','','text','required minlength="3"'):''}${closing?'<p>The counted cash and variance will be preserved in shift history.</p>':''}<button type="submit">${closing?'Close shift':'Save'}</button></form>`,async d=>{if(!S.sample&&(closing||cash)&&(await posOffline119.queue(offlineOwner())).length)throw Error('Sync pending sales before changing the shift.');if(S.sample){const s=S.shifts.find(s=>!s.closed_at);if(action==='open'){if(s)throw Error('A sample shift is already open');S.shifts.push({id:uuid(),cashier:liveProfile.id,profile:{full_name:currentUser()},opening:n(d.amount),opened_at:new Date().toISOString()})}else if(!s)throw Error('Open a shift first');else if(cash)S.cash.push({id:uuid(),shift_id:s.id,amount:n(d.amount),reason:d.reason});else{Object.assign(s,{closed_at:new Date().toISOString(),counted:n(d.amount),expected:shiftExpected(s)})}}else await rpc('pos_manage118',{p_action:action,p_data:d,p_version:0});if(!S.sample)await load();showCenterStatus('Shift updated.');render()})}
-function refund(cancel=false){const o=selectedOrder();if(!o)return;if(!restaurantCan('pos',cancel?'void':'refund'))throw Error('Administrator approval required');dialog(cancel?'Cancel unpaid order':'Refund paid order',`<form><p>${cancel?'Cancel':'Record a full refund for'} #${o.number} · ${money(o.data.total)}</p>${field('Reason','reason','','text','required minlength="3"')}${cancel?'':'<label class="check"><input type="checkbox" name="restock">Return all consumed ingredients to usable stock</label><p>Leave unchecked for prepared food that cannot be reused. Confirm the actual refund in your payment system separately.</p>'}<button type="submit">${cancel?'Cancel order':'Confirm refund'}</button></form>`,async(d,f)=>{if(S.sample){o.status=cancel?'cancelled':'refunded';o.refunded_at=new Date().toISOString()}else await rpc('pos_order118',{p_id:o.id,p_version:o.version,p_action:cancel?'cancel':'refund',p_data:{reason:d.reason,restock:!!f.elements.restock?.checked}});if(!S.sample)await load();showCenterStatus(cancel?'Order cancelled.':'Refund recorded.');render()})}
+function refund(cancel=false){const o=selectedOrder();if(!o)return;if(!restaurantCan('pos',cancel?'void':'refund'))throw Error('Administrator approval required');dialog(cancel?'Cancel unpaid order':'Refund paid order',`<form><p>${cancel?'Cancel':'Record a full refund for'} ${esc(cancel?'OJ-'+o.number:posReports.numberFor(o))} · ${money(o.data.collectedTotal??o.data.total)}</p>${field('Reason','reason','','text','required minlength="3"')}${cancel?'':'<label class="check"><input type="checkbox" name="restock">Return all consumed ingredients to usable stock</label><p>Leave unchecked for prepared food that cannot be reused. Confirm the actual refund in your payment system separately.</p>'}<button type="submit">${cancel?'Cancel order':'Confirm refund'}</button></form>`,async(d,f)=>{if(S.sample){o.status=cancel?'cancelled':'refunded';o.refunded_at=new Date().toISOString()}else await rpc('pos_order118',{p_id:o.id,p_version:o.version,p_action:cancel?'cancel':'refund',p_data:{reason:d.reason,restock:!!f.elements.restock?.checked}});if(!S.sample)await load();showCenterStatus(cancel?'Order cancelled.':'Refund recorded.');render()})}
 function options(){if(!admin()&&!S.sample)throw Error('Administrator access required');let selected=S.picked||catalog()[0]?.id;if(!selected)throw Error('Add a menu item first');const root=dialog('Customization options','<div id="posOptionsEditor118"></div>');const host=root.querySelector('#posOptionsEditor118');let groups,nonstock;
 function draw(){const record=catalog().find(r=>r.id===selected);groups=structuredClone(record.data.posOptions118||[]);nonstock=record.data.posNoStock118===true;paint()}
 function paint(){host.innerHTML=`<form><label>Menu item<select name="menu">${catalog().map(r=>`<option value="${r.id}" ${r.id===selected?'selected':''}>${esc(r.data.name)}</option>`).join('')}</select></label><label class="check"><input name="nonstock" type="checkbox" ${nonstock?'checked':''}>Non-stock item (no recipe or inventory consumption)</label><p>Required groups set a minimum above zero. Substitutions replace the specified base-recipe ingredient when a choice is selected. Quantities use the ingredient’s recipe unit.</p>${groups.map((g,i)=>`<section class="choice-edit118" data-group-edit118="${i}"><div class="fields118">${field('Group name','gname'+i,g.name)}${field('Minimum choices','gmin'+i,g.min,'number','min="0" max="20" required')}${field('Maximum choices','gmax'+i,g.max,'number','min="1" max="20" required')}${g.included!=null?field('Included choices','gincluded'+i,g.included,'number','min="0" max="20" required')+field('Each extra choice (LAK)','gextra'+i,g.extraPrice||0,'number','min="0" step="any" required'):''}<label>Replaces base ingredient<select name="replace${i}"><option value="">Add-on only</option>${S.ingredients.map(r=>`<option value="${r.id}" ${g.replaces?.includes(r.id)?'selected':''}>${esc(r.data.name)}</option>`).join('')}</select></label></div>${g.options.map((o,j)=>`<div class="option-grid118">${field('Choice','oname'+i+'_'+j,o.name,'text','required')}${field('Extra LAK','oprice'+i+'_'+j,o.price||0,'number','min="0" step="any" required')}<label>Ingredient<select name="oing${i}_${j}"><option value="">No additional ingredient</option>${S.ingredients.map(r=>`<option value="${r.id}" ${o.recipe?.[0]?.itemId===r.id?'selected':''}>${esc(r.data.name)}</option>`).join('')}</select></label>${field('Quantity','oqty'+i+'_'+j,o.recipe?.[0]?.quantity||0,'number','min="0" step="any"')}<button type="button" data-remove-option118="${i},${j}" aria-label="Remove option">×</button></div><label class="check"><input type="checkbox" name="available${i}_${j}" ${o.available!==false?'checked':''}>Available</label>`).join('')}<button type="button" data-add-option118="${i}">Add choice</button> <button type="button" data-remove-group118="${i}">Remove group</button></section>`).join('')}<div class="pos-actions118"><button type="button" data-add-group118>Add option group</button><button type="submit">Save customizations</button></div></form>`;
@@ -649,7 +682,7 @@ async function action(action,b){if(b&&!actionPermission121(b))throw Error('This 
   if(order.data.lines.length===1){if(!restaurantCan('pos','void'))throw Error('Removing the last item requires permission to cancel the open order.');refund(true);return}
   const changed=editableOrder(order);changed.data.lines.splice(i,1);await save('save',{},changed);
  }
- }else if(action==='qty'){if(draft.data.promotionClaim146)throw Error('Cancel the offer order before editing.');const l=draft.data.lines[i];l.quantity=Math.max(1,Math.min(999,l.quantity+n(b.dataset.delta118)));for(const key of Object.keys(l.packaging||{}))l.packaging[key]=Math.min(l.quantity,l.packaging[key]);const row=b.closest('.pos-swipe-row');row.querySelector('.pos-qty118 span').textContent=l.quantity;row.querySelector('.pos-amount118').textContent=money(lineAmount(l));updateDraftPanel()}else if(action==='edit-line'){if(draft.data.promotionClaim146)throw Error('Cancel the offer order before editing.');const l=draft.data.lines[i];pick(l.menuId,false);S.editLine=i;S.choices=structuredClone(l.choices);S.note=l.note;configureItem()}else if(action==='save')await save();else if(action==='charge')await charge();else if(action==='resume'){draft=editableOrder(selectedOrder());rememberDraft();S.sub='New Order';render();}else if(action==='new'){if(draft.data.lines.length&&!await ui117.confirm('Start a new order? Save the current unpaid order first if you need it.'))return;fresh();rememberDraft();S.tab='Sales';S.sub='New Order';render()}else if(['preview','print','pdf','kitchen'].includes(action)){let o=S.tab==='Sales'&&S.sub!=='New Order'?selectedOrder():draft;if(S.tab==='Management'&&(!o||!o.data.lines.length)){o=selectedOrder()}if(!o||!o.data.lines.length)throw Error('Choose an order or receipt first.');if(action==='preview'){const root=dialog('Receipt preview',receipt(o),null,{explicitClose:true}),printButton=document.createElement('button');printButton.type='button';printButton.className='pos-preview-print';printButton.textContent=o.status==='paid'?'Print receipt':'Print bill';root.querySelector('[data-close]').before(printButton);printButton.onclick=()=>print(o)}else print(o,action==='kitchen',action==='pdf')}else if(action==='refund')refund();else if(action==='cancel')refund(true);else if(action==='settings')settings();else if(action==='options')options();else if(action==='links')await links();else if(action==='menu-display'){if(!isAdmin121())throw Error('Administrator access required');await restaurantModules125.ensure('settings');await publicContent127.open()}else if(action==='menu')switchTab('menu-recipe');else if(action==='categories')switchTab('menu-categories');else if(action==='inventory')switchTab('inv-overview');else if(action==='shift-view'){S.tab='Overview';render()}else if(action==='sync'){posReports.clear();await load()}else if(action==='reload'){await load()}else if(action==='open-shift')shift('open');else if(action==='close-shift')shift('close');else if(action==='cash')shift('cash');else if(action==='export')await exportRows();else if(action==='export-pdf')await exportRows(true)}
+ }else if(action==='qty'){if(draft.data.promotionClaim146)throw Error('Cancel the offer order before editing.');const l=draft.data.lines[i];l.quantity=Math.max(1,Math.min(999,l.quantity+n(b.dataset.delta118)));for(const key of Object.keys(l.packaging||{}))l.packaging[key]=Math.min(l.quantity,l.packaging[key]);const row=b.closest('.pos-swipe-row');row.querySelector('.pos-qty118 span').textContent=l.quantity;row.querySelector('.pos-amount118').textContent=money(lineAmount(l));updateDraftPanel()}else if(action==='edit-line'){if(draft.data.promotionClaim146)throw Error('Cancel the offer order before editing.');const l=draft.data.lines[i];pick(l.menuId,false);S.editLine=i;S.choices=structuredClone(l.choices);S.note=l.note;configureItem()}else if(action==='save')await save();else if(action==='charge')await charge();else if(action==='resume'){draft=editableOrder(selectedOrder());rememberDraft();S.sub='New Order';render();}else if(action==='new'){if(draft.data.lines.length&&!await ui117.confirm('Start a new order? Save the current unpaid order first if you need it.'))return;fresh();rememberDraft();S.tab='Sales';S.sub='New Order';render()}else if(['preview','print','pdf','kitchen'].includes(action)){let o=S.tab==='Sales'&&S.sub!=='New Order'?selectedOrder():draft;if(S.tab==='Management'&&(!o||!o.data.lines.length)){o=selectedOrder()}if(!o||!o.data.lines.length)throw Error('Choose an order or receipt first.');if(action==='preview'){await previewNumber(o);const root=dialog('Receipt preview',receipt(o),null,{explicitClose:true}),printButton=document.createElement('button');printButton.type='button';printButton.className='pos-preview-print';printButton.textContent=o.status==='paid'?'Print receipt':'Print bill';root.querySelector('[data-close]').before(printButton);printButton.onclick=()=>print(o)}else print(o,action==='kitchen',action==='pdf')}else if(action==='refund')refund();else if(action==='cancel')refund(true);else if(action==='settings')settings();else if(action==='options')options();else if(action==='links')await links();else if(action==='menu-display'){if(!isAdmin121())throw Error('Administrator access required');await restaurantModules125.ensure('settings');await publicContent127.open()}else if(action==='menu')switchTab('menu-recipe');else if(action==='categories')switchTab('menu-categories');else if(action==='inventory')switchTab('inv-overview');else if(action==='shift-view'){S.tab='Overview';render()}else if(action==='sync'){posReports.clear();await load()}else if(action==='reload'){await load()}else if(action==='open-shift')shift('open');else if(action==='close-shift')shift('close');else if(action==='cash')shift('cash');else if(action==='export')await exportRows();else if(action==='export-pdf')await exportRows(true)}
 function mount(){if($('#pos118'))return;const host=document.createElement('div');host.id='pos118';host.dataset.module='pos';host.className='tab-content';$('#menu-recipe').parentElement.append(host);/* The restaurant shell owns the sidebar; do not inject a second POS link. */fresh();wireSwipe(host);let lastPick=null;host.addEventListener('click',e=>{const rangeButton=e.target.closest('[data-report-range]');
  if(rangeButton){posReports.openRange(rangeButton,S.reportFilter,(from,to)=>{
   Object.assign(S.reportFilter,{from,to});render();host.querySelector('[data-report-range]')?.focus();

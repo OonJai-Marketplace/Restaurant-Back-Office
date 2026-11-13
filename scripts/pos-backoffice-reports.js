@@ -4,17 +4,17 @@
  const route='restaurant-pos-reports', root=()=>document.getElementById(route);
  const esc=value=>escapeHtml(String(value??'')), amount=v=>new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(v/100);
  const cents=v=>Math.round(Number(v)*100), num=v=>new Intl.NumberFormat('en-US',{maximumFractionDigits:3}).format(v);
- const empty=()=>({gross:0,discount:0,refund:0,net:0,qty:0,sales:0,returns:0});
+ const empty=()=>({gross:0,discount:0,refund:0,net:0,tip:0,qty:0,sales:0,returns:0});
  const totals=(a,b)=>{for(const k of Object.keys(empty()))a[k]+=b[k];return a};
  const add=(map,key,v)=>map.set(key,totals(map.get(key)||empty(),v));
  const itemKey=line=>String(line[4]||line[5]||'Unknown item');
- function measure(gross,net,qty,refund){
-  return {gross:refund?0:gross,discount:refund?0:gross-net,refund:refund?-net:0,net,qty,sales:refund?0:1,returns:refund?1:0};
+ function measure(gross,net,qty,refund,tip=0){
+  return {gross:refund?0:gross,discount:refund?0:gross-net,refund:refund?-net:0,net,tip,qty,sales:refund?0:1,returns:refund?1:0};
  }
  function prepare(events){
   return events.map(event=>{
    const {order,refund,at}=event,d=order.data, receipt=posReports.salesReport([event],false)[1];
-   return {order,refund,at,day:posReports.day(at),shift:String((refund?d.refundShiftId:d.shiftId)||'unassigned'),payment:d.payment||'Unspecified',service:d.service||'Unspecified',lines:posReports.salesReport([event],true).slice(1),value:measure(cents(receipt[6]),cents(receipt[8]),receipt[5],refund)};
+   return {order,refund,at,day:posReports.day(at),shift:String((refund?d.refundShiftId:d.shiftId)||'unassigned'),payment:d.payment||'Unspecified',service:d.service||'Unspecified',lines:posReports.salesReport([event],true).slice(1),value:measure(cents(receipt[6]),cents(receipt[8]),receipt[5],refund,(refund?-1:1)*cents(d.tip||0))};
   });
  }
  function summarize(events,f){
@@ -115,7 +115,7 @@
  function detail(record){
   if(!record)return;const {e}=record,d=e.order.data,dialog=document.createElement('dialog');dialog.className='ops-dialog';
   dialog.setAttribute('aria-label','Receipt '+posReports.numberFor(e.order));
-  dialog.innerHTML='<header><h2>'+esc((e.refund?'Refund · receipt ':'Receipt ')+posReports.numberFor(e.order))+'</h2>'+btn('Close','close')+'</header><p>'+esc([posReports.stamp(e.at),e.payment,e.service,d.cashier].filter(Boolean).join(' · '))+'</p><div class="ops-scroll"><table><thead><tr><th>Menu item</th><th>Quantity</th><th>Unit price</th><th>Line total</th></tr></thead><tbody>'+e.lines.map(l=>'<tr><td>'+esc(l[5])+(l[6]?'<small>'+esc(l[6])+'</small>':'')+'</td><td>'+num(l[8])+'</td><td>'+amount(cents(l[9]))+'</td><td>'+amount(cents(l[12]))+'</td></tr>').join('')+'</tbody></table></div><p><b>Receipt total · '+amount(e.value.net)+' LAK</b></p>'+(d.fxTender?'<p>'+esc(posReports.fxDescription(d.fxTender))+'</p>':'')+(e.refund&&d.reason?'<p>Refund reason · '+esc(d.reason)+'</p>':'');
+  dialog.innerHTML='<header><h2>'+esc((e.refund?'Refund · receipt ':'Receipt ')+posReports.numberFor(e.order))+'</h2>'+btn('Close','close')+'</header><p>'+esc([posReports.stamp(e.at),e.payment,e.service,d.cashier].filter(Boolean).join(' · '))+'</p><div class="ops-scroll"><table><thead><tr><th>Menu item</th><th>Quantity</th><th>Unit price</th><th>Line total</th></tr></thead><tbody>'+e.lines.map(l=>'<tr><td>'+esc(l[5])+(l[6]?'<small>'+esc(l[6])+'</small>':'')+'</td><td>'+num(l[8])+'</td><td>'+amount(cents(l[9]))+'</td><td>'+amount(cents(l[12]))+'</td></tr>').join('')+'</tbody></table></div><p><b>Net sales · '+amount(e.value.net)+' LAK</b></p><p>Tip · '+amount(e.value.tip)+' LAK</p><p><b>Total collected · '+amount(e.value.net+e.value.tip)+' LAK</b></p>'+(d.fxTender?'<p>'+esc(posReports.fxDescription(d.fxTender))+'</p>':'')+(e.refund&&d.reason?'<p>Refund reason · '+esc(d.reason)+'</p>':'');
   dialog.querySelector('button').onclick=()=>dialog.close();dialog.onclick=ev=>{if(ev.target===dialog&&(ev.clientX<dialog.getBoundingClientRect().left||ev.clientX>dialog.getBoundingClientRect().right||ev.clientY<dialog.getBoundingClientRect().top||ev.clientY>dialog.getBoundingClientRect().bottom))dialog.close()};dialog.onclose=()=>dialog.remove();root().append(dialog);dialog.showModal();
  }
  async function manageDiscounts(){
@@ -153,7 +153,7 @@
  }
  function render(){
   if(!active())return;const el=root(),m=summarize(state.events,state),v=m.summary;
-  el.innerHTML='<section class="ops-panel"><header><h2>POS sales reports</h2><div>'+(isAdmin121()?btn('Discounts','discounts')+' '+btn('Profitability','profit'):'')+' '+btn('Refresh','refresh')+' '+btn('Download CSV','download','',state.loading||state.error?'disabled':'')+'</div></header>'+controls()+(state.error?'<p role="alert">'+esc(state.error)+'</p>':state.loading?'<p role="status">Loading sales…</p>':'<div class="ops-kpis">'+moneyCols.map((label,j)=>'<button type="button" data-op="metric" data-value="'+['gross','discount','refund','net'][j]+'" aria-pressed="'+(state.metric===['gross','discount','refund','net'][j])+'"><small>'+label+' (LAK)</small><strong>'+amounts(v)[j]+'</strong></button>').join('')+'</div><p class="ops-note">'+v.sales+' sale receipts · '+v.returns+' refunds · '+num(v.qty)+' net items. Refunds use the amount returned on the date issued.</p>'+graph(m)+'<div class="ops-table-head"><h3>'+views[state.view]+'</h3><input aria-label="Search report rows" type="search" placeholder="Search rows" value="'+esc(state.find)+'"></div><div data-list>'+listing(m)+'</div>')+'</section>';
+  el.innerHTML='<section class="ops-panel"><header><h2>POS sales reports</h2><div>'+(isAdmin121()?btn('Discounts','discounts')+' '+btn('Profitability','profit'):'')+' '+btn('Refresh','refresh')+' '+btn('Download CSV','download','',state.loading||state.error?'disabled':'')+'</div></header>'+controls()+(state.error?'<p role="alert">'+esc(state.error)+'</p>':state.loading?'<p role="status">Loading sales…</p>':'<div class="ops-kpis">'+moneyCols.map((label,j)=>'<button type="button" data-op="metric" data-value="'+['gross','discount','refund','net'][j]+'" aria-pressed="'+(state.metric===['gross','discount','refund','net'][j])+'"><small>'+label+' (LAK)</small><strong>'+amounts(v)[j]+'</strong></button>').join('')+(state.item?'':'<div><small>Net tips (LAK)</small><strong>'+amount(v.tip)+'</strong></div><div><small>Total collected (LAK)</small><strong>'+amount(v.net+v.tip)+'</strong></div>')+'</div><p class="ops-note">'+v.sales+' sale receipts · '+v.returns+' refunds · '+num(v.qty)+' net items. Refunds use the amount returned on the date issued.</p>'+graph(m)+'<div class="ops-table-head"><h3>'+views[state.view]+'</h3><input aria-label="Search report rows" type="search" placeholder="Search rows" value="'+esc(state.find)+'"></div><div data-list>'+listing(m)+'</div>')+'</section>';
   const query=el.querySelector('input[type=search]');if(query)query.oninput=()=>{state.find=query.value;state.page=0;el.querySelector('[data-list]').innerHTML=listing(m)};
   el.onchange=e=>{const k=e.target.dataset.key;if(!k)return;const v=e.target.value;if(['period','month','year'].includes(k)){
    if(!v)return;state.dates[k]=v;if(k==='period'&&v==='today')state.dates.from=state.dates.to=posReports.day(Date.now());state.find='';state.shift=state.item=state.payment=state.service='';load();
@@ -167,10 +167,10 @@
     const events=m.receipts.map(({e,value})=>{
      if(!state.item)return e;
      const d=e.order.data,net=Math.abs(value.net)/100,subtotal=e.refund?net:value.gross/100;
-     return {...e,order:{...e.order,data:{...d,subtotal,total:net,fxTender:d.fxTender}}};
+     return {...e,order:{...e.order,data:{...d,subtotal,total:net,tip:0,fxTender:d.fxTender}}};
     });
     let summary=restaurantReportSummary.rows(events);
-    if(state.item){summary=summary.slice(0,summary.findIndex(r=>r[0]==='Currency')).map(r=>r.length===3?r.slice(0,2):r);summary.push(['Foreign tender and change are recorded per receipt. Clear the item filter for currency totals.'])}
+    if(state.item){summary=summary.slice(0,summary.findIndex(r=>r[0]==='Currency')).filter(r=>!['Net tips','Total collected after refunds'].includes(r[0])).map(r=>r.length===4?r.slice(0,2):r);summary.push(['Foreign tender and change are recorded per receipt. Clear the item filter for currency totals.'])}
     const criteria=[state.item?state.items.get(state.item):'',state.payment,state.service,state.shift?shiftName(state.shift):''].filter(Boolean);
     const rows=[['Oon Jai Restaurant',views[state.view],range.from,range.to,...criteria],...summary,[],['Details'],...detail];
     const url=URL.createObjectURL(new Blob(['\ufeff'+posReports.csv(rows)],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');

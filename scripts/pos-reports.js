@@ -120,7 +120,7 @@ var posReports = globalThis.posReports || (() => {
   const fmt=v=>new Intl.NumberFormat('en-US',{maximumFractionDigits:6}).format(v);
   return fx?'FX payment: '+fmt(fx.amount)+' '+fx.currency+' × '+fmt(fx.rate)+' LAK = '+fmt(fx.equivalentLak)+' LAK · Change: '+fmt(fx.changeLak)+' LAK':'';
  }
- const receiptHeader=['Date','Receipt number','Receipt type','Shift ID','Description','Quantity','Gross sales (LAK)','Discount (LAK)','Total collected (LAK)','Payment method','Payment reference','Sale cashier','Customer','Dining option','Note','Refund reason','Status','Original payment date','Refund date','Original tender currency','Foreign amount received','LAK per foreign unit','Original tender equivalent (LAK)','Original change (LAK)'];
+ const receiptHeader=['Date','Receipt number','Receipt type','Shift ID','Description','Quantity','Gross sales (LAK)','Discount (LAK)','Net sales (LAK)','Payment method','Payment reference','Sale cashier','Customer','Dining option','Note','Refund reason','Status','Original payment date','Refund date','Original tender currency','Foreign amount received','LAK per foreign unit','Original tender equivalent (LAK)','Original change (LAK)','Tip (LAK)','Total collected (LAK)'];
  const itemHeader=['Date','Receipt number','Receipt type','Shift ID','Menu item ID','Menu item','Modifiers','Item note','Quantity','Unit price (LAK)','Gross sales (LAK)','Allocated discount (LAK)','Line total (LAK)','Payment method','Ingredients restocked'];
  function salesReport(events,items) {
   const rows=[items?itemHeader:receiptHeader];
@@ -132,7 +132,7 @@ var posReports = globalThis.posReports || (() => {
    const paid=cents(d.total), subtotal=d.subtotal==null?grossSum:cents(d.subtotal);
    if(!items) {
     rows.push([...common,lines.map(l=>l.quantity+' × '+l.name).join(', '),sign*lines.reduce((sum,l)=>sum+Number(l.quantity),0),
-     sign*subtotal/100,sign*(subtotal-paid)/100,sign*paid/100,d.payment,d.paymentReference,d.cashier,d.customer,d.service,d.note,refund?d.reason:'',order.status,stamp(order.paid_at),stamp(order.refunded_at),d.fxTender?.currency??'',d.fxTender?.amount??'',d.fxTender?.rate??'',d.fxTender?.equivalentLak??'',d.fxTender?.changeLak??'']);
+     sign*subtotal/100,sign*(subtotal-paid)/100,sign*paid/100,d.payment,d.paymentReference,d.cashier,d.customer,d.service,d.note,refund?d.reason:'',order.status,stamp(order.paid_at),stamp(order.refunded_at),d.fxTender?.currency??'',d.fxTender?.amount??'',d.fxTender?.rate??'',d.fxTender?.equivalentLak??'',d.fxTender?.changeLak??'',sign*cents(d.tip||0)/100,sign*(paid+cents(d.tip||0))/100]);
     continue;
    }
    // Allocate the recorded receipt total across lines. Cumulative rounding keeps the sum exact.
@@ -165,7 +165,7 @@ var posReports = globalThis.posReports || (() => {
     s.sample?s.cash:pages(()=>ojmDb.from('pos_cash118').select('id,shift_id,amount').in('shift_id',ids),check)]);
    for(const order of sold)events.push({order,refund:false,at:order.paid_at});
    for(const order of refunded)events.push({order,refund:true,at:order.refunded_at});
-   const paymentsFor=(orders,key)=>orders.map(o=>({shift:o.data[key],amount:o.data.total,method:o.data.payment,cashier:o.data.cashier}));
+   const paymentsFor=(orders,key)=>orders.map(o=>({shift:o.data[key],amount:o.data.collectedTotal??o.data.total,method:o.data.payment,cashier:o.data.cashier}));
    const sales=paymentsFor(sold,'shiftId'),refunds=paymentsFor(refunded,'refundShiftId');
    const sum=values=>values.reduce((a,b)=>a+cents(b.amount),0)/100;
    for(const shift of batch) {
@@ -211,7 +211,7 @@ var posReports = globalThis.posReports || (() => {
   return cached.job;
  }
  function summary(rows,type){
-  const data=rows.slice(1),index={items:12,receipts:8,shifts:9}[type];
+  const data=rows.slice(1),index={items:12,receipts:25,shifts:9}[type];
   const net=data.reduce((sum,row)=>sum+cents(row[index]),0)/100;
   const count=type==='items'?new Set(data.map(row=>row[4]||row[5])).size:data.length;
   const name={items:'menu items',receipts:'receipts',shifts:'shifts'}[type];

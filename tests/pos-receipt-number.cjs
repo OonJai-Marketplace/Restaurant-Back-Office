@@ -70,6 +70,24 @@ const {PGlite}=require('@electric-sql/pglite');
   const legacy=await run(randomUUID(),0,'pay',data);
   assert.equal(legacy.data.receiptCode,prefix+'A259');
   assert.equal((await reserve(randomUUID(),year+1)).first,2);
+  const tipped={...data,discount:10,discountType:'percent',reviewedTotal:1800,tip:200,tendered:2500};
+  const shiftBefore=async()=>(await query('select pos_cashier_snapshot125() as s')).s.shiftExpected125;
+  const opening=await shiftBefore();
+  for(const method of ['Cash','BCEL QR','Bank']){
+   const order=randomUUID(),packet={...tipped,payment:method};
+   await assert.rejects(()=>run(order,0,'pay',{...packet,tendered:1999}),/including tip/);
+   const sale=await run(order,0,'pay',packet);
+   assert.equal(sale.data.tip,200);assert.equal(sale.data.total,1800);assert.equal(sale.data.collectedTotal,2000);
+   assert.equal(await shiftBefore(),opening+(method==='Cash'?2000:-500));
+   await run(order,sale.version,'refund',{reason:'Test full refund'});
+   if(method!=='Cash')await query("select pos_manage118('cash',$1,0)",[{amount:500,reason:'Test replenish change'}]);
+   assert.equal(await shiftBefore(),opening);
+  }
+  const fxId=randomUUID(),fx={currency:'USD',amount:1,rate:2500,equivalentLak:2500,changeLak:500};
+  const fxPaid=await run(fxId,0,'pay',{...tipped,payment:'Bank',fxTender:fx});
+  assert.equal(fxPaid.data.fxTender.changeLak,500);
+  await assert.rejects(()=>run(randomUUID(),0,'pay',{...tipped,tip:-1}),/valid tip/);
+  console.log('PASS cash, bank and QR tips, optional reference, underpayment, FX, drawer and refunds');
   console.log('PASS two register ranges, reissued response, identical offline receipt, duplicate protection and legacy coexistence');
   console.log('PASS real POS RPC, reviewed basket, retry, refund, annual Laos rollover and A–Z boundaries');
  }finally{await db.close()}

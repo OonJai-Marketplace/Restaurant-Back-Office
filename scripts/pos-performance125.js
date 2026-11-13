@@ -4,6 +4,9 @@
  const day=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Vientiane',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
  const active=()=>!!liveProfile&&!document.hidden&&document.querySelector('#pos118')?.classList.contains('active');
  const network=e=>/failed to fetch|networkerror|network request failed|load failed|network request timed out/i.test(e.message)&&!/permission|access required|unauthorized|inactive/i.test(e.message);
+ function paymentChange(d){
+  return d.collectedTotal!=null?Math.max(0,(Math.round(Number(d.tendered)*100)-Math.round(d.collectedTotal*100))/100):Number(d.fxTender?.changeLak||0);
+ }
  async function rpc(name,args){
   const controller=new AbortController();let timeout;
   try{let request=ojmDb.rpc(name,args);if(request.abortSignal)request=request.abortSignal(controller.signal);
@@ -60,8 +63,8 @@
   s.orders=[order,...s.orders.filter(o=>o.id!==order.id)];
   if(order.status==='paid'&&!wasPaid){
    if(s.balances125)for(const [id,quantity] of Object.entries(usage||{}))s.balances125[id]=Number(s.balances125[id]||0)-quantity;
-   if(order.data.payment==='Cash')s.shiftExpected125=Number(s.shiftExpected125||0)+Number(order.data.total||0);
-   else if(order.data.fxTender?.changeLak)s.shiftExpected125=Number(s.shiftExpected125||0)-Number(order.data.fxTender.changeLak);
+   if(order.data.payment==='Cash')s.shiftExpected125=Number(s.shiftExpected125||0)+Number(order.data.collectedTotal??order.data.total);
+   else s.shiftExpected125=Number(s.shiftExpected125||0)-paymentChange(order.data);
    if(s.summary125){s.summary125.received+=Number(order.data.total||0);s.summary125.paidCount++;if(existing?.status==='unpaid')s.summary125.openCount=Math.max(0,s.summary125.openCount-1)}
   }
   if(s.schema125){const keys=['schema125','catalogVersion125','config','configVersion','menu','ingredients','items','categories','moves','stock','orders','shifts','cash','balances125','acknowledged125','summary125','shiftExpected125','receiptCount125','refreshedAt125'];
@@ -74,7 +77,7 @@
   for(const [tab,sub] of [['Sales','New Order'],['Sales','Open Orders'],['Sales','Receipts'],['Sales','Online Orders'],['Overview','New Order'],['Management','New Order']])if(allowed(tab,sub)){s.tab=tab;s.sub=sub;return}
  }
  function overview(s){const m=v=>new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(Number(v)||0)+' LAK',esc=shell113.esc,summary=s.summary125||{},shift=s.shifts.find(x=>x.cashier===liveProfile.id&&!x.closed_at),button=(title,a)=>`<button type="button" data-pos118="${a}">${title}</button>`;
-  const pending=s.offlineQueue.filter(e=>e.action==='pay'&&!s.acknowledged125?.includes(e.order.id)).reduce((n,e)=>n+(e.data.payment==='Cash'?Number(e.order.data.total||0):-Number(e.data.fxTender?.changeLak||0)),0);
+  const pending=s.offlineQueue.filter(e=>e.action==='pay'&&!s.acknowledged125?.includes(e.order.id)).reduce((n,e)=>n+(e.data.payment==='Cash'?Number(e.order.data.collectedTotal??e.order.data.total):-paymentChange(e.order.data)),0);
   return `<div class="pos-metrics118">${[['Net sales today',m(Number(summary.received||0)-Number(summary.refunds||0))],['Paid orders today',summary.paidCount||0],['Open orders',summary.openCount||0],['Refunds today',m(summary.refunds)]].map(([title,value])=>`<section class="pos-card118 pos-metric118"><div>${title}<strong>${value}</strong></div></section>`).join('')}</div><section class="pos-card118"><h2>Current shift</h2><p>${esc(liveProfile.full_name||'Cashier')}</p>${shift?`<p>Opening float: ${m(shift.opening)}</p><p>Expected drawer: ${m(Number(s.shiftExpected125||0)+pending)}${pending?' · includes pending local cash sales':''}</p>${button('Cash In / Out','cash')}${button('Close Shift','close-shift')}`:button('Open Shift','open-shift')}<p>${s.offline?'Last saved totals; reconnect to refresh.':'Totals cover all sales today, independently of the recent receipt list.'}</p></section>`;
  }
  async function report(from,to){if(!restaurantTabCan125('pos','pos-management')||!restaurantTabCan125('pos','pos-sales-receipts'))throw Error('Report access required');

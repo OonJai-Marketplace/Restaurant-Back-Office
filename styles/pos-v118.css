@@ -269,7 +269,7 @@ html body.shell113 #posChargeDialog #pos-charge-form {
  display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:16px;align-items:start;
 }
 html body.shell113 #posChargeDialog .pos-charge-fields {grid-template-columns:repeat(2,minmax(0,1fr))}
-html body.shell113 #posChargeDialog .pos-charge-fields>label:first-child {grid-column:1/-1}
+html body.shell113 #posChargeDialog .pos-charge-fields>label:first-child {grid-column:auto}
 html body.shell113 #posChargeDialog input[name=tendered] {font-size:16px!important}
 html body.shell113 #posChargeDialog>header :is(button[type=submit],[data-close],[data-print-receipt],[data-fx-payment],[data-toggle-adjustment]) {
  height:44px!important;min-height:44px!important;max-height:none!important;min-width:44px;

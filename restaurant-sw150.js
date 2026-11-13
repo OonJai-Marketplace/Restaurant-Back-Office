@@ -6,7 +6,7 @@ self.addEventListener('activate',event=>event.waitUntil(self.clients.claim()));
 // Retain earlier caches for tabs still running an older release. No private stores are changed.
 self.addEventListener('message',event=>{
  if(event.data?.type!=='CACHE_SHELL150')return;
- event.waitUntil((async()=>{const cache=await caches.open(CACHE);for(const file of ['./','back-office/','pos/','kitchen/','scripts/restaurant-core150.bundle.js?v=receipt14','scripts/restaurant-pos150.bundle.js?v=receipt14','styles/pos-v118.css?v=checkout13','styles/pos-receipt.css?v=checkout13','assets/brand/oonjai-logo.png'])try{const url=new URL(file,ROOT),response=await fetch(url,{cache:'reload'});if(response.ok)await cache.put(url,response)}catch{}})());
+ event.waitUntil((async()=>{const cache=await caches.open(CACHE);for(const file of ['./','back-office/','pos/','kitchen/','scripts/restaurant-core150.bundle.js?v=checkout15','scripts/restaurant-pos150.bundle.js?v=checkout15','styles/pos-v118.css?v=checkout15','styles/pos-receipt.css?v=checkout15','assets/brand/oonjai-logo.png'])try{const url=new URL(file,ROOT),response=await fetch(url,{cache:'reload'});if(response.ok)await cache.put(url,response)}catch{}})());
 });
 self.addEventListener('fetch',event=>{
  const request=event.request,url=new URL(request.url);

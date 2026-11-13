@@ -8,7 +8,7 @@ article.pos-thermal-paper {
   background: white;
   color: #171d18;
   text-align: left;
-  font: 13px/1.45 Georgia, serif;
+  font: 11px/1.35 Georgia, serif;
   overflow-wrap: anywhere;
   -webkit-text-size-adjust: none;
   text-size-adjust: none;
@@ -23,12 +23,23 @@ article.pos-thermal-paper .paper-brand img {
   margin: 0 auto 1mm;
   object-fit: contain;
 }
-article.pos-thermal-paper .paper-brand strong { display: block; font-size: 16px }
+article.pos-thermal-paper .paper-brand strong { display: block; font-size: 14px }
 article.pos-thermal-paper .paper-brand b { display: block; font-size: 11px }
 article.pos-thermal-paper hr { height: 0; margin: 2.5mm 0; border: 0; border-top: 1px dashed #666 }
 article.pos-thermal-paper .receipt-row118 { display: flex; align-items: baseline; justify-content: space-between; gap: 2mm; margin: 1.5mm 0 }
 article.pos-thermal-paper .receipt-row118 > span { min-width: 0 }
 article.pos-thermal-paper .receipt-row118 > span:last-child { text-align: right }
-article.pos-thermal-paper p { font: inherit; color: inherit; margin: 2mm 0 }
+article.pos-thermal-paper p { font: inherit !important; color: inherit; margin: 2mm 0 }
 article.pos-thermal-paper .sales-summary { width: 100%; border-collapse: collapse; font: 10px/1.3 Arial, sans-serif }
 article.pos-thermal-paper .sales-summary td { padding: 1mm 0; border-bottom: 1px solid #ccc }
+
+article.pos-thermal-paper .paper-meta strong { white-space: nowrap; text-align: right }
+article.pos-thermal-paper .paper-timestamp { display: block; text-align: center; font: 9px/1.35 Georgia, serif !important; margin-top: 2mm }
+
+/* The app shell sets global type with !important. Mirror the paper face inside its overlays. */
+html body.shell113 .ui-overlay108 article.pos-thermal-paper,
+html body.shell113 .ui-overlay108 article.pos-thermal-paper *,
+html body.shell113 #pos118 article.pos-thermal-paper,
+html body.shell113 #pos118 article.pos-thermal-paper * { font-family: Georgia, serif !important }
+html body.shell113 .ui-overlay108 .ui-dialog108 article.pos-thermal-paper p,
+html body.shell113 #pos118 article.pos-thermal-paper p { font-size: 11px !important; line-height: 1.35 !important }

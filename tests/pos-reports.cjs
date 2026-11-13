@@ -46,6 +46,16 @@ async function test(){
  assert.equal(amount('Cash'),0);assert.equal(amount('USD'),5);assert.equal(amount('Paid in foreign currency'),85);
  assert.equal(amount('Total foreign tender valued (LAK)'),110);
  const result=ctx.restaurantReportSummary.rows([...mix,{order:fxSale,refund:true}]);assert.equal(result.find(r=>r[0]==='USD')[1],5);
+ const tipped={...receipt,data:{...receipt.data,payment:'Bank',tip:5,total:85,collectedTotal:90,tendered:100}};
+ const event={order:tipped,refund:false,at:receipt.paid_at};
+ const signed=ctx.restaurantReportSummary.rows([event]);
+ assert.equal(signed.find(row=>row[0]==='Net tips')[1],5);
+ assert.equal(signed.find(row=>row[0]==='Total collected after refunds')[1],90);
+ assert.deepEqual(Array.from(signed.find(row=>row[0]==='Bank')),['Bank',85,5,100]);
+ assert.equal(signed.find(row=>row[0]==='Cash')[3],-10);
+ const reversed=ctx.restaurantReportSummary.rows([event,{...event,refund:true}]);
+ assert.equal(reversed.find(row=>row[0]==='Net tips')[1],0);
+ assert.equal(reversed.find(row=>row[0]==='Total collected after refunds')[1],0);
  await r.download({...f,type:'shifts'},state,false);assert.match(await blob.text(),/"Gross sales","100"/);
  await r.download({...f,from:'2024-03-01',to:'2024-03-01',type:'receipts'},state,false);
  assert.match(await blob.text(),/"Refund"/);assert.doesNotMatch(await blob.text(),/"Sale"/);
