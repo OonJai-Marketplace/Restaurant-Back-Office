@@ -39,6 +39,7 @@
   async load(...args){await ensure('inventory');return window.menuStore108.load(...args)}};
  const base=switchTab;
  window.switchTab=function(id,...args){
+  if(id!=='pos118'&&window.restaurantShell122?.tabletFocusActive()&&restaurantTabCan125('pos','pos-sales-new'))return false;
   if(!restaurantRouteAllowed128(id)){if(liveProfile)showCenterStatus('This area is not included in your access.',true);return false;}
   const scope=scopes121(id);
   const group=groupFor(id);if(!['inventory','menu','kitchen'].includes(group))window.menuStore108.cancelLoad?.();if(group!=='kitchen')window.kitchen124?.cancelLoad?.();

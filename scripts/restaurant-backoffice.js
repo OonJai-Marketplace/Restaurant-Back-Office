@@ -96,16 +96,18 @@ async function hydrateCore132(session){if(!session?.user){clearRestaurantSession
  const requested={allocated:'inv-allocated','sales-reports':'restaurant-pos-reports',pos:'pos118',kitchen:'inv-bulk132',recipes:'menu-recipe',ingredients:'menu-ingredients',website:'restaurant-website'}[new URLSearchParams(location.search).get('workspace')];if(requested&&restaurantRouteAllowed128(requested))id=requested;
  // Authorization is complete. Close login before downloading modules or records.
  document.getElementById('loginGate').hidden=true;document.getElementById('loginGate').classList.add('is-authenticated');document.getElementById('restaurantApp').hidden=false;loginProgress132('');
- void openRestaurantWorkspace142(id,liveProfile.id,epoch);
+ const restoreFocus=window.restaurantShell122?.restoreTabletFocus();
+ void openRestaurantWorkspace142(restoreFocus?'pos118':id,liveProfile.id,epoch,restoreFocus);
  // Branding is optional presentation data; it must never delay sign-in.
  void loginWait140(loadBanners(),'Branding request timed out.').catch(()=>{});
 }
-async function openRestaurantWorkspace142(id,owner,epoch){
+async function openRestaurantWorkspace142(id,owner,epoch,restoreFocus=false){
  const current=()=>liveProfile?.id===owner&&sessionEpoch121===epoch;
  try{
   if(!current())return;
   // The module router shows its own local loading message and handles navigation cancellation.
   const opened=await switchTab(id);if(!opened||!current())return;
+  if(restoreFocus)await restaurantShell122.enterFocus();
   const group=restaurantModules125.groupFor(id);
   if(['inventory','menu'].includes(group))await menuStore108.load();
   if(group==='kitchen')await kitchen124.load();

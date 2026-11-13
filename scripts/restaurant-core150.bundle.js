@@ -139,16 +139,18 @@ async function hydrateCore132(session){if(!session?.user){clearRestaurantSession
  const requested={allocated:'inv-allocated','sales-reports':'restaurant-pos-reports',pos:'pos118',kitchen:'inv-bulk132',recipes:'menu-recipe',ingredients:'menu-ingredients',website:'restaurant-website'}[new URLSearchParams(location.search).get('workspace')];if(requested&&restaurantRouteAllowed128(requested))id=requested;
  // Authorization is complete. Close login before downloading modules or records.
  document.getElementById('loginGate').hidden=true;document.getElementById('loginGate').classList.add('is-authenticated');document.getElementById('restaurantApp').hidden=false;loginProgress132('');
- void openRestaurantWorkspace142(id,liveProfile.id,epoch);
+ const restoreFocus=window.restaurantShell122?.restoreTabletFocus();
+ void openRestaurantWorkspace142(restoreFocus?'pos118':id,liveProfile.id,epoch,restoreFocus);
  // Branding is optional presentation data; it must never delay sign-in.
  void loginWait140(loadBanners(),'Branding request timed out.').catch(()=>{});
 }
-async function openRestaurantWorkspace142(id,owner,epoch){
+async function openRestaurantWorkspace142(id,owner,epoch,restoreFocus=false){
  const current=()=>liveProfile?.id===owner&&sessionEpoch121===epoch;
  try{
   if(!current())return;
   // The module router shows its own local loading message and handles navigation cancellation.
   const opened=await switchTab(id);if(!opened||!current())return;
+  if(restoreFocus)await restaurantShell122.enterFocus();
   const group=restaurantModules125.groupFor(id);
   if(['inventory','menu'].includes(group))await menuStore108.load();
   if(group==='kitchen')await kitchen124.load();
@@ -366,6 +368,7 @@ window.restaurantPosMode128=()=> 'live';
   async load(...args){await ensure('inventory');return window.menuStore108.load(...args)}};
  const base=switchTab;
  window.switchTab=function(id,...args){
+  if(id!=='pos118'&&window.restaurantShell122?.tabletFocusActive()&&restaurantTabCan125('pos','pos-sales-new'))return false;
   if(!restaurantRouteAllowed128(id)){if(liveProfile)showCenterStatus('This area is not included in your access.',true);return false;}
   const scope=scopes121(id);
   const group=groupFor(id);if(!['inventory','menu','kitchen'].includes(group))window.menuStore108.cancelLoad?.();if(group!=='kitchen')window.kitchen124?.cancelLoad?.();
@@ -381,7 +384,7 @@ window.restaurantPosMode128=()=> 'live';
 /* scripts/restaurant-shell122.js */
 /* Restaurant navigation, account controls and POS notifications. */
 (()=>{'use strict';
-const $=id=>document.getElementById(id);let focus=false,nativeOwned=false,queued=false;
+const $=id=>document.getElementById(id);let focus=false,tabletFocus=false,nativeOwned=false,queued=false;
 function hidden(node,value){if(node&&node.hidden!==value)node.hidden=value}
 function closePanels(){for(const id of ['workspaceApps122','headerNotices104'])$(id)?.remove();$('upcomingBell101')?.setAttribute('aria-expanded','false')}
 function sync(){queued=false;window.restaurantTableRows?.restore();const signed=!!liveProfile&&!$('restaurantApp').hidden;hidden($('workspaceTools108'),!signed);hidden($('switchAccount110'),!signed||liveProfile?.role!=='admin');if(!signed){closePanels();if(focus)leaveFocus();return}
@@ -394,13 +397,34 @@ function sync(){queued=false;window.restaurantTableRows?.restore();const signed=
 }
 function queue(){if(!queued){queued=true;requestAnimationFrame(sync)}}
 function brand(){const tile=document.querySelector('.logo-tile113'),d=bannerRows.brand||{};if(tile){tile.style.backgroundColor=({Ivory:'#fffaf1',Gold:'#ecce88',Green:'#17553e',Brown:'#694b34'})[d.background]||'#fffaf1';tile.disabled=!window.restaurantAccounting124?.tablet()&&!restaurantCan('settings','appearance')}}
-async function enterFocus(){if(!restaurantTabCan125('pos','pos-sales-new'))return;closePanels();closeMobileNavigation();
+const tabletFocusKey='restaurant-tablet-pos-focus';
+function rememberTabletFocus(owner){
+ try{if(owner)sessionStorage.setItem(tabletFocusKey,owner);else sessionStorage.removeItem(tabletFocusKey)}catch{}
+}
+function restoreTabletFocus(){
+ try{return !!liveProfile&&sessionStorage.getItem(tabletFocusKey)===liveProfile.id&&restaurantAccounting124.tablet()&&restaurantTabCan125('pos','pos-sales-new')}catch{return false}
+}
+async function enterFocus(){
+ if(focus||!restaurantTabCan125('pos','pos-sales-new'))return;
+ closePanels();closeMobileNavigation();
  if(!$('pos118')?.classList.contains('active')){
   const opened=await switchTab('pos118');
   if(opened===false||!$('pos118')?.classList.contains('active'))return;
  }
- pos118.state.tab='Sales';pos118.state.sub='New Order';pos118.render();focus=true;document.body.classList.add('pos-focus122');$('posFullscreen122').setAttribute('aria-pressed','true');sync();document.querySelector('[data-exit-focus122]')?.focus({preventScroll:true});try{if(!document.fullscreenElement&&document.documentElement.requestFullscreen){await document.documentElement.requestFullscreen();nativeOwned=true}}catch{/* Expanded orders still fill the available screen when native fullscreen is unavailable. */}}
-async function leaveFocus(){if(!focus)return;focus=false;document.body.classList.remove('pos-focus122');$('posFullscreen122')?.setAttribute('aria-pressed','false');if(liveProfile)$('posFullscreen122')?.focus({preventScroll:true});const owned=nativeOwned;nativeOwned=false;if(owned&&document.fullscreenElement)try{await document.exitFullscreen()}catch{} }
+ pos118.state.tab='Sales';pos118.state.sub='New Order';pos118.render();
+ focus=true;tabletFocus=restaurantAccounting124.tablet();
+ document.body.classList.add('pos-focus122');$('posFullscreen122').setAttribute('aria-pressed','true');
+ sync();document.querySelector('[data-exit-focus122]')?.focus({preventScroll:true});
+ if(tabletFocus){rememberTabletFocus(liveProfile.id);return}
+ try{if(!document.fullscreenElement&&document.documentElement.requestFullscreen){await document.documentElement.requestFullscreen();nativeOwned=focus&&!!document.fullscreenElement}}catch{}
+}
+async function leaveFocus(){
+ if(!focus)return;
+ if(tabletFocus)rememberTabletFocus(null);
+ focus=false;tabletFocus=false;document.body.classList.remove('pos-focus122');$('posFullscreen122')?.setAttribute('aria-pressed','false');
+ if(liveProfile)$('posFullscreen122')?.focus({preventScroll:true});
+ const owned=nativeOwned;nativeOwned=false;if(owned&&document.fullscreenElement)try{await document.exitFullscreen()}catch{}
+}
 function notices(){const rows=window.WordOfHope183?.notices?.()||[];if(!liveProfile||!restaurantCan('pos'))return rows;const s=window.pos118?.state;if(!s)return rows;const prefix=s.sample?'Sample · ':'';const legacy=window.restaurantLegacyQueue126;if(legacy?.owner===liveProfile.id&&legacy.count)rows.push({title:legacy.count+' saved orders from the previous setup',detail:'Download these orders for review before importing them into Restaurant.',open:()=>window.posOffline119.exportLegacy(liveProfile.id)});if(restaurantTabCan125('pos','pos-sales-online')&&(s.loaded||s.sample)){const orders=s.orders.filter(o=>o.status==='unpaid'&&o.data?.service==='Online');if(orders.length)rows.push({title:prefix+orders.length+' unpaid online order'+(orders.length===1?'':'s'),detail:'Open Online Orders to review.',open:()=>openOnlineOrders()})}if(!s.sample&&s.offlineQueue.length)rows.push({title:s.offlineQueue.length+' orders pending sync',detail:'Open POS to review the saved orders.',open:()=>switchTab('pos118')});if(!s.sample&&s.syncError)rows.push({title:'POS sync needs attention',detail:s.syncError,open:()=>switchTab('pos118')});return rows}
 function notifications(){const was=!!$('headerNotices104');closePanels();if(was)return;const panel=document.createElement('section');panel.id='headerNotices104';panel.className='header-notices104';panel.setAttribute('aria-label','Notifications');panel.innerHTML='<header><strong>Notifications</strong><button type="button" aria-label="Close notifications">×</button></header><div id="headerNoticeList104"></div>';panel.querySelector('header button').onclick=closePanels;const rows=notices();for(const row of rows){const b=document.createElement('button');b.innerHTML='<strong>'+escapeHtml(row.title)+'</strong><span>'+escapeHtml(row.detail)+'</span>';b.onclick=()=>{closePanels();row.open()};panel.lastChild.append(b)}if(!rows.length)panel.lastChild.innerHTML='<p>No current restaurant notifications.</p>'+(!window.pos118?.state.loaded?'<p>Open POS to load the latest live orders and sync status.</p>':'');if(liveProfile?.role==='admin'){const b=document.createElement('button');b.textContent='Word of Hope inbox';b.onclick=()=>{closePanels();window.WordOfHope183?.open()};panel.append(b)}document.body.append(panel);$('upcomingBell101').setAttribute('aria-expanded','true')}
 async function signout(switching=false){closePanels();const ok=await ui108.modal(switching?'Switch user account':'Sign out','<p>'+ (switching?'Sign out and sign in with another user account?':'Sign out of Oon Jai?')+' Save any current unpaid order before continuing.</p>',[{label:'Cancel',value:false},{label:switching?'Switch account':'Sign out',value:true}]);if(ok){await leaveFocus();await window.logoutDemoUser();$('restaurantLogin').querySelector('[name=email]')?.focus()}}
@@ -409,11 +433,11 @@ function ready(){
  $('headerAccountTrigger').onclick=()=>passwordForm121();document.querySelector('.logo-tile113').onclick=()=>{if(restaurantAccounting124.tablet()){toggleMobileNavigation();return}if(restaurantCan('settings','appearance')){settingsTab121='branding';switchTab('restaurant-settings')}};
  $('upcomingBell101').onclick=notifications;$('switchAccount110').onclick=workspaceMenu;$('signOut110').onclick=()=>signout();$('posFullscreen122').onclick=()=>focus?leaveFocus():enterFocus();
  document.addEventListener('pointerdown',e=>{if(!e.target.closest('#workspaceTools108,#workspaceApps122,#headerNotices104'))closePanels();if(!e.target.closest('.universal-search108'))$('searchResults121')?.replaceChildren()});
- document.addEventListener('keydown',e=>{if(e.key==='Escape'){closePanels();$('searchResults121')?.replaceChildren();if(focus)leaveFocus();closeMobileNavigation()}});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'){closePanels();$('searchResults121')?.replaceChildren();if(focus&&!tabletFocus)leaveFocus();closeMobileNavigation()}});
  document.addEventListener('fullscreenchange',()=>{if(nativeOwned&&!document.fullscreenElement)leaveFocus()});
  new MutationObserver(queue).observe($('restaurantApp'),{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class']});sync();brand();
 }
-window.restaurantShell122={sync,brand,enterFocus,leaveFocus};
+window.restaurantShell122={sync,brand,enterFocus,leaveFocus,restoreTabletFocus,tabletFocusActive:()=>tabletFocus};
 if(window.restaurantBootLoading126)document.addEventListener('restaurant:boot126',ready,{once:true});else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
 
