@@ -16,12 +16,11 @@ function context(){const c={console,setTimeout,clearTimeout,structuredClone,sess
  await check('Inventory read errors reach the UI action error handler without opening an empty editor',async()=>{
   const c=context();c.ojmDb=database(async()=>({error:{message:'Offline'},data:null}));await assert.rejects(c.links(),/Offline/);assert.equal(c.html,undefined);
  });
- await check('Setup notice counts unique required ingredients, bundle components and available options',async()=>{
-  const c=context(),p=c.posPerformance125,s={loaded:true,sample:false,menu:[{id:'base',data:{currency:'LAK',recipe:[{itemId:'rice'},{itemId:'rice'},{itemId:'linked'}],posOptions118:[{options:[{recipe:[{itemId:'extra'}]},{available:false,recipe:[{itemId:'disabled'}]}]}]}},{id:'bundle',data:{currency:'LAK',itemType:'bundle',recipe:[{itemId:'base'}]}},{id:'nonstock',data:{currency:'LAK',posNoStock118:true,recipe:[]}},{id:'inactive',data:{active:false,currency:'LAK',recipe:[{itemId:'inactive-ingredient'}]}}],ingredients:[{id:'linked',data:{inventoryItemId118:'stock'}}]};
-  assert.equal(p.missingLinks129(s),2);assert(p.setupNotice129(s).includes('2 recipe ingredients'));assert(p.setupNotice129(s).includes('data-pos118="links"'));c.isAdmin121=()=>false;assert(!p.setupNotice129(s).includes('<button'));assert(p.setupNotice129(s).includes('administrator'));assert.equal(p.setupNotice129({...s,sample:true}),'');assert.equal(p.setupNotice129({...s,loaded:false}),'');assert.equal(p.setupNotice129({...s,ingredients:[...s.ingredients,{id:'rice',data:{inventoryItemId118:'rice-stock'}},{id:'extra',data:{inventoryItemId118:'extra-stock'}}]}),'');
- });
- await check('Payment error accurately explains a missing Inventory link for online and offline orders',async()=>{
-  const c=context();vm.runInContext(source.slice(source.indexOf('function recipeUsage124('),source.indexOf('\nfunction pendingStock(')),c);c.S.menu=[{id:'menu',data:{recipe:[{itemId:'ingredient',quantity:1}]}}];assert.throws(()=>c.recipeUsage124({lines:[{menuId:'menu',quantity:1}]}),/^Error: Link the selected ingredients to Inventory before payment$/);
+ await check('Unlinked ingredients leave checkout available without a cashier setup warning',async()=>{
+  const c=context();vm.runInContext(source.slice(source.indexOf('function menuStockRules('),source.indexOf('function linkedStockFields(')),c);
+  c.S.menu=[{id:'menu',data:{recipe:[{itemId:'ingredient',quantity:1}]}}];
+  assert.deepEqual({...c.recipeUsage124({service:'Online',lines:[{menuId:'menu',quantity:1}]})},{});
+  assert(!source.includes('setupNotice129('));
  });
  console.log('COMPLETE',count);
 })().catch(e=>{console.error(e);process.exit(1)});

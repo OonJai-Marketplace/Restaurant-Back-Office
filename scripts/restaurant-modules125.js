@@ -6,10 +6,10 @@
   reports:{css:['pos-operations.css?v=reports1','pos-v118.css?v=reports1'],js:['pos-reports.js?v=reports1','pos-backoffice-reports.js?v=reports1']},
   sales:{css:['restaurant-sales143.css'],js:['sales-math143.js','restaurant-sales143.js?v=reports1']},
   settings:{js:['restaurant-settings146.bundle.js']},
-  inventory:{css:['inventory-menu-v104.css?v=stockusage2','pos-operations.css?v=reports1'],js:['restaurant-inventory144.bundle.js?v=reports1','inventory-allocated.js?v=reports1']},
+  inventory:{css:['inventory-menu-v104.css?v=stockusage2','pos-operations.css?v=reports1'],js:['restaurant-inventory144.bundle.js?v=review2','inventory-allocated.js?v=reports1']},
   menu:{depends:['inventory'],js:['menu-v108.js?v=rowactions1']},
   kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=stocklinks1'],js:['preparation-waste124.js?v=layout2']},
-  pos:{css:['pos-v118.css?v=stockusage2'],js:['restaurant-pos150.bundle.js?v=reports1']}
+  pos:{css:['pos-v118.css?v=stockusage2'],js:['restaurant-pos150.bundle.js?v=review2']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
  const pendingFiles=new Map();

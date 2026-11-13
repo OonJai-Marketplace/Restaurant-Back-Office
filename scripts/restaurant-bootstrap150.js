@@ -25,7 +25,7 @@
    for(let attempt=0;attempt<2;attempt++)try{
     await new Promise((resolve,reject)=>{
      const script=document.createElement('script');let timer,runtimeError;
-     const src=new URL('scripts/restaurant-core150.bundle.js?v=reports1',document.baseURI).href;
+     const src=new URL('scripts/restaurant-core150.bundle.js?v=review2',document.baseURI).href;
      const capture=e=>{if(e.filename===src)runtimeError=e.error||Error(e.message)};
      const done=err=>{clearTimeout(timer);window.removeEventListener('error',capture);script.onload=null;script.onerror=null;if(err)reject(err);else resolve()};
      window.addEventListener('error',capture);script.src=src;
