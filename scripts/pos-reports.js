@@ -114,7 +114,11 @@ var posReports = globalThis.posReports || (() => {
   return [...sales.map(order=>({order,refund:false,at:order.paid_at})),...refunds.map(order=>({order,refund:true,at:order.refunded_at}))]
    .sort((a,b)=>Date.parse(b.at)-Date.parse(a.at)||Number(b.order.number)-Number(a.order.number));
  }
- const receiptHeader=['Date','Receipt number','Receipt type','Shift ID','Description','Quantity','Gross sales (LAK)','Discount (LAK)','Total collected (LAK)','Payment method','Payment reference','Sale cashier','Customer','Dining option','Note','Refund reason','Status','Original payment date','Refund date'];
+ function fxDescription(fx){
+  const fmt=v=>new Intl.NumberFormat('en-US',{maximumFractionDigits:6}).format(v);
+  return fx?'FX payment: '+fmt(fx.amount)+' '+fx.currency+' × '+fmt(fx.rate)+' LAK = '+fmt(fx.equivalentLak)+' LAK · Change: '+fmt(fx.changeLak)+' LAK':'';
+ }
+ const receiptHeader=['Date','Receipt number','Receipt type','Shift ID','Description','Quantity','Gross sales (LAK)','Discount (LAK)','Total collected (LAK)','Payment method','Payment reference','Sale cashier','Customer','Dining option','Note','Refund reason','Status','Original payment date','Refund date','Original tender currency','Foreign amount received','LAK per foreign unit','Original tender equivalent (LAK)','Original change (LAK)'];
  const itemHeader=['Date','Receipt number','Receipt type','Shift ID','Menu item ID','Menu item','Modifiers','Item note','Quantity','Unit price (LAK)','Gross sales (LAK)','Allocated discount (LAK)','Line total (LAK)','Payment method','Ingredients restocked'];
  function salesReport(events,items) {
   const rows=[items?itemHeader:receiptHeader];
@@ -126,7 +130,7 @@ var posReports = globalThis.posReports || (() => {
    const paid=cents(d.total), subtotal=d.subtotal==null?grossSum:cents(d.subtotal);
    if(!items) {
     rows.push([...common,lines.map(l=>l.quantity+' × '+l.name).join(', '),sign*lines.reduce((sum,l)=>sum+Number(l.quantity),0),
-     sign*subtotal/100,sign*(subtotal-paid)/100,sign*paid/100,d.payment,d.paymentReference,d.cashier,d.customer,d.service,d.note,refund?d.reason:'',order.status,stamp(order.paid_at),stamp(order.refunded_at)]);
+     sign*subtotal/100,sign*(subtotal-paid)/100,sign*paid/100,d.payment,d.paymentReference,d.cashier,d.customer,d.service,d.note,refund?d.reason:'',order.status,stamp(order.paid_at),stamp(order.refunded_at),d.fxTender?.currency??'',d.fxTender?.amount??'',d.fxTender?.rate??'',d.fxTender?.equivalentLak??'',d.fxTender?.changeLak??'']);
     continue;
    }
    // Allocate the recorded receipt total across lines. Cumulative rounding keeps the sum exact.
@@ -242,5 +246,5 @@ var posReports = globalThis.posReports || (() => {
   setTimeout(()=>URL.revokeObjectURL(url),1000);
   showCenterStatus('Export downloaded.');
  }
- return {receiptId,transactions,pages,stamp,day,defaults,controls,download,clear,populate,openRange,summary,range,salesReport,shiftsReport,csv};
+ return {fxDescription,receiptId,transactions,pages,stamp,day,defaults,controls,download,clear,populate,openRange,summary,range,salesReport,shiftsReport,csv};
 })();
