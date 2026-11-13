@@ -222,6 +222,11 @@ html body.shell113 #posChargeDialog>header [data-toggle-adjustment]{background:#
 html body.shell113 #restaurantApp #pos118 .pos-line-values .pos-qty118{margin:0 0 0 auto;white-space:nowrap}
 html body.shell113 #restaurantApp #pos118 .pos-line-values .pos-qty118 button{width:24px!important;height:24px!important;min-width:24px!important;min-height:24px!important;padding:0!important;line-height:1}
 #pos118 .pos-line-values .pos-qty118 span{padding:0 4px}
+@media (any-pointer:coarse){
+ html body.shell113 #restaurantApp #pos118 .pos-line-values .pos-qty118 button{
+  width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;
+ }
+}
 
 #pos118 .pos-empty-order{padding:18px 10px;margin:10px 0;background:#f2f6f1;border:1px dashed #a7b9a9;border-radius:7px;text-align:center;color:#294e37}
 #pos118 .pos-empty-order strong{display:block;font-size:16px}

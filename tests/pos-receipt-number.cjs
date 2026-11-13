@@ -85,11 +85,26 @@ const {PGlite}=require('@electric-sql/pglite');
   await assert.rejects((await continuation(first,1)).run,/duplicate key/);
   await assert.rejects((await continuation(first,1,randomUUID(),second.first)).run,/anchor/);
   const longOutage=await continuation(first,513);assert.notEqual((await longOutage.run()).data.receiptOrdinal,a.data.receiptOrdinal);
-  for(let i=0;i<12;i++){
-   const block=await reserve(randomUUID());assert.equal(Math.floor((block.first-1)/512)%2,0);
-   assert.equal(Math.floor((block.first-1)/512),Math.floor((block.last-1)/512));
-  }
-  console.log('PASS offline continuation on independent registers, replay, legacy coexistence and disjoint server ranges');
+  const newBook=async(token,yr=year)=>(await query('select pos_reserve_receipt_book($1,$2) as b',[yr,token])).b;
+  const tablet=await newBook(randomUUID()),ipad=await newBook(randomUUID());
+  assert.equal(tablet.last-tablet.first,4095);assert.equal(ipad.first,tablet.last+1);
+  assert.deepEqual(await newBook(tablet.token),tablet);
+  assert.deepEqual(await newBook(first.token),first);
+  const distinct=await query(`select count(distinct restaurant_private.receipt_code($1,n)) as codes
+   from generate_series($2::bigint,$3::bigint) n`,[year,tablet.first,ipad.last]);
+  assert.equal(Number(distinct.codes),8192);
+  const eleventh=await issue(randomUUID(),tablet.first+10,tablet);
+  const formerlyRepeated=await issue(randomUUID(),tablet.first+2176,tablet);
+  assert.notEqual(eleventh.data.receiptCode,formerlyRepeated.data.receiptCode);
+  const late=randomUUID(),localRef='R-L'+late.replaceAll('-','').toUpperCase();
+  const provisional={...data,offlineNonce:'late-'+late,receiptIssuedAt:new Date().toISOString(),
+   offlineCapturedAt:new Date().toISOString(),offlineTotal:2000,receiptTicket:{code:localRef,localRef}};
+  const settled=await run(late,0,'pay',provisional);
+  assert.equal(settled.data.localReceiptRef,localRef);
+  assert.match(settled.data.receiptCode,/^OJM[0-9]{2}-4[A-Z][0-9]{3}$/);
+  assert.equal((await run(late,0,'pay',provisional)).data.receiptCode,settled.data.receiptCode);
+  await assert.rejects(()=>run(randomUUID(),0,'pay',provisional),/reference differs/);
+  console.log('PASS distinct cashier receipt books, the sale 2177 regression, old offline packets, and searchable offline references');
   const tipped={...data,discount:10,discountType:'percent',reviewedTotal:1800,tip:200,tendered:2500};
   const shiftBefore=async()=>(await query('select pos_cashier_snapshot125() as s')).s.shiftExpected125;
   const opening=await shiftBefore();
@@ -107,6 +122,26 @@ const {PGlite}=require('@electric-sql/pglite');
   const fxPaid=await run(fxId,0,'pay',{...tipped,payment:'Bank',fxTender:fx});
   assert.equal(fxPaid.data.fxTender.changeLak,500);
   await assert.rejects(()=>run(randomUUID(),0,'pay',{...tipped,tip:-1}),/valid tip/);
+  // A reservation at Z999 cannot expose A001 while other registers still hold unused numbers.
+  await query('update restaurant_private.receipt_counters set last_issued=25970 where sale_year=$1',[newYear]);
+  const tail=await newBook(randomUUID(),newYear);
+  assert.deepEqual([tail.first,tail.last],[25971,25974]);
+  const waiting=randomUUID();
+  assert.equal((await newBook(waiting,newYear)).cyclePending,true);
+  const waitingOrder=randomUUID(),waitingRef='R-L'+waitingOrder.replaceAll('-','').toUpperCase();
+  await query("insert into pos_orders118(id,status,data,created_by) values($1,'unpaid','{}',$2)",[waitingOrder,admin]);
+  const waitingSale=await query("update pos_orders118 set status='paid',paid_at=$2,data=$3 where id=$1 returning data",
+   [waitingOrder,rolloverDate,{receiptTicket:{code:waitingRef,localRef:waitingRef}}]);
+  assert.equal(waitingSale.data.receiptCode,waitingRef);
+  assert.equal(waitingSale.data.localReceiptRef,waitingRef);
+  assert.equal(rotated.data.receiptOrdinal,1);
+  await db.query(`insert into pos_orders118(id,number,status,created_by,paid_at,data)
+   select gen_random_uuid(),-n,'paid',$2,$3,jsonb_build_object('receiptYear',$1::int,'receiptOrdinal',n,
+    'receiptCode',restaurant_private.receipt_code($1,n))
+   from generate_series(2,25974) as n`,[newYear,admin,rolloverDate]);
+  const renewed=await newBook(waiting,newYear);
+  assert.equal(renewed.first,25975);
+  console.log('PASS final partial book, pending offline references, and restart at A001 only after all 25974 receipts');
   console.log('PASS cash, bank and QR tips, optional reference, underpayment, FX, drawer and refunds');
   console.log('PASS two register ranges, reissued response, identical offline receipt, duplicate protection and legacy coexistence');
   console.log('PASS real POS RPC, reviewed basket, retry, refund, annual Laos rollover and A–Z boundaries');

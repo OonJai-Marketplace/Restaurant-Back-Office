@@ -34,6 +34,7 @@ article.pos-thermal-paper .sales-summary { width: 100%; border-collapse: collaps
 article.pos-thermal-paper .sales-summary td { padding: 1mm 0; border-bottom: 1px solid #ccc }
 
 article.pos-thermal-paper .paper-meta strong { white-space: nowrap; text-align: right }
+article.pos-thermal-paper .paper-meta strong.paper-local-ref { white-space: normal; min-width: 0; overflow-wrap: anywhere }
 article.pos-thermal-paper .paper-timestamp { display: block; text-align: center; font: 9px/1.35 Georgia, serif !important; margin-top: 2mm }
 
 /* The app shell sets global type with !important. Mirror the paper face inside its overlays. */

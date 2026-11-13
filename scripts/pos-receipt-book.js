@@ -38,12 +38,17 @@ const posReceiptBook=(()=>{
   const id=key(owner,year);if(jobs.has(id))return jobs.get(id);
   const job=(async()=>{
    const request=await bookUpdate(owner,year,book=>{
-    if(book.serial||available(book)>32&&book.anchor)return null;
+    if(available(book)>512)return null;
     return book.pending||=crypto.randomUUID();
    });
    if(!request)return;
-   const range=await rpc('pos_reserve_receipts',{p_year:year,p_token:request});
-   if(range?.token!==request||range.year!==year||!Number.isSafeInteger(range.first)||range.first<=0||range.last!==range.first+127)
+   const range=await rpc('pos_reserve_receipt_book',{p_year:year,p_token:request});
+   if(range?.token!==request||range.year!==year)throw Error('Receipt number reservation could not be verified.');
+   if(range.cyclePending===true){
+    await bookUpdate(owner,year,book=>{book.prepared=true});
+    return;
+   }
+   if(!Number.isSafeInteger(range.first)||range.first<=0||!Number.isSafeInteger(range.last)||range.last<range.first||range.last-range.first>=4096)
     throw Error('Receipt number reservation could not be verified.');
    await transaction(['books'],(tx)=>{
     const books=tx.objectStore('books'),bookKey=key(owner,year),read=books.get(bookKey),saved=books.get(owner+':anchor');
@@ -52,25 +57,17 @@ const posReceiptBook=(()=>{
      const anchor={token:request,first:range.first,year};
      if(!book.anchor)book.anchor=anchor;
      if(!saved.result||saved.result.year>year)books.put(anchor,owner+':anchor');
-     book.blocks.push({token:request,next:range.first,last:range.last});book.pending=null;books.put(book,bookKey);
+     book.blocks.push({token:request,next:range.first,last:range.last,first:range.first});book.pending=null;books.put(book,bookKey);
     };
    });
   })().finally(()=>jobs.delete(id));
   jobs.set(id,job);return job;
  }
- // The server uses the same disjoint page mapping when it acknowledges a sale.
- function continuation(anchor,year,serial){
-  const pair=(a,b)=>(a+b)*(a+b+1n)/2n+b;
-  const start=BigInt(anchor.first)-1n,index=BigInt(serial)-1n;
-  const lane=pair(start%128n,pair(start/128n,BigInt(year-anchor.year)));
-  const ordinal=513n+1024n*pair(lane,index/512n)+index%512n;
-  return {token:anchor.token,witness:anchor.first,ordinal:ordinal.toString(),continuation:serial};
- }
  function stampCode(year,ticket){
   const i=BigInt(ticket.ordinal)-1n;
   return {...ticket,code:'OJM'+String(year).slice(-2)+'-4'+String.fromCharCode(65+Number(i/999n%26n))+String(i%999n+1n).padStart(3,'0')};
  }
- async function next(owner,id,year,allowContinuation){
+ async function next(owner,id,year,allowLocalReference){
   const bookKey=key(owner,year),orderKey=owner+':'+id,anchorKey=owner+':anchor';
   return transaction(['books','orders'],(tx,done)=>{
    const books=tx.objectStore('books'),orders=tx.objectStore('orders'),prior=orders.get(orderKey);
@@ -81,18 +78,18 @@ const posReceiptBook=(()=>{
      const book=read.result||{blocks:[],pending:null},block=book.blocks[0];
      let ticket;
      if(block){
-      const anchor={token:block.token,first:block.last-127,year};
+      const anchor={token:block.token,first:block.first??block.last-127,year};
       if(!book.anchor)book.anchor=anchor;
       if(!stored.result||stored.result.year>year)books.put(anchor,anchorKey);
       ticket={token:block.token,ordinal:block.next++};
       if(block.next>block.last)book.blocks.shift();
      }else{
       const anchor=book.anchor||stored.result;
-      if(!anchor||anchor.year>year||allowContinuation==='local'&&!book.serial){done(null);return}
-      book.anchor=anchor;book.serial=(book.serial||0)+1;
-      ticket=continuation(anchor,year,book.serial);
+      if(!allowLocalReference||!book.prepared&&(!anchor||anchor.year>year)){done(null);return}
+      const localRef='R-L'+id.replaceAll('-','').toUpperCase();
+      ticket={localRef,code:localRef};
      }
-     ticket=stampCode(year,ticket);
+     if(!ticket.localRef)ticket=stampCode(year,ticket);
      books.put(book,bookKey);orders.put({year,ticket},orderKey);done(ticket);
     };
    };
@@ -116,7 +113,7 @@ const posReceiptBook=(()=>{
   });
  }
  async function issue(owner,id,stamp,rpc,online){
-  const year=yearOf(stamp);let ticket=await next(owner,id,year,online?'local':true);
+  const year=yearOf(stamp);let ticket=await next(owner,id,year,!online);
   if(ticket)return ticket;
   if(online){
    try{await prepare(owner,year,rpc)}catch(e){
@@ -135,7 +132,7 @@ const posReceiptBook=(()=>{
  async function ready(owner,year){
   const prepared=await transaction(['books'],(tx,done)=>{
    const store=tx.objectStore('books'),local=store.get(key(owner,year)),saved=store.get(owner+':anchor');
-   saved.onsuccess=()=>done(!!(local.result?.blocks?.length||local.result?.anchor||saved.result&&saved.result.year<=year));
+   saved.onsuccess=()=>done(!!(local.result?.prepared||local.result?.blocks?.length||local.result?.anchor||saved.result&&saved.result.year<=year));
   });
   return prepared||recoverAnchor(owner,year);
  }

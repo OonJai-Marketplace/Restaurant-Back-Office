@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 <html lang="en">
-<head><meta name="restaurant-release" content="2026-11-13-register-devices">
+<head><meta name="restaurant-release" content="2026-11-13-receipt-series">
 <meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
 <meta content="#bd593a" name="theme-color"/><title>Oon Jai Restaurant</title>
 
@@ -3985,7 +3985,7 @@ html body.shell113.tablet118:not(.restaurant-nav-open) #restaurantApp #appSideba
    for(let attempt=0;attempt<2;attempt++)try{
     await new Promise((resolve,reject)=>{
      const script=document.createElement('script');let timer,runtimeError;
-     const src=new URL('scripts/restaurant-core150.bundle.js?v=devices18',document.baseURI).href;
+     const src=new URL('scripts/restaurant-core150.bundle.js?v=receipts19',document.baseURI).href;
      const capture=e=>{if(e.filename===src)runtimeError=e.error||Error(e.message)};
      const done=err=>{clearTimeout(timer);window.removeEventListener('error',capture);script.onload=null;script.onerror=null;if(err)reject(err);else resolve()};
      window.addEventListener('error',capture);script.src=src;

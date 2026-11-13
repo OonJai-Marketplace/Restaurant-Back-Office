@@ -14,8 +14,8 @@ const server=http.createServer(async(req,res)=>{
  const url=new URL(req.url,'http://localhost');
  if(url.pathname.startsWith('/fixture/')){let raw='';for await(const chunk of req)raw+=chunk;const {uid,args}=JSON.parse(raw),name=url.pathname.split('/').at(-1);calls.push({name,uid});let data,error;
   if(name==='pos_cashier_snapshot125'){data=snapshot(uid,args);if(slow)await new Promise(r=>setTimeout(r,1800))}
-  else if(name==='pos_reserve_receipts'){
-   if(!reservations.has(args.p_token)){const first=(annual.get(args.p_year)||0)+1,last=first+127;
+  else if(name==='pos_reserve_receipt_book'){
+   if(!reservations.has(args.p_token)){const first=(annual.get(args.p_year)||0)+1,last=first+4095;
     reservations.set(args.p_token,{token:args.p_token,year:args.p_year,first,last});annual.set(args.p_year,last)}
    data=reservations.get(args.p_token);
   }
