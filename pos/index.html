@@ -2,7 +2,7 @@
 
 <html lang="en">
 <head>
-<base href="../"><meta name="restaurant-release" content="2026-11-13-cashier">
+<base href="../"><meta name="restaurant-release" content="2026-11-13-tablet">
 <meta charset="utf-8"/><script>const posLaunch150=new URL(location.href);posLaunch150.searchParams.set("workspace","pos");history.replaceState(history.state,"",posLaunch150);</script><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
 <meta content="#bd593a" name="theme-color"/><title>Oon Jai POS</title>
 
@@ -3878,6 +3878,32 @@ html body.shell113 table tr.restaurant-row-selected>:first-child{border-inline-s
 .restaurant-row-dialog dt{font-weight:600}.restaurant-row-dialog dd{margin:0;overflow-wrap:anywhere;white-space:pre-line}
 .restaurant-row-dialog button{min-height:32px;padding:4px 10px;border:1px solid #aabfb0;border-radius:6px;background:#fff;color:#234b37;cursor:pointer}
 .restaurant-row-dialog footer{justify-content:flex-end;flex-wrap:wrap}.restaurant-row-dialog footer:empty{display:none}
+</style><style id="restaurantTabletNavigation">/* The same sidebar serves as an icon rail and as the expanded desktop menu. */
+html body.shell113.tablet118 #restaurantApp{--rail-width:60px}
+html body.shell113.tablet118:not(.pos-focus122) #restaurantApp #appSidebar{
+ display:flex!important;transform:none!important;width:var(--rail-width)!important;min-width:0!important;
+ max-width:none!important;overflow-x:hidden;overflow-y:auto;z-index:1300!important;transition:none!important
+}
+html body.shell113.tablet118.restaurant-nav-open #restaurantApp #appSidebar{width:min(310px,85vw)!important;box-shadow:8px 0 24px #0b342638}
+html body.shell113.tablet118:not(.pos-focus122) #restaurantApp .main-content-area{margin-left:var(--rail-width)!important;width:calc(100% - var(--rail-width))!important}
+html body.shell113.tablet118 #restaurantApp #mobileMenuToggle{display:none!important}
+html body.shell113.tablet118:not(.pos-focus122) #restaurantApp .module-header{display:flex!important}
+html body.shell113.tablet118 #restaurantApp #appSidebar .logo-tile113{width:44px!important;height:44px!important;flex:0 0 44px!important}
+html body.shell113.tablet118:not(.restaurant-nav-open) #appSidebar :is(.universal-search108,.sidebar-brand h2,#closeNavigation130,.nav-links,.sidebar-user-copy,.nav-header>:not(.nav-icon113)){display:none!important}
+html body.shell113.tablet118:not(.restaurant-nav-open) #restaurantApp #appSidebar :is(.sidebar-brand,.nav-header,#headerAccountTrigger){
+ display:flex!important;justify-content:center!important;align-items:center!important;margin:0!important;padding:4px!important;width:100%!important;box-sizing:border-box
+}
+html body.shell113.tablet118:not(.restaurant-nav-open) #restaurantApp #appSidebar .sidebar-brand{height:60px!important;min-height:60px!important;max-height:60px!important}
+html body.shell113.tablet118:not(.restaurant-nav-open) #restaurantApp #appSidebar .nav-header{gap:0!important;font-size:0!important;min-height:44px!important}
+html body.shell113.tablet118:not(.restaurant-nav-open) #appSidebar .nav-icon113{display:inline-flex!important;align-items:center;justify-content:center;width:24px;min-width:24px;font-size:20px!important}
+html body.shell113.tablet118:not(.restaurant-nav-open) #restaurantApp #appSidebar #topHeaderProfile104 .sidebar-user-copy{display:none!important}
+html body.shell113.tablet118 #restaurantApp #appSidebar [hidden]{display:none!important}
+html body.shell113 #restaurantApp #workspaceTools108 #posFullscreen122:not([hidden]){
+ width:auto!important;flex:0 0 auto!important;gap:5px;padding:0 9px!important;white-space:nowrap;color:white!important;font-size:12px!important
+}
+html body.shell113 #restaurantApp #posFullscreen122 svg{width:16px;height:16px}
+html body.shell113.pos-focus122 #restaurantApp :is(#appSidebar,#sidebarScrim,.module-header,#categoryTabShell,#workspaceTools108,.pos-main-tabs118,.pos-subtabs118){display:none!important}
+html body.shell113.pos-focus122 #restaurantApp .main-content-area{margin:0!important;width:100%!important}
 </style></head>
 <body class="shell113">
 <div class="restaurant-login login-gate" id="loginGate"><form id="restaurantLogin" class="login-card" onsubmit="return false">
@@ -3902,7 +3928,7 @@ html body.shell113 table tr.restaurant-row-selected>:first-child{border-inline-s
 <div class="nav-category" data-module="settings" id="nav-module-settings"><button aria-label="Settings" class="nav-header" onclick="switchTab('restaurant-settings')" type="button"><span aria-hidden="true" class="nav-icon113"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" viewBox="0 0 24 24"><path d="M4 7h16 M4 17h16 M8 3v8 M16 13v8"></path></svg></span>Settings</button></div>
 <div class="sidebar-user-footer top-header-profile104 sidebar-profile109" id="topHeaderProfile104"><div class="header-account-menu"><button aria-label="View profile" class="header-account-trigger" id="headerAccountTrigger" type="button"><span class="sidebar-user-avatar" id="headerAccountInitials">OJ</span><div class="sidebar-user-copy"><strong id="currentUserChip">Signed-in user</strong><span id="sidebarUserRole">Restaurant</span></div></button></div></div>
 </aside><button aria-label="Close navigation" class="sidebar-scrim no-print" id="sidebarScrim" onclick="closeMobileNavigation()"></button>
-<main class="main-content-area"><header class="module-header no-print"><div class="header-left-tools"><button aria-label="Open navigation" class="mobile-menu-toggle" id="mobileMenuToggle" onclick="toggleMobileNavigation()" type="button"><span></span><span></span><span></span></button><h1 class="module-header-title" id="mainHeaderTitle">Restaurant Overview</h1></div><div class="no-print" hidden="" id="workspaceTools108"><button aria-expanded="false" aria-label="Notifications" id="upcomingBell101" title="Notifications" type="button"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"></path></svg><span hidden="" id="headerNoticeBadge104"></span></button><button aria-label="Restaurant apps and account" id="switchAccount110" title="Restaurant apps and account" type="button"><svg fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path d="M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4"></path></svg></button><button aria-label="Sign out" id="signOut110" title="Sign out" type="button"><svg fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path d="M10 4H4v16h6M9 12h12m-5-5 5 5-5 5"></path></svg></button><button aria-label="Fullscreen orders" aria-pressed="false" hidden="" id="posFullscreen122" title="Fullscreen orders" type="button"><svg fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"></path></svg></button></div></header>
+<main class="main-content-area"><header class="module-header no-print"><div class="header-left-tools"><button aria-label="Open navigation" class="mobile-menu-toggle" id="mobileMenuToggle" onclick="toggleMobileNavigation()" type="button"><span></span><span></span><span></span></button><h1 class="module-header-title" id="mainHeaderTitle">Restaurant Overview</h1></div><div class="no-print" hidden="" id="workspaceTools108"><button aria-expanded="false" aria-label="Notifications" id="upcomingBell101" title="Notifications" type="button"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"></path></svg><span hidden="" id="headerNoticeBadge104"></span></button><button aria-label="Restaurant apps and account" id="switchAccount110" title="Restaurant apps and account" type="button"><svg fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path d="M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4"></path></svg></button><button aria-label="Sign out" id="signOut110" title="Sign out" type="button"><svg fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path d="M10 4H4v16h6M9 12h12m-5-5 5 5-5 5"></path></svg></button><button aria-label="Focus POS" aria-pressed="false" hidden="" id="posFullscreen122" title="Focus POS" type="button"><svg fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"></path></svg><span>Focus POS</span></button></div></header>
 <div class="category-tab-shell no-print" hidden="" id="categoryTabShell"><div class="category-tabs" id="categoryTabs" role="navigation" aria-label="Section views"></div></div>
 <div class="workspace-scroll" id="printableDocArea">
 <div class="tab-content" data-module="sales" id="restaurant-sales143"></div><div class="tab-content" data-module="sales" id="restaurant-pos-reports"></div>
@@ -3941,7 +3967,7 @@ html body.shell113 table tr.restaurant-row-selected>:first-child{border-inline-s
    for(let attempt=0;attempt<2;attempt++)try{
     await new Promise((resolve,reject)=>{
      const script=document.createElement('script');let timer,runtimeError;
-     const src=new URL('scripts/restaurant-core150.bundle.js?v=cashier5',document.baseURI).href;
+     const src=new URL('scripts/restaurant-core150.bundle.js?v=tablet1',document.baseURI).href;
      const capture=e=>{if(e.filename===src)runtimeError=e.error||Error(e.message)};
      const done=err=>{clearTimeout(timer);window.removeEventListener('error',capture);script.onload=null;script.onerror=null;if(err)reject(err);else resolve()};
      window.addEventListener('error',capture);script.src=src;

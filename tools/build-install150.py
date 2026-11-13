@@ -19,7 +19,7 @@ def bundle(target, files, prefix='', suffix=''):
 core = ['vendor/supabase-2.118.0.js', 'scripts/supabase-config.js', 'scripts/workspace-config123.js', 'scripts/restaurant-auth123.js', 'scripts/restaurant-backoffice.js', 'scripts/restaurant-permissions125.js', 'scripts/restaurant-modules125.js', 'scripts/restaurant-shell122.js', 'scripts/restaurant-table-rows.js', 'scripts/workspace-links123.js', 'scripts/restaurant-accounting124.js', 'scripts/restaurant-data144.js', 'scripts/restaurant-home139.js', 'scripts/word-of-hope183.js']
 bundle('scripts/restaurant-core150.bundle.js', core, 'window.restaurantBootLoading126=true;', 'window.restaurantBootLoading126=false;document.dispatchEvent(new Event("restaurant:boot126"));window.restaurantCoreReady150=true;')
 bundle('scripts/restaurant-pos150.bundle.js', ['scripts/pos-offline-v119.js', 'scripts/pos-performance125.js', 'scripts/pos-promotions146.js', 'scripts/pos-reports.js', 'scripts/pos-v118.js'])
-emit('restaurant-sw150.js', read('restaurant-sw148.js').replace('148', '150').replace('scripts/restaurant-core150.bundle.js', 'scripts/restaurant-core150.bundle.js?v=cashier5'))
+emit('restaurant-sw150.js', read('restaurant-sw148.js').replace('148', '150').replace('scripts/restaurant-core150.bundle.js', 'scripts/restaurant-core150.bundle.js?v=tablet1'))
 
 office = read('back-office/index.html')
 row_style = '<style id="restaurantTableRows">' + read('styles/restaurant-table-rows.css') + '</style>'
@@ -27,8 +27,13 @@ if '<style id="restaurantTableRows">' in office:
     office = re.sub(r'<style id="restaurantTableRows">.*?</style>', lambda _: row_style, office, flags=re.S)
 else:
     office = office.replace('</head>', row_style + '</head>', 1)
+tablet_style = '<style id="restaurantTabletNavigation">' + read('styles/restaurant-tablet-navigation.css') + '</style>'
+if '<style id="restaurantTabletNavigation">' in office:
+    office = re.sub(r'<style id="restaurantTabletNavigation">.*?</style>', lambda _: tablet_style, office, flags=re.S)
+else:
+    office = office.replace('</head>', tablet_style + '</head>', 1)
 office = re.sub(r'<script id="restaurantBoot\d+">.*?</script>', lambda _: '<script id="restaurantBoot150">' + read('scripts/restaurant-bootstrap150.js') + '</script>', office, flags=re.S)
-office = re.sub(r'<meta name="restaurant-release" content="[^"]+">', '<meta name="restaurant-release" content="2026-11-13-cashier">', office)
+office = re.sub(r'<meta name="restaurant-release" content="[^"]+">', '<meta name="restaurant-release" content="2026-11-13-tablet">', office)
 office = office.replace('manifest.webmanifest?v=icons149', 'manifest.webmanifest?v=150')
 if 'apple-mobile-web-app-title' not in office:
     office = office.replace('</head>', '<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Restaurant"></head>')

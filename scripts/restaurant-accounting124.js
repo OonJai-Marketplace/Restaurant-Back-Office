@@ -3,7 +3,14 @@
 const $=id=>document.getElementById(id);let queued=false,lastTablet,lastTab='';
 function tablet(){return (navigator.maxTouchPoints>1||matchMedia('(pointer:coarse)').matches)&&Math.min(screen.width,screen.height)>=600}
 function drawer(){return tablet()||innerWidth<=1024}
-function aria(){const open=document.body.classList.contains('restaurant-nav-open'),sidebar=$('appSidebar');$('mobileMenuToggle')?.setAttribute('aria-expanded',String(open));if(sidebar){sidebar.inert=drawer()&&!open;sidebar.setAttribute('aria-hidden',String(drawer()&&!open))}}
+function aria(){const open=document.body.classList.contains('restaurant-nav-open'),sidebar=$('appSidebar');$('mobileMenuToggle')?.setAttribute('aria-expanded',String(open));const rail=tablet(),logo=sidebar?.querySelector('.logo-tile113');
+ if(logo){
+  const label=rail?(open?'Collapse navigation':'Expand navigation'):'Logo and theme settings';
+  logo.title=label;logo.setAttribute('aria-label',label);
+  if(rail){logo.disabled=false;logo.setAttribute('aria-controls','appSidebar');logo.setAttribute('aria-expanded',String(open))}
+  else {logo.removeAttribute('aria-controls');logo.removeAttribute('aria-expanded');logo.disabled=!restaurantCan('settings','appearance')}
+ }
+ if(sidebar){const offscreen=drawer()&&!rail&&!open;sidebar.inert=offscreen;sidebar.setAttribute('aria-hidden',String(offscreen))}}
 function sync(){queued=false;const yes=tablet();if(yes!==lastTablet){lastTablet=yes;document.body.classList.toggle('tablet118',yes);closeMobileNavigation()}document.body.classList.toggle('tablet-portrait117',yes&&innerHeight>innerWidth);aria();
  const active=document.querySelector('.tab-content.active');if(!active||!liveProfile||$('restaurantApp').hidden)return;
  // Wide tables scroll within their own region, keeping filters and actions in view.
@@ -19,7 +26,7 @@ function queue(){if(!queued){queued=true;requestAnimationFrame(sync)}}
 function ready(){const sidebar=$('appSidebar'),trigger=$('mobileMenuToggle');trigger?.setAttribute('aria-controls','appSidebar');
  const toggle=window.toggleMobileNavigation,close=window.closeMobileNavigation;
  window.toggleMobileNavigation=()=>{toggle();aria();if(drawer()&&document.body.classList.contains('restaurant-nav-open'))$('closeNavigation130')?.focus()};
- window.closeMobileNavigation=()=>{const restore=drawer()&&sidebar.contains(document.activeElement);close();aria();if(restore)trigger?.focus()};
+ window.closeMobileNavigation=()=>{const restore=drawer()&&sidebar.contains(document.activeElement);close();aria();if(restore)(tablet()?sidebar.querySelector('.logo-tile113'):trigger)?.focus({preventScroll:true})};
  sidebar.addEventListener('click',e=>{if(e.target.closest('.nav-header,.tab-btn'))closeMobileNavigation()});
  document.addEventListener('keydown',e=>{if(e.key!=='Tab'||!drawer()||!document.body.classList.contains('restaurant-nav-open'))return;const items=[...sidebar.querySelectorAll('button:not(:disabled),input:not(:disabled),a[href]')].filter(n=>n.getClientRects().length&&!n.closest('[hidden]'));const first=items[0],last=items.at(-1);if(!first)return;if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}});
  window.addEventListener('resize',queue);window.addEventListener('orientationchange',queue);

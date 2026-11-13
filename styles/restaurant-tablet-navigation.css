@@ -1,0 +1,26 @@
+/* The same sidebar serves as an icon rail and as the expanded desktop menu. */
+html body.shell113.tablet118 #restaurantApp{--rail-width:60px}
+html body.shell113.tablet118:not(.pos-focus122) #restaurantApp #appSidebar{
+ display:flex!important;transform:none!important;width:var(--rail-width)!important;min-width:0!important;
+ max-width:none!important;overflow-x:hidden;overflow-y:auto;z-index:1300!important;transition:none!important
+}
+html body.shell113.tablet118.restaurant-nav-open #restaurantApp #appSidebar{width:min(310px,85vw)!important;box-shadow:8px 0 24px #0b342638}
+html body.shell113.tablet118:not(.pos-focus122) #restaurantApp .main-content-area{margin-left:var(--rail-width)!important;width:calc(100% - var(--rail-width))!important}
+html body.shell113.tablet118 #restaurantApp #mobileMenuToggle{display:none!important}
+html body.shell113.tablet118:not(.pos-focus122) #restaurantApp .module-header{display:flex!important}
+html body.shell113.tablet118 #restaurantApp #appSidebar .logo-tile113{width:44px!important;height:44px!important;flex:0 0 44px!important}
+html body.shell113.tablet118:not(.restaurant-nav-open) #appSidebar :is(.universal-search108,.sidebar-brand h2,#closeNavigation130,.nav-links,.sidebar-user-copy,.nav-header>:not(.nav-icon113)){display:none!important}
+html body.shell113.tablet118:not(.restaurant-nav-open) #restaurantApp #appSidebar :is(.sidebar-brand,.nav-header,#headerAccountTrigger){
+ display:flex!important;justify-content:center!important;align-items:center!important;margin:0!important;padding:4px!important;width:100%!important;box-sizing:border-box
+}
+html body.shell113.tablet118:not(.restaurant-nav-open) #restaurantApp #appSidebar .sidebar-brand{height:60px!important;min-height:60px!important;max-height:60px!important}
+html body.shell113.tablet118:not(.restaurant-nav-open) #restaurantApp #appSidebar .nav-header{gap:0!important;font-size:0!important;min-height:44px!important}
+html body.shell113.tablet118:not(.restaurant-nav-open) #appSidebar .nav-icon113{display:inline-flex!important;align-items:center;justify-content:center;width:24px;min-width:24px;font-size:20px!important}
+html body.shell113.tablet118:not(.restaurant-nav-open) #restaurantApp #appSidebar #topHeaderProfile104 .sidebar-user-copy{display:none!important}
+html body.shell113.tablet118 #restaurantApp #appSidebar [hidden]{display:none!important}
+html body.shell113 #restaurantApp #workspaceTools108 #posFullscreen122:not([hidden]){
+ width:auto!important;flex:0 0 auto!important;gap:5px;padding:0 9px!important;white-space:nowrap;color:white!important;font-size:12px!important
+}
+html body.shell113 #restaurantApp #posFullscreen122 svg{width:16px;height:16px}
+html body.shell113.pos-focus122 #restaurantApp :is(#appSidebar,#sidebarScrim,.module-header,#categoryTabShell,#workspaceTools108,.pos-main-tabs118,.pos-subtabs118){display:none!important}
+html body.shell113.pos-focus122 #restaurantApp .main-content-area{margin:0!important;width:100%!important}
