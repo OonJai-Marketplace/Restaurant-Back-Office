@@ -284,3 +284,15 @@ html body.shell113 #posChargeDialog>header button:disabled {opacity:.5}
  html body.shell113 #posChargeDialog .pos-payment-controls{order:-1}
  html body.shell113 #posChargeDialog>header{padding:6px;gap:4px}
 }
+
+/* Keep payment actions in a stable order when a phone cannot fit one toolbar. */
+@media(max-width:649px){
+ html body.shell113 #posChargeDialog>header{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 44px;align-items:center;gap:5px 4px}
+ html body.shell113 #posChargeDialog>header h3{grid-column:1/4;grid-row:1;margin:0;overflow-wrap:anywhere}
+ html body.shell113 #posChargeDialog>header [data-close]{grid-column:4;grid-row:1;justify-self:end}
+ html body.shell113 #posChargeDialog>header [data-toggle-adjustment]{grid-column:1;grid-row:2}
+ html body.shell113 #posChargeDialog>header [data-fx-payment]{grid-column:2;grid-row:2}
+ html body.shell113 #posChargeDialog>header [type=submit]{grid-column:3/5;grid-row:2}
+ html body.shell113 #posChargeDialog>header [data-print-receipt]:disabled{display:none!important}
+ html body.shell113 #posChargeDialog>header [data-print-receipt]:enabled{grid-column:1/5;grid-row:2}
+}

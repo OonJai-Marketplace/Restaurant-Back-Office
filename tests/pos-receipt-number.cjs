@@ -70,6 +70,26 @@ const {PGlite}=require('@electric-sql/pglite');
   const legacy=await run(randomUUID(),0,'pay',data);
   assert.equal(legacy.data.receiptCode,prefix+'A259');
   assert.equal((await reserve(randomUUID(),year+1)).first,2);
+  async function continuation(block,serial,order=randomUUID(),witness=block.first){
+   const {ordinal,code}=await query(`select n::text as ordinal, restaurant_private.receipt_code($1,mod(n-1,25974)::bigint+1) as code
+    from restaurant_private.continuation_ordinal($2,0,$3,513) n`,[year,witness,serial]);
+   const packet={...data,offlineNonce:'paid-'+order,offlineCapturedAt:new Date().toISOString(),offlineTotal:2000,
+    receiptTicket:{token:block.token,ordinal,code,continuation:serial,witness}};
+   return {run:()=>run(order,0,'pay',packet),packet};
+  }
+  const bookA=await continuation(first,1),bookB=await continuation(second,1);
+  const a=await bookA.run(),b=await bookB.run();
+  assert.notEqual(a.data.receiptOrdinal,b.data.receiptOrdinal);
+  assert.equal(a.data.receiptCode,bookA.packet.receiptTicket.code);
+  assert.equal((await bookA.run()).id,a.id);
+  await assert.rejects((await continuation(first,1)).run,/duplicate key/);
+  await assert.rejects((await continuation(first,1,randomUUID(),second.first)).run,/anchor/);
+  const longOutage=await continuation(first,513);assert.notEqual((await longOutage.run()).data.receiptOrdinal,a.data.receiptOrdinal);
+  for(let i=0;i<12;i++){
+   const block=await reserve(randomUUID());assert.equal(Math.floor((block.first-1)/512)%2,0);
+   assert.equal(Math.floor((block.first-1)/512),Math.floor((block.last-1)/512));
+  }
+  console.log('PASS offline continuation on independent registers, replay, legacy coexistence and disjoint server ranges');
   const tipped={...data,discount:10,discountType:'percent',reviewedTotal:1800,tip:200,tendered:2500};
   const shiftBefore=async()=>(await query('select pos_cashier_snapshot125() as s')).s.shiftExpected125;
   const opening=await shiftBefore();

@@ -22,7 +22,7 @@ bundle('scripts/restaurant-pos150.bundle.js', ['scripts/pos-receipt-book.js', 's
 bundle('scripts/restaurant-inventory144.bundle.js', ['scripts/inventory-menu-v104.js', 'scripts/item-icons-v109.js', 'scripts/restaurant-integration132.js'])
 bundle('scripts/restaurant-settings146.bundle.js', ['scripts/public-content127.js', 'scripts/restaurant-settings125.js'])
 worker = read('restaurant-sw148.js').replace('148', '150')
-worker = worker.replace("'scripts/restaurant-core150.bundle.js'", "'scripts/restaurant-core150.bundle.js?v=review16','scripts/restaurant-pos150.bundle.js?v=checkout15','styles/pos-v118.css?v=checkout15','styles/pos-receipt.css?v=checkout15','assets/brand/oonjai-logo.png'")
+worker = worker.replace("'scripts/restaurant-core150.bundle.js'", "'scripts/restaurant-core150.bundle.js?v=devices18','scripts/restaurant-pos150.bundle.js?v=devices18','styles/pos-v118.css?v=devices18','styles/pos-receipt.css?v=checkout15','assets/brand/oonjai-logo.png'")
 emit('restaurant-sw150.js', worker)
 
 office = read('back-office/index.html')
@@ -37,7 +37,7 @@ if '<style id="restaurantTabletNavigation">' in office:
 else:
     office = office.replace('</head>', tablet_style + '</head>', 1)
 office = re.sub(r'<script id="restaurantBoot\d+">.*?</script>', lambda _: '<script id="restaurantBoot150">' + read('scripts/restaurant-bootstrap150.js') + '</script>', office, flags=re.S)
-office = re.sub(r'<meta name="restaurant-release" content="[^"]+">', '<meta name="restaurant-release" content="2026-11-13-back-office-review">', office)
+office = re.sub(r'<meta name="restaurant-release" content="[^"]+">', '<meta name="restaurant-release" content="2026-11-13-register-devices">', office)
 office = office.replace('manifest.webmanifest?v=icons149', 'manifest.webmanifest?v=150')
 if 'apple-mobile-web-app-title' not in office:
     office = office.replace('</head>', '<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Restaurant"></head>')

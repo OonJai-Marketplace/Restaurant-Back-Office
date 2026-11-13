@@ -41,49 +41,108 @@ const posReceiptBook=(()=>{
   const id=key(owner,year);if(jobs.has(id))return jobs.get(id);
   const job=(async()=>{
    const request=await bookUpdate(owner,year,book=>{
-    if(available(book)>32)return null;
+    if(book.serial||available(book)>32&&book.anchor)return null;
     return book.pending||=crypto.randomUUID();
    });
    if(!request)return;
    const range=await rpc('pos_reserve_receipts',{p_year:year,p_token:request});
    if(range?.token!==request||range.year!==year||!Number.isSafeInteger(range.first)||range.first<=0||range.last!==range.first+127)
     throw Error('Receipt number reservation could not be verified.');
-   await bookUpdate(owner,year,book=>{
-    if(book.pending!==request)return; // Another tab already installed this response.
-    book.blocks.push({token:request,next:range.first,last:range.last});book.pending=null;
+   await transaction(['books'],(tx)=>{
+    const books=tx.objectStore('books'),bookKey=key(owner,year),read=books.get(bookKey),saved=books.get(owner+':anchor');
+    saved.onsuccess=()=>{
+     const book=read.result;if(book.pending!==request)return;
+     const anchor={token:request,first:range.first,year};
+     if(!book.anchor)book.anchor=anchor;
+     if(!saved.result||saved.result.year>year)books.put(anchor,owner+':anchor');
+     book.blocks.push({token:request,next:range.first,last:range.last});book.pending=null;books.put(book,bookKey);
+    };
    });
   })().finally(()=>jobs.delete(id));
   jobs.set(id,job);return job;
  }
- async function next(owner,id,stamp){
-  const year=yearOf(stamp),bookKey=key(owner,year),orderKey=owner+':'+id;
+ // The server uses the same disjoint page mapping when it acknowledges a sale.
+ function continuation(anchor,year,serial){
+  const pair=(a,b)=>(a+b)*(a+b+1n)/2n+b;
+  const start=BigInt(anchor.first)-1n,index=BigInt(serial)-1n;
+  const lane=pair(start%128n,pair(start/128n,BigInt(year-anchor.year)));
+  const ordinal=513n+1024n*pair(lane,index/512n)+index%512n;
+  return {token:anchor.token,witness:anchor.first,ordinal:ordinal.toString(),continuation:serial};
+ }
+ function stampCode(year,ticket){
+  const i=BigInt(ticket.ordinal)-1n;
+  return {...ticket,code:'OJM'+String(year).slice(-2)+'-4'+String.fromCharCode(65+Number(i/999n%26n))+String(i%999n+1n).padStart(3,'0')};
+ }
+ async function next(owner,id,year,allowContinuation){
+  const bookKey=key(owner,year),orderKey=owner+':'+id,anchorKey=owner+':anchor';
   return transaction(['books','orders'],(tx,done)=>{
    const books=tx.objectStore('books'),orders=tx.objectStore('orders'),prior=orders.get(orderKey);
    prior.onsuccess=()=>{
     if(prior.result?.year===year){done(prior.result.ticket);return}
-    const read=books.get(bookKey);
-    read.onsuccess=()=>{
-     const book=read.result,block=book?.blocks[0];if(!block){done(null);return}
-     const ordinal=block.next++,letter=String.fromCharCode(65+Math.floor((ordinal-1)/999)%26);
-     const code='OJM'+String(year).slice(-2)+'-4'+letter+String((ordinal-1)%999+1).padStart(3,'0');
-     const ticket={token:block.token,ordinal,code};
-     if(block.next>block.last)book.blocks.shift();
+    const read=books.get(bookKey),stored=books.get(anchorKey);
+    stored.onsuccess=()=>{
+     const book=read.result||{blocks:[],pending:null},block=book.blocks[0];
+     let ticket;
+     if(block){
+      const anchor={token:block.token,first:block.last-127,year};
+      if(!book.anchor)book.anchor=anchor;
+      if(!stored.result||stored.result.year>year)books.put(anchor,anchorKey);
+      ticket={token:block.token,ordinal:block.next++};
+      if(block.next>block.last)book.blocks.shift();
+     }else{
+      const anchor=book.anchor||stored.result;
+      if(!anchor||anchor.year>year||allowContinuation==='local'&&!book.serial){done(null);return}
+      book.anchor=anchor;book.serial=(book.serial||0)+1;
+      ticket=continuation(anchor,year,book.serial);
+     }
+     ticket=stampCode(year,ticket);
      books.put(book,bookKey);orders.put({year,ticket},orderKey);done(ticket);
     };
    };
   });
  }
+ async function recoverAnchor(owner,year){
+  return transaction(['books','orders'],(tx,done)=>{
+   const store=tx.objectStore('books'),key=owner+':anchor',saved=store.get(key);
+   saved.onsuccess=()=>{
+    if(saved.result&&saved.result.year<=year){done(true);return}
+    const cursor=tx.objectStore('orders').openCursor(IDBKeyRange.bound(owner+':',owner+':\uffff'));
+    cursor.onsuccess=()=>{
+     const row=cursor.result;
+     if(!row){done(false);return}
+     const {year:issued,ticket}=row.value;
+     if(issued<=year&&ticket?.token&&Number.isSafeInteger(ticket.ordinal)&&ticket.ordinal>0){
+      store.put({year:issued,first:ticket.ordinal,token:ticket.token},key);done(true);
+     }else row.continue();
+    };
+   };
+  });
+ }
  async function issue(owner,id,stamp,rpc,online){
-  const year=yearOf(stamp);let ticket=await next(owner,id,stamp);
-  if(!ticket&&online){await prepare(owner,year,rpc);ticket=await next(owner,id,stamp)}
-  if(!ticket)throw Error('Connect this register once to replenish its offline receipt numbers. The order is still unpaid.');
+  const year=yearOf(stamp);let ticket=await next(owner,id,year,online?'local':true);
+  if(ticket)return ticket;
+  if(online){
+   try{await prepare(owner,year,rpc)}catch(e){
+    if(navigator.onLine&&!window.posPerformance125?.network(e))throw e;
+   }
+   ticket=await next(owner,id,year,true);
+  }
+  if(!ticket&&await recoverAnchor(owner,year))ticket=await next(owner,id,year,true);
+  if(!ticket)throw Error('Open a shift online once to prepare offline checkout on this register.');
   return ticket;
  }
  async function remaining(owner,year){const db=await database();return new Promise((resolve,reject)=>{
   const read=db.transaction('books').objectStore('books').get(key(owner,year));
   read.onsuccess=()=>resolve(read.result?available(read.result):0);read.onerror=()=>reject(read.error);
  })}
- return {yearOf,prepare,issue,remaining};
+ async function ready(owner,year){
+  const prepared=await transaction(['books'],(tx,done)=>{
+   const store=tx.objectStore('books'),local=store.get(key(owner,year)),saved=store.get(owner+':anchor');
+   saved.onsuccess=()=>done(!!(local.result?.blocks?.length||local.result?.anchor||saved.result&&saved.result.year<=year));
+  });
+  return prepared||recoverAnchor(owner,year);
+ }
+ return {yearOf,prepare,issue,remaining,ready};
 })();
 
 ;
@@ -526,7 +585,7 @@ var posReports = globalThis.posReports || (() => {
 /* POS: shared restaurant catalog and server-priced orders. */
 (function(){'use strict';
 const $=s=>document.querySelector(s),esc=v=>shell113.esc(v),n=v=>Number(v)||0,fmt=v=>new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(n(v)),money=v=>fmt(v)+' LAK',uuid=()=>crypto.randomUUID();
-const S={tab:'Overview',sub:'New Order',sample:false,loaded:false,owner:null,busy:false,error:'',query:'',category:'All',classification:'All',filter:'All',selected:null,picked:null,choices:{},note:'',orders:[],shifts:[],cash:[],stock:[],menu:[],ingredients:[],items:[],moves:[],categories:[],config:{methods:['Cash','BCEL QR','Bank'],cashiers:[],discountLimit:10,receiptWidth:80,receiptFooter:'Thank you for visiting.'},configVersion:1,offline:false,offlineQueue:[],syncError:'',visibleOrders:50,visibleMenu:40};let draft,previewData;
+const S={tab:'Overview',sub:'New Order',sample:false,loaded:false,owner:null,busy:false,error:'',query:'',category:'All',classification:'All',filter:'All',selected:null,picked:null,choices:{},note:'',orders:[],shifts:[],cash:[],stock:[],menu:[],ingredients:[],items:[],moves:[],categories:[],config:{methods:['Cash','BCEL QR','Bank'],cashiers:[],discountLimit:10,receiptWidth:56,receiptFooter:'Thank you for visiting.'},configVersion:1,offline:false,offlineQueue:[],syncError:'',visibleOrders:50,visibleMenu:40};let draft,previewData;
 const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Vientiane',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 const date=d=>new Date(d).toLocaleDateString('en-GB',{timeZone:'Asia/Vientiane'}),time=d=>new Date(d).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Vientiane'});
 const admin=()=>typeof liveProfile!=='undefined'&&liveProfile?.role==='admin';
@@ -853,7 +912,7 @@ function devicePaper(){
 }
 function paperWidth(){
  const preference=devicePaper();
- if(preference==='restaurant')return Number(S.config.receiptWidth)===58?58:80;
+ if(preference==='restaurant')return [56,58,80].includes(Number(S.config.receiptWidth))?Number(S.config.receiptWidth):56;
  return [56,58,80].includes(Number(preference))?Number(preference):56;
 }
 function printerSetup(){
@@ -865,8 +924,8 @@ function printerSetup(){
  <button type="button" data-test-paper>Print test receipt</button><output role="status"></output><small data-receipt-stock></small></div>`,null,{explicitClose:true});
  const picker=root.querySelector('[name=devicePaper]'),status=root.querySelector('output');
  picker.value=devicePaper();
- if(offlineOwner()&&!S.sample)posReceiptBook.remaining(offlineOwner(),posReceiptBook.yearOf(Date.now())).then(count=>{
-  root.querySelector('[data-receipt-stock]').textContent=count?count+' offline receipt numbers available on this register.':'Open a shift while online to prepare this register’s offline receipt numbers.';
+ if(offlineOwner()&&!S.sample)posReceiptBook.ready(offlineOwner(),posReceiptBook.yearOf(Date.now())).then(ready=>{
+  root.querySelector('[data-receipt-stock]').textContent=ready?'This register is ready to issue receipts offline.':'Open a shift online once to prepare offline receipts on this register.';
  }).catch(()=>{});
  picker.onchange=()=>{
   try{localStorage.setItem(paperPreferenceKey(),picker.value);status.textContent=paperWidth()+' mm saved on this device.';render()}
@@ -913,7 +972,7 @@ function receipt(o,kitchen=false,checkout=false,fx=o.data.fxTender,tip=n(o.data.
  <small class="paper-timestamp">${date(printedAt)} · ${time(printedAt)}</small></article>`;
 }
 function receipts(){const rows=S.orders.filter(o=>['paid','refunded'].includes(o.status)&&(S.sample||!S.receiptDate||new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Vientiane'}).format(new Date(o.paid_at))===S.receiptDate)&&(S.filter==='All'||S.filter==='Refunds'&&o.status==='refunded'||o.data.payment===S.filter)&&[posReports.numberFor(o),restaurantReportSummary.localReference(o)].some(ref=>ref.toLowerCase().includes(S.query.toLowerCase().replace(/^#/,''))));const selected=rows.find(o=>o.id===S.selected)||rows[0];if(selected)S.selected=selected.id;return `<div class="pos-grid118"><section class="pos-card118"><header><h2>Receipts</h2><input type="date" aria-label="Receipt date" data-receipt-date118 value="${esc(S.receiptDate||'')}"></header><div class="pos-filter118"><input data-search118 placeholder="Search receipt number…" aria-label="Search receipt number" value="${esc(S.query)}"><div class="pos-pills118">${['All','Cash','BCEL QR','Bank','Refunds'].map(v=>button(v,'filter',S.filter===v?'active':'','data-value118="'+v+'"')).join('')}</div></div><table><thead><tr><th>Receipt</th><th>Time</th><th>Payment</th><th>Status</th><th>Amount</th></tr></thead><tbody>${rows.slice(0,S.visibleOrders).map(o=>`<tr tabindex="0" data-order118="${o.id}" class="${o===selected?'selected':''}"><td>${esc(posReports.numberFor(o))}</td><td>${time(o.paid_at)}</td><td>${esc(o.data.payment)}</td><td><span class="status-pill118 ${o.status}">${o.status==='paid'?'● Paid':'● Refunded'}</span></td><td>${money((o.data.collectedTotal??o.data.total))}</td></tr>`).join('')||'<tr><td colspan="5">No receipts for this selection.</td></tr>'}</tbody></table><div class="pos-table-footer118">${S.schema125?'Showing '+rows.length+' of '+n(S.receiptCount125)+' receipts · ':''}${rows.filter(o=>o.status==='paid').length} paid receipts · ${money(rows.filter(o=>o.status==='paid').reduce((a,o)=>a+n((o.data.collectedTotal??o.data.total)),0))}　|　Refunds · ${money(rows.filter(o=>o.status==='refunded').reduce((a,o)=>a+n((o.data.collectedTotal??o.data.total)),0))}${(rows.length>S.visibleOrders||S.schema125&&S.receiptCount125>S.orders.filter(o=>['paid','refunded'].includes(o.status)).length)?button('Show more','more'):''}</div></section><section class="pos-card118 gold"><h2>Receipt Preview</h2>${selected?`<div class="receipt-wrap118">${receipt(selected)}</div><div class="pos-actions118">${button('Reprint Receipt','print','primary')}${button('Save PDF','pdf')}${button('Refund','refund','danger',selected.status==='paid'&&restaurantCan('pos','refund')?'':'disabled')}</div><p class="muted">PDF uses your browser’s Save as PDF option. Refunds require administrator access.</p>`:'<p>Select a receipt.</p>'}</section></div>`}
-function overview(){if(S.schema125&&!S.sample)return posPerformance125.overview(S);const relevant=S.orders.filter(o=>S.sample||date(o.paid_at||o.created_at)===date(new Date())),paid=relevant.filter(o=>['paid','refunded'].includes(o.status)),refunds=S.orders.filter(o=>o.status==='refunded'&&(S.sample||date(o.refunded_at)===date(new Date()))),refTotal=refunds.reduce((a,o)=>a+n(o.data.total),0),net=paid.reduce((a,o)=>a+n(o.data.total),0)-refTotal,open=S.orders.filter(o=>o.status==='unpaid'),shift=S.shifts.find(s=>(S.sample||s.cashier===liveProfile?.id)&&!s.closed_at),cashNet=paid.filter(o=>o.data.payment==='Cash').reduce((a,o)=>a+n(o.data.total),0)-refunds.filter(o=>o.data.payment==='Cash').reduce((a,o)=>a+n(o.data.total),0),pop={};paid.filter(o=>o.status==='paid').forEach(o=>o.data.lines.forEach(l=>{pop[l.menuId]??={...l,sold:0};pop[l.menuId].sold+=n(l.quantity)}));let popular=Object.values(pop).sort((a,b)=>b.sold-a.sold).slice(0,5);if(S.sample)popular=[0,1,2,5,7].map((i,k)=>({...sampleLine(i),sold:[12,9,8,7,6][k]}));const alerts=S.items.filter(i=>i.data.active!==false&&stock(i.id)<=n(i.data.reorder));return `<header class="pos-top118"><h2>Today at a glance</h2><span>${S.sample?'28 Sep 2026':date(new Date())}</span>${button('Shift: '+(shift?'Open':'Closed'),'shift-view')}${button('⊕ New Order','new','primary')}</header><div class="pos-metrics118">${[['▥','Net Sales',money(net)],['♧','Paid Orders',paid.filter(o=>o.status==='paid').length],['▤','Open Orders',open.length],['↶','Refunds',money(refTotal)]].map(([icon,label,value])=>`<section class="pos-card118 pos-metric118"><span>${icon}</span><div>${label}<strong>${value}</strong></div></section>`).join('')}</div><div class="pos-overview118"><section class="pos-card118"><h2>Payment summary</h2><table><thead><tr><th>Method</th><th>Received</th><th>Refunded</th><th>Net</th></tr></thead><tbody>${S.config.methods.map(method=>{const received=paid.filter(o=>o.data.payment===method).reduce((a,o)=>a+n(o.data.total),0),refunded=refunds.filter(o=>o.data.payment===method).reduce((a,o)=>a+n(o.data.total),0);return `<tr><td>${esc(method)}</td><td>${money(received)}</td><td>${money(refunded)}</td><td>${money(received-refunded)}</td></tr>`}).join('')}</tbody></table><div class="pos-totals118"><div class="total"><span>Net sales</span><strong>${money(net)}</strong></div></div></section><section class="pos-card118"><header><h2>Current Shift</h2><span class="status-pill118">${shift?'● Open':'Closed'}</span></header>${shift?`<div class="pos-shift118"><div><span>Cashier</span><span>${esc(currentUser())}</span></div><div><span>Opened at</span><span>${time(shift.opened_at)}</span></div><div><span>Opening float</span><span>${money(shift.opening)}</span></div><hr><div><span>Cash in / out</span><span>${money(S.cash.filter(c=>c.shift_id===shift.id).reduce((a,c)=>a+n(c.amount),0))}</span></div><div><span>Expected drawer</span><strong>${money(shiftExpected(shift))}</strong></div></div><div class="pos-actions118">${button('Cash In / Out','cash')}${button('Close Shift','close-shift','primary')}</div>`:`<p>Enter the opening cash float before taking payments.</p>${button('Open Shift','open-shift','primary')}`}</section><section class="pos-card118"><h2>Popular items today</h2><div class="pos-popular118">${popular.map(l=>`<div>${photo(l)}<strong>${esc(l.name)}</strong><small>${l.sold} sold</small></div>`).join('')||'<p>No paid orders today.</p>'}</div></section><section class="pos-card118"><header><h2>Inventory alerts</h2>${button('View Inventory ›','inventory')}</header>${S.sample?'<div class="pos-setting-row118"><strong>Tofu</strong><span class="status-pill118 refunded">Low stock</span></div><div class="pos-setting-row118"><strong>Avocado</strong><span class="status-pill118 refunded">Low stock</span></div>':alerts.map(i=>`<div class="pos-setting-row118"><strong>${esc(i.data.name)}</strong><span>${fmt(stock(i.id))} ${esc(i.data.unit)} · Low stock</span></div>`).join('')||'<p>Stock levels are above configured reorder points.</p>'}</section></div>`}
+function overview(){if(S.schema125&&!S.sample)return posPerformance125.overview(S);const relevant=S.orders.filter(o=>S.sample||date(o.paid_at||o.created_at)===date(new Date())),paid=relevant.filter(o=>['paid','refunded'].includes(o.status)),refunds=S.orders.filter(o=>o.status==='refunded'&&(S.sample||date(o.refunded_at)===date(new Date()))),refTotal=refunds.reduce((a,o)=>a+n(o.data.total),0),net=paid.reduce((a,o)=>a+n(o.data.total),0)-refTotal,open=S.orders.filter(o=>o.status==='unpaid'),shift=S.shifts.find(s=>(S.sample||s.cashier===liveProfile?.id)&&!s.closed_at),cashNet=paid.filter(o=>o.data.payment==='Cash').reduce((a,o)=>a+n(o.data.total),0)-refunds.filter(o=>o.data.payment==='Cash').reduce((a,o)=>a+n(o.data.total),0),pop={};paid.filter(o=>o.status==='paid').forEach(o=>o.data.lines.forEach(l=>{pop[l.menuId]??={...l,sold:0};pop[l.menuId].sold+=n(l.quantity)}));let popular=Object.values(pop).sort((a,b)=>b.sold-a.sold).slice(0,5);const alerts=S.items.filter(i=>i.data.active!==false&&stock(i.id)<=n(i.data.reorder));return `<header class="pos-top118"><h2>Today at a glance</h2><span>${S.sample?'28 Sep 2026':date(new Date())}</span>${button('Shift: '+(shift?'Open':'Closed'),'shift-view')}${button('⊕ New Order','new','primary')}</header><div class="pos-metrics118">${[['▥','Net Sales',money(net)],['♧','Paid Orders',paid.filter(o=>o.status==='paid').length],['▤','Open Orders',open.length],['↶','Refunds',money(refTotal)]].map(([icon,label,value])=>`<section class="pos-card118 pos-metric118"><span>${icon}</span><div>${label}<strong>${value}</strong></div></section>`).join('')}</div><div class="pos-overview118"><section class="pos-card118"><h2>Payment summary</h2><table><thead><tr><th>Method</th><th>Received</th><th>Refunded</th><th>Net</th></tr></thead><tbody>${S.config.methods.map(method=>{const received=paid.filter(o=>o.data.payment===method).reduce((a,o)=>a+n(o.data.total),0),refunded=refunds.filter(o=>o.data.payment===method).reduce((a,o)=>a+n(o.data.total),0);return `<tr><td>${esc(method)}</td><td>${money(received)}</td><td>${money(refunded)}</td><td>${money(received-refunded)}</td></tr>`}).join('')}</tbody></table><div class="pos-totals118"><div class="total"><span>Net sales</span><strong>${money(net)}</strong></div></div></section><section class="pos-card118"><header><h2>Current Shift</h2><span class="status-pill118">${shift?'● Open':'Closed'}</span></header>${shift?`<div class="pos-shift118"><div><span>Cashier</span><span>${esc(currentUser())}</span></div><div><span>Opened at</span><span>${time(shift.opened_at)}</span></div><div><span>Opening float</span><span>${money(shift.opening)}</span></div><hr><div><span>Cash in / out</span><span>${money(S.cash.filter(c=>c.shift_id===shift.id).reduce((a,c)=>a+n(c.amount),0))}</span></div><div><span>Expected drawer</span><strong>${money(shiftExpected(shift))}</strong></div></div><div class="pos-actions118">${button('Cash In / Out','cash')}${button('Close Shift','close-shift','primary')}</div>`:`<p>Enter the opening cash float before taking payments.</p>${button('Open Shift','open-shift','primary')}`}</section><section class="pos-card118"><h2>Popular items today</h2><div class="pos-popular118">${popular.map(l=>`<div>${photo(l)}<strong>${esc(l.name)}</strong><small>${l.sold} sold</small></div>`).join('')||'<p>No paid orders today.</p>'}</div></section><section class="pos-card118"><header><h2>Inventory alerts</h2>${button('View Inventory ›','inventory')}</header>${S.sample?'<div class="pos-setting-row118"><strong>Tofu</strong><span class="status-pill118 refunded">Low stock</span></div><div class="pos-setting-row118"><strong>Avocado</strong><span class="status-pill118 refunded">Low stock</span></div>':alerts.map(i=>`<div class="pos-setting-row118"><strong>${esc(i.data.name)}</strong><span>${fmt(stock(i.id))} ${esc(i.data.unit)} · Low stock</span></div>`).join('')||'<p>Stock levels are above configured reorder points.</p>'}</section></div>`}
 function shiftExpected(s){if(S.schema125)return n(S.shiftExpected125);return n(s.opening)+S.cash.filter(c=>c.shift_id===s.id).reduce((a,c)=>a+n(c.amount),0)+S.orders.filter(o=>o.data.shiftId===s.id&&['paid','refunded'].includes(o.status)&&o.data.payment==='Cash').reduce((a,o)=>a+n(o.data.collectedTotal??o.data.total),0)-S.orders.filter(o=>o.status==='refunded'&&o.data.payment==='Cash'&&o.data.refundShiftId===s.id).reduce((a,o)=>a+n(o.data.collectedTotal??o.data.total),0)}
 function management(){const row=(name,value,action)=>`<div class="pos-setting-row118"><span>${name}</span><small>${value}</small>${button('›',action,'','aria-label="'+name+'"')}</div>`,card=(title,body)=>`<section class="pos-card118 gold"><h2>${title}</h2>${body}</section>`;return `<div class="pos-management118">${card('Menu & Categories',row('Menu items','Shared with Menu','menu')+row('Categories','Shared with Menu','categories')+row('Prices & display','Shared website and POS menu','menu-display')+button('Open Menu','menu','wide')+(isAdmin121()?button('Menu Display','menu-display','wide'):''))}${card('Customizations',(restaurantRouteAllowed128('inv-allocated')?button('Allocated stock by menu','allocated-stock','wide'):'')+row('Base & protein','Required choices','options')+row('Toppings & extras','Portions and add-on prices','options')+row('Ingredient links','Connected to Inventory','links')+button('Manage Options','options','wide'))}${card('Discounts',row('Percentage / fixed amount','Per order','settings')+row('Cashier discount limit',n(S.config.discountLimit)+'%','settings')+row('Restricted discounts','Administrator approval','settings')+button('Manage Discounts','settings','wide'))}${card('Printing',row('Receipt printer','Select in print window','printer-setup')+row('Kitchen ticket','Selected options and notes','kitchen')+row('Receipt layout',paperWidth()+' mm','printer-setup')+`<div class="pos-actions118">${button('Configure Printing','printer-setup')}${button('Preview Layout','preview')}</div>`)}${card('Payments & Access',row('Payment methods',S.config.methods.join(', '),'settings')+row('Employee permissions',S.config.cashiers.length+' cashiers','settings')+row('Refunds & voids','Reason recorded','settings')+button('Payment Settings','settings','wide'))}${card('Reports & Export',(restaurantRouteAllowed128('restaurant-pos-reports')?button('View sales reports','backoffice-sales','wide'):'')+posReports.controls(S.reportFilter ||= posReports.defaults(),button))}</div>`}
 function patchOpenOrder(host,html){
@@ -980,7 +1039,7 @@ async function save(action='save',extra={},order=draft,checkout=false){if(order.
  }
  const offline=async()=>{if(order.data.promotionClaim146)throw Error('Promotion or voucher payment needs a live connection. Nothing was recorded locally; reconnect and retry.');const captureOwner=offlineOwner(),captureEpoch=sessionEpoch121,usage=action==='pay'?recipeUsage124(order.data):{};if(action==='pay')for(const [id,q] of Object.entries(usage))if(q>stock(id))throw Error('Insufficient stock on this device');if(action==='pay'&&!S.shifts.some(x=>x.cashier===liveProfile?.id&&!x.closed_at))throw Error('Open your shift online before accepting offline payments.');result={...structuredClone(order),number:order.number||'LOCAL',status:action==='pay'?'paid':'unpaid',created_at:order.created_at||new Date().toISOString(),paid_at:action==='pay'?issuedAt:null,offlinePending:true,data:{...structuredClone(data),...(action==='pay'?{receiptCode:data.receiptTicket.code}:{}),...storedTotals(order.data),cashier:currentUser()}};await posOffline119.save(captureOwner,result,action,{...data,...(order.data.offlineNonce?.startsWith('checkout-')?{checkoutSaveNonce:order.data.offlineNonce}:{}),offlineUsage124:usage,offlineNonce:data.offlineNonce,...(action==='pay'?{offlineCapturedAt:result.paid_at,offlineTotal:result.data.total}:{})});if(captureOwner!==offlineOwner()||captureEpoch!==sessionEpoch121)throw Error('Account changed during local capture');await pending();S.orders=[result,...S.orders.filter(o=>o.id!==result.id)];S.offline=true};if(S.offline||!navigator.onLine)await offline();else try{result=await rpc('pos_order118',{p_id:order.id,p_version:order.version||0,p_action:action,p_data:data});
  if(action==='pay'&&!matchesPayment(result?.data,data)||result?.id!==order.id||result.status!==(action==='pay'?'paid':'unpaid')||result.data?.offlineNonce!==data.offlineNonce||data.receiptTicket&&result.data?.receiptCode!==data.receiptTicket.code)throw Error('This order changed. Review its saved receipt before continuing.');
- if(saveOwner!==offlineOwner()||saveEpoch!==sessionEpoch121)return;if(window.posPerformance125)await posPerformance125.accepted(S,result,usage125);else await load()}catch(e){if(saveOwner!==offlineOwner()||saveEpoch!==sessionEpoch121)return;if(window.posPerformance125?posPerformance125.network(e):!navigator.onLine||/failed to fetch|networkerror|network request failed|load failed/i.test(e.message))await offline();else throw e}}if(saveOwner!==offlineOwner()||saveEpoch!==sessionEpoch121)return;if(order===draft||draft.id===order.id)draft=editableOrder(result);S.selected=result.id;showCenterStatus(S.sample?'Sample order updated. No live records changed.':result.offlinePending?'Saved on this device. Pending sync before shift close.':action==='pay'?'Payment recorded and stock updated.':'Order saved unpaid.');if(action==='pay'){if(!S.sample)prepareReceiptNumbers().catch(()=>{});fresh();rememberDraft();S.sub=window.posPerformance125?'New Order':'Receipts';S.selected=result.id}else {rememberDraft();if(!checkout)S.sub='Open Orders'}return result})}
+ if(saveOwner!==offlineOwner()||saveEpoch!==sessionEpoch121)return;if(window.posPerformance125)await posPerformance125.accepted(S,result,usage125);else await load()}catch(e){if(saveOwner!==offlineOwner()||saveEpoch!==sessionEpoch121)return;if(window.posPerformance125?posPerformance125.network(e):!navigator.onLine||/failed to fetch|networkerror|network request failed|load failed/i.test(e.message))await offline();else throw e}}if(saveOwner!==offlineOwner()||saveEpoch!==sessionEpoch121)return;if(order===draft||draft.id===order.id)draft=editableOrder(result);S.selected=result.id;if(checkout&&!result.offlinePending)showCenterStatus('');else showCenterStatus(S.sample?'Sample order updated. No live records changed.':result.offlinePending?'Saved on this device. Pending sync before shift close.':action==='pay'?'Payment recorded and stock updated.':'Order saved unpaid.');if(action==='pay'){if(!S.sample)prepareReceiptNumbers().catch(()=>{});fresh();rememberDraft();S.sub=window.posPerformance125?'New Order':'Receipts';S.selected=result.id}else {rememberDraft();if(!checkout)S.sub='Open Orders'}return result})}
 function fitReceiptViewport(root,closed){
  const viewport=window.visualViewport;
  root.classList.add('pos-receipt-overlay');
@@ -1183,7 +1242,7 @@ function printPaper(width,title,content){
   doc.head.append(css);frame.contentWindow.focus();frame.contentWindow.print()
  });
 }
-function settings(){if(!restaurantCan('pos','manage'))throw Error('Administrator access required');const c=S.config;dialog('POS settings',`<form><h3>Payments & discounts</h3>${['Cash','BCEL QR','Bank'].map(m=>`<label class="check"><input type="checkbox" name="methods" value="${m}" ${c.methods.includes(m)?'checked':''}>${m}</label>`).join('')}${field('Cashier discount limit (%)','discountLimit',c.discountLimit,'number','min="0" max="100" required')}<h3>Legacy cashier list</h3><p>Restaurant sign-in and permissions are managed in Settings → Users & Access. This legacy list does not grant restaurant access.</p>${(typeof liveProfiles!=='undefined'?liveProfiles:[]).filter(p=>p.role!=='admin').map(p=>`<label class="check"><input type="checkbox" name="cashiers" value="${esc(p.id)}" ${c.cashiers.includes(p.id)?'checked':''}>${esc(p.full_name||p.email)}</label>`).join('')||'<p>No additional staff profiles loaded.</p>'}<h3>Printing</h3><label>Receipt paper<select name="receiptWidth"><option value="80" ${n(c.receiptWidth)===80?'selected':''}>80 mm</option><option value="58" ${n(c.receiptWidth)===58?'selected':''}>58 mm</option></select></label>${field('Receipt footer','receiptFooter',c.receiptFooter)}<p>Choose your printer in the print window. For a USB test print or a device-specific paper size, open Management → Configure Printing.</p><button type="submit">Save settings</button></form>`,async(d,f)=>{const values={...c,...d,discountLimit:n(d.discountLimit),receiptWidth:n(d.receiptWidth),methods:new FormData(f).getAll('methods'),cashiers:new FormData(f).getAll('cashiers')};if(!values.methods.length)throw Error('Enable at least one payment method');if(S.sample)S.config=values;else{await rpc('pos_manage118',{p_action:'config',p_data:values,p_version:S.configVersion});await load()}showCenterStatus(S.sample?'Sample settings updated.':'POS settings saved.')})}
+function settings(){if(!restaurantCan('pos','manage'))throw Error('Administrator access required');const c=S.config;dialog('POS settings',`<form><h3>Payments & discounts</h3>${['Cash','BCEL QR','Bank'].map(m=>`<label class="check"><input type="checkbox" name="methods" value="${m}" ${c.methods.includes(m)?'checked':''}>${m}</label>`).join('')}${field('Cashier discount limit (%)','discountLimit',c.discountLimit,'number','min="0" max="100" required')}<h3>Legacy cashier list</h3><p>Restaurant sign-in and permissions are managed in Settings → Users & Access. This legacy list does not grant restaurant access.</p>${(typeof liveProfiles!=='undefined'?liveProfiles:[]).filter(p=>p.role!=='admin').map(p=>`<label class="check"><input type="checkbox" name="cashiers" value="${esc(p.id)}" ${c.cashiers.includes(p.id)?'checked':''}>${esc(p.full_name||p.email)}</label>`).join('')||'<p>No additional staff profiles loaded.</p>'}<h3>Printing</h3><label>Receipt paper<select name="receiptWidth"><option value="56" ${n(c.receiptWidth)===56?'selected':''}>56 mm · 5.6 cm</option><option value="80" ${n(c.receiptWidth)===80?'selected':''}>80 mm</option><option value="58" ${n(c.receiptWidth)===58?'selected':''}>58 mm</option></select></label>${field('Receipt footer','receiptFooter',c.receiptFooter)}<p>Choose your printer in the print window. For a USB test print or a device-specific paper size, open Management → Configure Printing.</p><button type="submit">Save settings</button></form>`,async(d,f)=>{const values={...c,...d,discountLimit:n(d.discountLimit),receiptWidth:n(d.receiptWidth),methods:new FormData(f).getAll('methods'),cashiers:new FormData(f).getAll('cashiers')};if(!values.methods.length)throw Error('Enable at least one payment method');if(S.sample)S.config=values;else{await rpc('pos_manage118',{p_action:'config',p_data:values,p_version:S.configVersion});await load()}showCenterStatus(S.sample?'Sample settings updated.':'POS settings saved.')})}
 function shift(action){const closing=action==='close',cash=action==='cash';if(!S.sample&&(closing||cash)&&(!navigator.onLine||S.offline||S.offlineQueue.length))throw Error(S.offlineQueue.length?'Sync all pending sales before cash movement or closing the shift.':'Connect to the internet before changing the shift.');if(!S.sample&&action==='open'&&(!navigator.onLine||S.offline))throw Error('Connect once to open a shift before taking offline payments.');dialog(closing?'Close shift':cash?'Cash in / out':'Open shift',`<form>${field(closing?'Counted cash (LAK)':cash?'Amount (positive = in, negative = out)':'Opening float (LAK)','amount',0,'number',(cash?'':'min="0" ')+'step="any" required')}${cash?field('Reason / reference','reason','','text','required minlength="3"'):''}${closing?'<p>The counted cash and variance will be preserved in shift history.</p>':''}<button type="submit">${closing?'Close shift':'Save'}</button></form>`,async d=>{if(!S.sample&&(closing||cash)&&(await posOffline119.queue(offlineOwner())).length)throw Error('Sync pending sales before changing the shift.');if(S.sample){const s=S.shifts.find(s=>!s.closed_at);if(action==='open'){if(s)throw Error('A sample shift is already open');S.shifts.push({id:uuid(),cashier:liveProfile.id,profile:{full_name:currentUser()},opening:n(d.amount),opened_at:new Date().toISOString()})}else if(!s)throw Error('Open a shift first');else if(cash)S.cash.push({id:uuid(),shift_id:s.id,amount:n(d.amount),reason:d.reason});else{Object.assign(s,{closed_at:new Date().toISOString(),counted:n(d.amount),expected:shiftExpected(s)})}}else await rpc('pos_manage118',{p_action:action,p_data:d,p_version:0});if(!S.sample)await load();showCenterStatus('Shift updated.');render()})}
 function refund(cancel=false){const o=selectedOrder();if(!o)return;if(!restaurantCan('pos',cancel?'void':'refund'))throw Error('Administrator approval required');dialog(cancel?'Cancel unpaid order':'Refund paid order',`<form><p>${cancel?'Cancel':'Record a full refund for'} ${esc(cancel?'OJ-'+o.number:posReports.numberFor(o))} · ${money(o.data.collectedTotal??o.data.total)}</p>${field('Reason','reason','','text','required minlength="3"')}${cancel?'':'<label class="check"><input type="checkbox" name="restock">Return all consumed ingredients to usable stock</label><p>Leave unchecked for prepared food that cannot be reused. Confirm the actual refund in your payment system separately.</p>'}<button type="submit">${cancel?'Cancel order':'Confirm refund'}</button></form>`,async(d,f)=>{if(S.sample){o.status=cancel?'cancelled':'refunded';o.refunded_at=new Date().toISOString()}else await rpc('pos_order118',{p_id:o.id,p_version:o.version,p_action:cancel?'cancel':'refund',p_data:{reason:d.reason,restock:!!f.elements.restock?.checked}});if(!S.sample)await load();showCenterStatus(cancel?'Order cancelled.':'Refund recorded.');render()})}
 function options(){if(!admin()&&!S.sample)throw Error('Administrator access required');let selected=S.picked||catalog()[0]?.id;if(!selected)throw Error('Add a menu item first');const root=dialog('Customization options','<div id="posOptionsEditor118"></div>');const host=root.querySelector('#posOptionsEditor118');let groups,nonstock;
