@@ -336,7 +336,7 @@ window.restaurantPosMode128=()=> 'live';
   inventory:{css:['inventory-menu-v104.css?v=stockusage2','pos-operations.css?v=checkout3'],js:['restaurant-inventory144.bundle.js?v=review2','inventory-allocated.js?v=checkout3']},
   menu:{depends:['inventory'],js:['menu-v108.js?v=rowactions1']},
   kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=stocklinks1'],js:['preparation-waste124.js?v=layout2']},
-  pos:{css:['pos-v118.css?v=cashier4'],js:['restaurant-pos150.bundle.js?v=cashier4']}
+  pos:{css:['pos-v118.css?v=cashier4'],js:['restaurant-pos150.bundle.js?v=cashier5']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
  const pendingFiles=new Map();

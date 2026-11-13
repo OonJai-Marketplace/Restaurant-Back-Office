@@ -6,7 +6,7 @@ self.addEventListener('activate',event=>event.waitUntil(self.clients.claim()));
 // Retain earlier caches for tabs still running an older release. No private stores are changed.
 self.addEventListener('message',event=>{
  if(event.data?.type!=='CACHE_SHELL150')return;
- event.waitUntil((async()=>{const cache=await caches.open(CACHE);for(const file of ['./','back-office/','pos/','kitchen/','scripts/restaurant-core150.bundle.js?v=cashier4'])try{const url=new URL(file,ROOT),response=await fetch(url,{cache:'reload'});if(response.ok)await cache.put(url,response)}catch{}})());
+ event.waitUntil((async()=>{const cache=await caches.open(CACHE);for(const file of ['./','back-office/','pos/','kitchen/','scripts/restaurant-core150.bundle.js?v=cashier5'])try{const url=new URL(file,ROOT),response=await fetch(url,{cache:'reload'});if(response.ok)await cache.put(url,response)}catch{}})());
 });
 self.addEventListener('fetch',event=>{
  const request=event.request,url=new URL(request.url);
