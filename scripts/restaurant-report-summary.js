@@ -32,9 +32,14 @@ var restaurantReportSummary = (() => {
   ];
  }
  function table(rows,esc){return '<table class="sales-summary"><tbody>'+rows.filter(r=>r.length).map(r=>'<tr>'+r.map(v=>'<td>'+esc(typeof v==='number'?v.toLocaleString('en-US',{maximumFractionDigits:2}):String(v))+'</td>').join('')+'</tr>').join('')+'</tbody></table>'}
+ function localReference(o){
+  return o.id?'R-L'+String(o.id).replaceAll('-','').toUpperCase():'';
+ }
  function receiptNumber(o){
+  if(o.data?.receiptCode)return o.data.receiptCode;
+  if(o.offlinePending)return localReference(o);
   if(o.data?.offlineNonce?.startsWith('receipt-'+o.id+':')||(!Number(o.number)&&o.id))return 'R-L'+String(o.id).replaceAll('-','').toUpperCase();
   return o.number==null?'':'R-'+o.number;
  }
- return {rows,table,receiptNumber};
+ return {rows,table,receiptNumber,localReference};
 })();

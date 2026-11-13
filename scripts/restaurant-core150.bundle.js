@@ -51,7 +51,7 @@ window.armNewForm108=()=>{};
 function escapeHtml(v){return shell113.esc(v)}
 function showCenterStatus(message,error=false){let n=document.getElementById('restaurantToast');if(!n){n=document.createElement('div');n.id='restaurantToast';n.setAttribute('role','status');document.body.append(n)}n.replaceChildren(document.createTextNode(String(message||'')));n.classList.toggle('error',error);n.hidden=!message;clearTimeout(showCenterStatus.timer);if(message&&String(message).length>85){const close=document.createElement('button');close.textContent='Close';close.onclick=()=>n.hidden=true;n.append(close)}else if(message)showCenterStatus.timer=setTimeout(()=>n.hidden=true,error?8000:4500)}
 window.status118={pending:m=>showCenterStatus(m),done:m=>showCenterStatus(m),error:m=>showCenterStatus(m,true)};
-window.ui108={modal:(title,body,buttons=[{label:'Close',value:false}],wide=false)=>new Promise(resolve=>{let overlay=document.createElement('div');overlay.className='ui-overlay108 restaurant-modal';overlay.innerHTML=`<section class="ui-dialog108 restaurant-dialog ${wide?'wide':''}" role="dialog" aria-modal="true" aria-label="${escapeHtml(title)}"><header><h3>${escapeHtml(title)}</h3><button type="button" aria-label="Close dialog" data-close>×</button></header><div class="ui-body108 restaurant-dialog-body">${body}</div><footer></footer></section>`;const done=value=>{overlay.remove();resolve(value)};overlay.resolve108=done;overlay.querySelector('[data-close]').onclick=()=>done(false);buttons.filter(b=>b.label!=='Close').forEach(b=>{let button=document.createElement('button');button.type='button';button.textContent=b.label;button.className=b.danger?'danger':'';button.onclick=()=>done(b.value);overlay.querySelector('footer').append(button)});overlay.onclick=e=>{if(e.target===overlay)done(false)};document.body.append(overlay)}),esc:escapeHtml};
+window.ui108={modal:(title,body,buttons=[{label:'Close',value:false}],wide=false,{explicitClose=false}={})=>new Promise(resolve=>{let overlay=document.createElement('div');overlay.className='ui-overlay108 restaurant-modal';overlay.innerHTML=`<section class="ui-dialog108 restaurant-dialog ${wide?'wide':''}" role="dialog" aria-modal="true" aria-label="${escapeHtml(title)}"><header><h3>${escapeHtml(title)}</h3><button type="button" aria-label="Close dialog" data-close>×</button></header><div class="ui-body108 restaurant-dialog-body">${body}</div><footer></footer></section>`;const done=value=>{overlay.remove();resolve(value)};overlay.resolve108=done;overlay.querySelector('[data-close]').onclick=()=>done(false);buttons.filter(b=>b.label!=='Close').forEach(b=>{let button=document.createElement('button');button.type='button';button.textContent=b.label;button.className=b.danger?'danger':'';button.onclick=()=>done(b.value);overlay.querySelector('footer').append(button)});overlay.onclick=e=>{if(!explicitClose&&e.target===overlay)done(false)};document.body.append(overlay)}),esc:escapeHtml};
 ui108.confirm=(title,message)=>ui108.modal(title,`<p>${escapeHtml(message)}</p>`,[{label:'Cancel',value:false},{label:'Delete',value:true,danger:true}]);
 window.ui117={confirm:message=>ui108.modal('Please confirm',`<p>${escapeHtml(message)}</p>`,[{label:'Cancel',value:false},{label:'Confirm',value:true}]),prompt:async(message,value='')=>{const answer=window.prompt(message,value);return answer===null?null:answer}};
 // Restaurant v121. Permissions and presentation live separately from Accounting.
@@ -362,13 +362,13 @@ window.restaurantPosMode128=()=> 'live';
  const groups={
   promotions:{css:['promotions146.css'],js:['promotion-kit146.js','restaurant-promotions146.js']},
   readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js']},
-  reports:{css:['pos-operations.css?v=register6','pos-v118.css?v=restaurant11'],js:['pos-reports.js?v=restaurant11','pos-backoffice-reports.js?v=restaurant11']},
+  reports:{css:['pos-operations.css?v=register6','pos-v118.css?v=checkout13'],js:['pos-reports.js?v=restaurant11','pos-backoffice-reports.js?v=restaurant11']},
   sales:{css:['restaurant-sales143.css'],js:['sales-math143.js','restaurant-sales143.js?v=reports1']},
   settings:{js:['restaurant-settings146.bundle.js']},
   inventory:{css:['inventory-menu-v104.css?v=stockusage2','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=review2','inventory-allocated.js?v=checkout3']},
   menu:{depends:['inventory'],js:['menu-v108.js?v=rowactions1']},
   kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=stocklinks1'],js:['preparation-waste124.js?v=layout2']},
-  pos:{css:['pos-v118.css?v=restaurant11'],js:['restaurant-pos150.bundle.js?v=print12']}
+  pos:{css:['pos-v118.css?v=checkout13','pos-receipt.css?v=checkout13'],js:['restaurant-pos150.bundle.js?v=checkout13']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
  const pendingFiles=new Map();
@@ -724,11 +724,16 @@ var restaurantReportSummary = (() => {
   ];
  }
  function table(rows,esc){return '<table class="sales-summary"><tbody>'+rows.filter(r=>r.length).map(r=>'<tr>'+r.map(v=>'<td>'+esc(typeof v==='number'?v.toLocaleString('en-US',{maximumFractionDigits:2}):String(v))+'</td>').join('')+'</tr>').join('')+'</tbody></table>'}
+ function localReference(o){
+  return o.id?'R-L'+String(o.id).replaceAll('-','').toUpperCase():'';
+ }
  function receiptNumber(o){
+  if(o.data?.receiptCode)return o.data.receiptCode;
+  if(o.offlinePending)return localReference(o);
   if(o.data?.offlineNonce?.startsWith('receipt-'+o.id+':')||(!Number(o.number)&&o.id))return 'R-L'+String(o.id).replaceAll('-','').toUpperCase();
   return o.number==null?'':'R-'+o.number;
  }
- return {rows,table,receiptNumber};
+ return {rows,table,receiptNumber,localReference};
 })();
 
 ;

@@ -252,13 +252,35 @@ html body.shell113 #posChargeDialog>header [data-fx-payment]{height:32px!importa
 .pos-fx-form dl{margin:0}.pos-fx-form dl>div{display:flex;justify-content:space-between;gap:12px;margin:4px 0}.pos-fx-form dd{margin:0;font-variant-numeric:tabular-nums}
 html body.shell113 #pos118 .receipt-wrap118 .receipt118{width:var(--receipt-width,80mm)!important;max-width:100%!important;box-sizing:border-box;overflow-wrap:anywhere}
 html body.shell113 #posChargeDialog .pos-payment-controls{display:grid;gap:10px;align-content:start;min-width:0}
-@media(min-width:650px){
- html body.shell113 #posChargeDialog #pos-charge-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,.85fr);align-items:start;gap:16px}
- html body.shell113 #posChargeDialog .pos-charge-fields{grid-template-columns:minmax(0,1fr)}
- html body.shell113 #posChargeDialog .pos-payment-controls{position:sticky;top:0}
- html body.shell113 #posChargeDialog .form-error118{grid-column:2}
+html body.shell113 .pos-receipt-overlay {
+ display:flex!important;box-sizing:border-box;padding:8px!important;
+ left:var(--view-left118,0px)!important;top:var(--view-top118,0px)!important;
+ width:var(--view-width118,100vw)!important;height:var(--view-height118,100dvh)!important;
 }
+html body.shell113 .pos-receipt-overlay .pos-dialog118 {
+ display:flex!important;flex-direction:column;max-height:calc(var(--view-height118,100dvh) - 16px)!important;
+}
+html body.shell113 .pos-receipt-overlay .pos-dialog118>header {flex:none}
+html body.shell113 .pos-receipt-overlay .ui-body108 {
+ flex:1 1 auto;min-height:0;max-height:none!important;overflow:auto!important;
+ padding-bottom:max(16px,env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;
+}
+html body.shell113 #posChargeDialog #pos-charge-form {
+ display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:16px;align-items:start;
+}
+html body.shell113 #posChargeDialog .pos-charge-fields {grid-template-columns:repeat(2,minmax(0,1fr))}
+html body.shell113 #posChargeDialog .pos-charge-fields>label:first-child {grid-column:1/-1}
+html body.shell113 #posChargeDialog input[name=tendered] {font-size:16px!important}
+html body.shell113 #posChargeDialog>header :is(button[type=submit],[data-close],[data-print-receipt],[data-fx-payment],[data-toggle-adjustment]) {
+ height:44px!important;min-height:44px!important;max-height:none!important;min-width:44px;
+}
+html body.shell113 #posChargeDialog>header [data-print-receipt] {background:#fffdf7!important;color:#174c38!important;border:1px solid #b6ccbc!important}
+html body.shell113 #posChargeDialog>header button:disabled {opacity:.5}
+.pos-printer-settings {display:grid;gap:12px}
+.pos-printer-settings p,.pos-printer-settings output:empty {margin:0}
+.pos-printer-settings :is(button,select) {min-height:44px}
 @media(max-width:649px){
- html body.shell113 #posChargeDialog #pos-charge-form{display:flex;flex-direction:column}
+ html body.shell113 #posChargeDialog #pos-charge-form{display:flex;flex-direction:column;align-items:stretch}
  html body.shell113 #posChargeDialog .pos-payment-controls{order:-1}
+ html body.shell113 #posChargeDialog>header{padding:6px;gap:4px}
 }

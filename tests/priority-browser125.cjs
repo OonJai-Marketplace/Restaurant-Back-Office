@@ -36,7 +36,7 @@ async function main(){fs.mkdirSync(path.join(__dirname,'results'),{recursive:tru
  slow=true;staleBalance=777;await pages[0].evaluate(()=>{pos118.load({background:true})});await new Promise(r=>setTimeout(r,100));
  const before=await pages[0].evaluate(()=>pos118.stock('22222222-2222-4222-8222-222222222222'));
  const result=await pages[0].evaluate(async menuId=>{pos118.fresh();pos118.draft.data.lines=[{menuId,name:'Taco',quantity:1,unitPrice:1000,choices:{}}];const at=performance.now();await pos118.save('pay',{payment:'Cash',tendered:1000,confirmed:true});return {elapsed:performance.now()-at,iframe:document.querySelectorAll('iframe').length,lines:pos118.draft.data.lines.length}},menuId);
- assert(result.elapsed<1500,'Payment waited for background snapshot');assert(result.iframe>0);assert.equal(result.lines,0);checks+=3;
+ assert(result.elapsed<1500,'Payment waited for background snapshot');assert.equal(result.iframe,0);assert.equal(result.lines,0);checks+=3;
  await new Promise(r=>setTimeout(r,1850));assert(Math.abs((await pages[0].evaluate(()=>pos118.stock('22222222-2222-4222-8222-222222222222')))-(before-.2))<1e-8);checks++;
  slow=false;staleBalance=null;
  // Ten customers across two independent browser storage contexts/cashier accounts.
