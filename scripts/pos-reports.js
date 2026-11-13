@@ -7,6 +7,8 @@ var posReports = globalThis.posReports || (() => {
  const cents = amount => Math.round((Number(amount) + Number.EPSILON) * 100);
  const types = {receipts:'By receipt', items:'By item', shifts:'By shift'};
  const receiptId=number=>number==null?'':'R-'+number;
+ // Offline-first receipts keep their printed reference after the server assigns its internal number.
+ const numberFor=o=>restaurantReportSummary.receiptNumber(o);
  function defaults() {
   const today = day(Date.now());
   return {type:'receipts', period:'monthly', month:today.slice(0,7), year:today.slice(0,4), from:today, to:today};
@@ -124,7 +126,7 @@ var posReports = globalThis.posReports || (() => {
   const rows=[items?itemHeader:receiptHeader];
   for(const {order,refund,at} of events) {
    const d=order.data,lines=d.lines||[],sign=refund?-1:1;
-   const common=[stamp(at),receiptId(order.number),refund?'Refund':'Sale',refund?d.refundShiftId:d.shiftId];
+   const common=[stamp(at),numberFor(order),refund?'Refund':'Sale',refund?d.refundShiftId:d.shiftId];
    const gross=lines.map(l=>cents(Number(l.quantity)*Number(l.unitPrice)));
    const grossSum=gross.reduce((sum,x)=>sum+x,0);
    const paid=cents(d.total), subtotal=d.subtotal==null?grossSum:cents(d.subtotal);
@@ -147,7 +149,7 @@ var posReports = globalThis.posReports || (() => {
   return rows;
  }
  const shiftHeader=['Shift ID','Cashier','Opened at','Closed at','Status','Sale receipts','Refunds','Sales collected (LAK)','Refund amount (LAK)','Net collected (LAK)','Opening cash (LAK)','Cash sales (LAK)','Cash refunds (LAK)','Paid in (LAK)','Paid out (LAK)','Expected cash (LAK)','Counted cash (LAK)','Difference (LAK)'];
- async function shiftsReport(s,r,check) {
+ async function shiftsReport(s,r,check,events=[]) {
   const shifts=s.sample?s.shifts.filter(v=>inRange(v.opened_at,r)):await pages(()=>ojmDb.from('pos_shifts118')
    .select('id,cashier,opened_at,closed_at,opening,expected,counted,profile:profiles(full_name)').gte('opened_at',r.start).lt('opened_at',r.end),check);
   shifts.sort((a,b)=>Date.parse(b.opened_at)-Date.parse(a.opened_at));
@@ -155,20 +157,23 @@ var posReports = globalThis.posReports || (() => {
   for(let i=0;i<shifts.length;i+=25) {
    const batch=shifts.slice(i,i+25),ids=batch.map(v=>v.id);
    const payments=(key,refund)=>{
-    if(s.sample) return s.orders.filter(o=>ids.includes(o.data[key]) && (refund?o.status==='refunded':['paid','refunded'].includes(o.status)))
-     .map(o=>({shift:o.data[key],amount:o.data.total,method:o.data.payment}));
-    return pages(()=>ojmDb.from('pos_orders118').select('id,shift:data->>'+key+',amount:data->>total,method:data->>payment')
+    if(s.sample) return s.orders.filter(o=>ids.includes(o.data[key]) && (refund?o.status==='refunded':['paid','refunded'].includes(o.status)));
+    return pages(()=>ojmDb.from('pos_orders118').select('id,number,data,paid_at,refunded_at')
      .in('data->>'+key,ids).in('status',refund?['refunded']:['paid','refunded']),check);
    };
-   const [sales,refunds,moves]=await Promise.all([payments('shiftId',false),payments('refundShiftId',true),
+   const [sold,refunded,moves]=await Promise.all([payments('shiftId',false),payments('refundShiftId',true),
     s.sample?s.cash:pages(()=>ojmDb.from('pos_cash118').select('id,shift_id,amount').in('shift_id',ids),check)]);
+   for(const order of sold)events.push({order,refund:false,at:order.paid_at});
+   for(const order of refunded)events.push({order,refund:true,at:order.refunded_at});
+   const paymentsFor=(orders,key)=>orders.map(o=>({shift:o.data[key],amount:o.data.total,method:o.data.payment,cashier:o.data.cashier}));
+   const sales=paymentsFor(sold,'shiftId'),refunds=paymentsFor(refunded,'refundShiftId');
    const sum=values=>values.reduce((a,b)=>a+cents(b.amount),0)/100;
    for(const shift of batch) {
     const paid=sales.filter(v=>v.shift===shift.id),returned=refunds.filter(v=>v.shift===shift.id),cash=moves.filter(v=>v.shift_id===shift.id);
     const cashSales=sum(paid.filter(v=>v.method==='Cash')),cashRefunds=sum(returned.filter(v=>v.method==='Cash'));
     const added=sum(cash.filter(v=>v.amount>0)),removed=-sum(cash.filter(v=>v.amount<0));
     const expected=shift.expected??(Number(shift.opening)+cashSales-cashRefunds+added-removed);
-    rows.push([shift.id,shift.profile?.full_name||shift.cashier,stamp(shift.opened_at),stamp(shift.closed_at),shift.closed_at?'Closed':'Open',
+    rows.push([shift.id,shift.profile?.full_name||paid.find(o=>o.cashier)?.cashier||(s.sample?'Sample cashier':'Name unavailable'),stamp(shift.opened_at),stamp(shift.closed_at),shift.closed_at?'Closed':'Open',
      paid.length,returned.length,sum(paid),sum(returned),cents(sum(paid)-sum(returned))/100,Number(shift.opening),cashSales,cashRefunds,added,removed,
      cents(expected)/100,shift.counted??'',shift.counted==null?'':cents(Number(shift.counted)-expected)/100]);
    }
@@ -191,7 +196,7 @@ var posReports = globalThis.posReports || (() => {
  }
  async function readReport(type,state,r,check){
   const events=type==='shifts'?[]:await transactions(state,r,check);
-  const rows=type==='shifts'?await shiftsReport(state,r,check):salesReport(events,type==='items');
+  const rows=type==='shifts'?await shiftsReport(state,r,check,events):salesReport(events,type==='items');
   check();return {rows,events};
  }
  let cached=null;
@@ -221,11 +226,11 @@ var posReports = globalThis.posReports || (() => {
    if(el.isConnected&&el.dataset.selection===key)el.textContent=summary(rows,filter.type);
   }catch(error){if(el.isConnected&&el.dataset.selection===key)el.textContent=error.message}
  }
- function printTable(type,rows,r,sample){
+ function printTable(type,rows,r,sample,summaryRows){
   const cols=type==='items'?[0,1,2,5,6,8,9,11,12]:[2,3,1,4,5,6,9,15,16,17];
   const esc=shell113.esc,frame=document.createElement('iframe');frame.style.cssText='position:fixed;width:0;height:0;border:0';document.body.append(frame);
   const doc=frame.contentDocument,title='Oon Jai Marketplace · '+types[type];
-  doc.open();doc.write('<!doctype html><meta charset="utf-8"><title>'+title+'</title><style>@page{size:A4 landscape;margin:10mm}body{font:11px Arial;color:#203b30}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid #ccc;padding:5px}thead{display:table-header-group}tr{break-inside:avoid}</style><h2>'+title+'</h2><p>'+(sample?'SAMPLE · ':'')+r.from+' – '+r.to+' · '+summary(rows,type)+'</p><table><thead><tr>'+cols.map(c=>'<th>'+esc(rows[0][c])+'</th>').join('')+'</tr></thead><tbody>'+rows.slice(1).map(row=>'<tr>'+cols.map(c=>'<td>'+esc(row[c]??'')+'</td>').join('')+'</tr>').join('')+'</tbody></table>');doc.close();
+  doc.open();doc.write('<!doctype html><meta charset="utf-8"><title>'+title+'</title><style>@page{size:A4 landscape;margin:10mm}body{font:11px Arial;color:#203b30}table{width:100%;border-collapse:collapse}th,td{text-align:left;border-bottom:1px solid #ccc;padding:5px}thead{display:table-header-group}tr{break-inside:avoid}</style><h2>'+title+'</h2><p>'+(sample?'SAMPLE · ':'')+r.from+' – '+r.to+' · '+summary(rows,type)+'</p>'+restaurantReportSummary.table(summaryRows,esc)+'<h3>Details</h3><table><thead><tr>'+cols.map(c=>'<th>'+esc(rows[0][c])+'</th>').join('')+'</tr></thead><tbody>'+rows.slice(1).map(row=>'<tr>'+cols.map(c=>'<td>'+esc(row[c]??'')+'</td>').join('')+'</tr>').join('')+'</tbody></table>');doc.close();
   frame.contentWindow.addEventListener('afterprint',()=>frame.remove(),{once:true});frame.contentWindow.focus();frame.contentWindow.print();
  }
  async function download(filter,state,pdf,printReceipts) {
@@ -233,12 +238,13 @@ var posReports = globalThis.posReports || (() => {
   clear(); // An explicit export includes records posted since the summary was opened.
   const {rows,events}=await selected(filter,state);check();
   if(rows.length===1) throw Error('No '+(type==='shifts'?'shifts':'transactions')+' in this period.');
+  const summaryRows=restaurantReportSummary.rows(events);
   if(pdf){
-   if(type==='receipts')return printReceipts(events.map(e=>({...e.order,status:e.refund?'refunded':'paid',paid_at:e.at})),false,true);
-   return printTable(type,rows,r,sample);
+   if(type==='receipts')return printReceipts(events.map(e=>({...e.order,status:e.refund?'refunded':'paid',paid_at:e.at})),false,true,{rows:summaryRows,period:r.from+' – '+r.to,sample});
+   return printTable(type,rows,r,sample,summaryRows);
   }
   const exportRows=rows.map((row,i)=>[...row,i===0?'Sample':sample?'YES':'NO']);
-  const url=URL.createObjectURL(new Blob(['\ufeff'+csv(exportRows)],{type:'text/csv;charset=utf-8'}));
+  const url=URL.createObjectURL(new Blob(['\ufeff'+csv([['Oon Jai Restaurant',types[type],r.from,r.to,sample?'SAMPLE':''],...summaryRows,[],['Details'],...exportRows])],{type:'text/csv;charset=utf-8'}));
   const a=document.createElement('a');
   a.href=url;
   a.download='POS-'+(sample?'SAMPLE-':'')+type+'-'+r.from+'-'+r.to+'.csv';
@@ -246,5 +252,5 @@ var posReports = globalThis.posReports || (() => {
   setTimeout(()=>URL.revokeObjectURL(url),1000);
   showCenterStatus('Export downloaded.');
  }
- return {fxDescription,receiptId,transactions,pages,stamp,day,defaults,controls,download,clear,populate,openRange,summary,range,salesReport,shiftsReport,csv};
+ return {numberFor,fxDescription,receiptId,transactions,pages,stamp,day,defaults,controls,download,clear,populate,openRange,summary,range,salesReport,shiftsReport,csv};
 })();

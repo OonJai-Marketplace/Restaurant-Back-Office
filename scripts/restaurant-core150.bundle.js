@@ -91,7 +91,7 @@ async function openOnlineOrders(){if(!restaurantTabCan125('pos','pos-sales-onlin
 async function openPosManagement(){if(!restaurantTabCan125('pos','pos-management','manage'))return showCenterStatus('POS settings access required.',true);await switchTab('pos118');if(window.pos118){pos118.state.tab='Management';pos118.render()}}
 function toggleMobileNavigation(){document.body.classList.toggle('restaurant-nav-open')}
 function closeMobileNavigation(){document.body.classList.remove('restaurant-nav-open')}
-function clearRestaurantSession(){window.restaurantTableRows?.reset();window.pos118?.clearReport?.();hydration132=null;window.menuStore108?.cancelLoad?.();window.kitchen124?.cancelLoad?.();window.restaurantHome139?.reset();window.restaurantSales143?.reset();window.restaurantReadiness144?.reset();window.RestaurantPromotions146?.reset();sessionEpoch121++;window.restaurantIntegration132?.reset();loginProgress132('');liveProfile=null;liveProfiles=[];restaurantMember=null;restaurantMembers=[];bannerRows={};window.resetMenuSales121?.();if(window.pos118)Object.assign(pos118.state,{busy:false,working:false,offline:false,syncError:'',loaded:false,owner:null,modeChosen:false,sample:false,schema125:false,balances125:null,catalogVersion125:null,summary125:null,receiptDate:null,acknowledged125:[],menu:[],ingredients:[],items:[],moves:[],stock:[],orders:[],shifts:[],cash:[],offlineQueue:[]});document.querySelector('dialog.restaurant-password-dialog[open]')?.close();document.querySelectorAll('.restaurant-modal,.im-edit-overlay112').forEach(x=>x.remove());if(window.menuStore108)Object.assign(menuStore108.state,{owner:null,loaded:false,ledgerLoaded144:false,editing:null,items:[],moves:[],menu:[],ingredients:[],categories:[]});document.getElementById('restaurantSettings121')?.replaceChildren();document.getElementById('restaurantOverviewGrid')?.replaceChildren();document.getElementById('restaurantApp').hidden=true;document.getElementById('loginGate').hidden=false;document.getElementById('loginGate').classList.remove('is-authenticated');document.querySelectorAll('.workspace-scroll>.tab-content:not(#restaurant-settings):not(#restaurant-overview)').forEach(x=>x.innerHTML='');}
+function clearRestaurantSession(){offlineAccess=false;try{sessionStorage.removeItem(offlineAccessKey())}catch{}window.restaurantTableRows?.reset();window.pos118?.clearReport?.();hydration132=null;window.menuStore108?.cancelLoad?.();window.kitchen124?.cancelLoad?.();window.restaurantHome139?.reset();window.restaurantSales143?.reset();window.restaurantReadiness144?.reset();window.RestaurantPromotions146?.reset();sessionEpoch121++;window.restaurantIntegration132?.reset();loginProgress132('');liveProfile=null;liveProfiles=[];restaurantMember=null;restaurantMembers=[];bannerRows={};window.resetMenuSales121?.();if(window.pos118)Object.assign(pos118.state,{busy:false,working:false,offline:false,syncError:'',loaded:false,owner:null,modeChosen:false,sample:false,schema125:false,balances125:null,catalogVersion125:null,summary125:null,receiptDate:null,acknowledged125:[],menu:[],ingredients:[],items:[],moves:[],stock:[],orders:[],shifts:[],cash:[],offlineQueue:[]});document.querySelector('dialog.restaurant-password-dialog[open]')?.close();document.querySelectorAll('.restaurant-modal,.im-edit-overlay112').forEach(x=>x.remove());if(window.menuStore108)Object.assign(menuStore108.state,{owner:null,loaded:false,ledgerLoaded144:false,editing:null,items:[],moves:[],menu:[],ingredients:[],categories:[]});document.getElementById('restaurantSettings121')?.replaceChildren();document.getElementById('restaurantOverviewGrid')?.replaceChildren();document.getElementById('restaurantApp').hidden=true;document.getElementById('loginGate').hidden=false;document.getElementById('loginGate').classList.remove('is-authenticated');document.querySelectorAll('.workspace-scroll>.tab-content:not(#restaurant-settings):not(#restaurant-overview)').forEach(x=>x.innerHTML='');}
 async function logoutDemoUser(){clearRestaurantSession();if(ojmDb)await ojmDb.auth.signOut()}
 function passwordForm121(required=false, expectedUserId=null){
  const dialog=document.createElement('dialog');
@@ -134,13 +134,34 @@ function passwordForm121(required=false, expectedUserId=null){
   dialog.showModal();
  });
 }
-async function hydrateCore132(session){if(!session?.user){clearRestaurantSession();return}if(liveProfile?.id===session.user.id)return;const epoch=++sessionEpoch121;const [profile,member]=await loginWait140(Promise.all([ojmDb.from('profiles').select('*').eq('id',session.user.id).maybeSingle(),ojmDb.from('restaurant_members121').select('*').eq('user_id',session.user.id).maybeSingle()]),'Account verification took too long. Please sign in to retry.');if(epoch!==sessionEpoch121)return;if(profile.error||!profile.data){document.getElementById('loginError').textContent=profile.error?.message||'No user profile is available.';return}if(profile.data.status!=='active'){clearRestaurantSession();document.getElementById('loginError').textContent='This user account is inactive.';return}liveProfile=profile.data;restaurantMember=member.data;if(!isAdmin121()&&(!restaurantMember?.enabled||member.error)){liveProfile=null;document.getElementById('loginError').textContent='Restaurant access has not been enabled. Ask your administrator.';return}if(!isAdmin121()&&restaurantMember.must_change_password){loginProgress132('');const ok=await passwordForm121(true);if(!ok||epoch!==sessionEpoch121)return;loginProgress132('');const r=await loginWait140(ojmDb.from('restaurant_members121').select('*').eq('user_id',session.user.id).single(),'Account verification took too long. Please sign in to retry.');if(epoch!==sessionEpoch121)return;restaurantMember=r.data;if(!restaurantMember||restaurantMember.must_change_password){clearRestaurantSession();document.getElementById('loginError').textContent='Password updated. Sign in again; contact your administrator if access is still blocked.';return}}
+// Keep an already signed-in cashier tab usable when it reloads during an outage.
+const offlineAccessKey=()=>'restaurant-cashier-tab:'+new URL(OJM_SUPABASE_URL).hostname;
+let offlineAccess=false;
+function cacheCashierAccess(){
+ try{
+  if(!restaurantTabCan125('pos','pos-sales-new','sell')){sessionStorage.removeItem(offlineAccessKey());return}
+  const tabs=Object.fromEntries(['pos-overview','pos-sales-new','pos-sales-open','pos-sales-receipts'].map(k=>[k,restaurantTabCan125('pos',k)]));
+  sessionStorage.setItem(offlineAccessKey(),JSON.stringify({id:liveProfile.id,name:liveProfile.full_name,tabs}));
+ }catch{}
+}
+function offlineCashier(session){
+ if(globalThis.navigator?.onLine!==false||!session?.user?.id)return null;
+ try{const access=JSON.parse(sessionStorage.getItem(offlineAccessKey()));if(access?.id!==session.user.id)return null;
+  return [{data:{id:access.id,full_name:access.name,status:'active',role:'staff'}},{data:{enabled:true,permissions:{pos:{view:true,sell:true,tabs:access.tabs}}}}];
+ }catch{return null}
+}
+async function hydrateCore132(session){if(!session?.user){clearRestaurantSession();return}if(liveProfile?.id===session.user.id&&!(offlineAccess&&navigator.onLine))return;const epoch=++sessionEpoch121;
+ const cached=offlineCashier(session);const [profile,member]=cached||await loginWait140(Promise.all([ojmDb.from('profiles').select('*').eq('id',session.user.id).maybeSingle(),ojmDb.from('restaurant_members121').select('*').eq('user_id',session.user.id).maybeSingle()]),'Account verification took too long. Please sign in to retry.');if(epoch!==sessionEpoch121)return;
+ if(offlineAccess&&!cached&&(profile.error||member.error))throw Error('Cashier access could not be verified. Reconnect to sign in. Saved sales remain on this device.');
+ if(offlineAccess&&!cached&&!profile.data){clearRestaurantSession();return}
+ offlineAccess=!!cached;if(profile.error||!profile.data){document.getElementById('loginError').textContent=profile.error?.message||'No user profile is available.';return}if(profile.data.status!=='active'){clearRestaurantSession();document.getElementById('loginError').textContent='This user account is inactive.';return}liveProfile=profile.data;restaurantMember=member.data;if(!isAdmin121()&&(!restaurantMember?.enabled||member.error)){liveProfile=null;document.getElementById('loginError').textContent='Restaurant access has not been enabled. Ask your administrator.';return}if(!isAdmin121()&&restaurantMember.must_change_password){loginProgress132('');const ok=await passwordForm121(true);if(!ok||epoch!==sessionEpoch121)return;loginProgress132('');const r=await loginWait140(ojmDb.from('restaurant_members121').select('*').eq('user_id',session.user.id).single(),'Account verification took too long. Please sign in to retry.');if(epoch!==sessionEpoch121)return;restaurantMember=r.data;if(!restaurantMember||restaurantMember.must_change_password){clearRestaurantSession();document.getElementById('loginError').textContent='Password updated. Sign in again; contact your administrator if access is still blocked.';return}}
+ if(!offlineAccess)cacheCashierAccess();
  liveProfiles=[liveProfile];document.getElementById('currentUserChip').textContent=liveProfile.full_name||session.user.email;document.getElementById('sidebarUserRole').textContent=isAdmin121()?'Administrator':'Restaurant team';document.getElementById('headerAccountInitials').textContent=(liveProfile.full_name||'OJ').split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase();if(epoch!==sessionEpoch121)return;syncNav121();let id=restaurantStart125();try{const last=JSON.parse(localStorage.getItem('restaurant-location121:'+liveProfile.id));if(last&&Date.now()-last.at<7*3600000&&restaurantRouteAllowed128(last.id))id=last.id}catch{}
  const requested={allocated:'inv-allocated','sales-reports':'restaurant-pos-reports',pos:'pos118',kitchen:'inv-bulk132',recipes:'menu-recipe',ingredients:'menu-ingredients',website:'restaurant-website'}[new URLSearchParams(location.search).get('workspace')];if(requested&&restaurantRouteAllowed128(requested))id=requested;
  // Authorization is complete. Close login before downloading modules or records.
  document.getElementById('loginGate').hidden=true;document.getElementById('loginGate').classList.add('is-authenticated');document.getElementById('restaurantApp').hidden=false;loginProgress132('');
  const restoreFocus=window.restaurantShell122?.restoreTabletFocus();
- void openRestaurantWorkspace142(restoreFocus?'pos118':id,liveProfile.id,epoch,restoreFocus);
+ void openRestaurantWorkspace142(offlineAccess||restoreFocus?'pos118':id,liveProfile.id,epoch,restoreFocus);
  // Branding is optional presentation data; it must never delay sign-in.
  void loginWait140(loadBanners(),'Branding request timed out.').catch(()=>{});
 }
@@ -234,9 +255,18 @@ async function startRestaurantLogin140(){
  finally{if(action===loginAction140)loginStatus140('')}
 }
 async function restaurantReady(){document.addEventListener('click',e=>{const b=e.target.closest('[data-im-action],[data-m108],[data-pos118]');if(b&&!actionPermission121(b)){e.preventDefault();e.stopImmediatePropagation();showCenterStatus('This action is not included in your access.',true)}},true);let pending=false;new MutationObserver(rs=>{if(pending||!rs.some(r=>[...r.addedNodes].some(n=>n.nodeType===1&&!n.classList.contains('area-banner113'))))return;pending=true;requestAnimationFrame(()=>{pending=false;decorate121()})}).observe(document.querySelector('.workspace-scroll'),{childList:true,subtree:true});document.getElementById('restaurantSearch121').oninput=e=>{let box=document.getElementById('searchResults121');if(!box){box=document.createElement('div');box.id='searchResults121';e.target.parentElement.append(box)}const q=e.target.value.trim().toLowerCase();box.innerHTML='';if(!q)return;document.querySelectorAll('#appSidebar .nav-category:not([hidden]) button:not([hidden])').forEach(b=>{if(b.textContent.toLowerCase().includes(q)){const x=document.createElement('button');x.textContent=b.textContent;x.onclick=()=>{b.click();box.innerHTML='';e.target.value=''};box.append(x)}})};
+ window.addEventListener('online',async()=>{
+  if(!offlineAccess||!liveProfile)return;
+  const owner=liveProfile.id,epoch=sessionEpoch121;
+  try{const {data,error}=await ojmDb.auth.getSession();if(error)throw error;
+   if(liveProfile?.id!==owner||sessionEpoch121!==epoch)return;
+   if(data.session?.user?.id!==owner){clearRestaurantSession();return}
+   await hydrate(data.session);
+  }catch{showCenterStatus('Reconnect to verify your cashier access. Saved sales remain on this device.',true)}
+ });
  await startRestaurantLogin140();
  window.addEventListener('focus',async()=>{
-  if(!liveProfile)return;const owner=liveProfile.id,epoch=sessionEpoch121;
+  if(!liveProfile||offlineAccess)return;const owner=liveProfile.id,epoch=sessionEpoch121;
   const [p,r]=await Promise.all([ojmDb.from('profiles').select('*').eq('id',owner).maybeSingle(),ojmDb.from('restaurant_members121').select('*').eq('user_id',owner).maybeSingle()]);
   if(p.error||r.error||owner!==liveProfile?.id||epoch!==sessionEpoch121)return;
   if(!p.data||p.data.status!=='active'||p.data.role!==liveProfile.role||(!isAdmin121()&&(!r.data?.enabled||r.data.must_change_password||JSON.stringify(r.data.permissions)!==JSON.stringify(restaurantMember?.permissions)))){
@@ -332,13 +362,13 @@ window.restaurantPosMode128=()=> 'live';
  const groups={
   promotions:{css:['promotions146.css'],js:['promotion-kit146.js','restaurant-promotions146.js']},
   readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js']},
-  reports:{css:['pos-operations.css?v=register6','pos-v118.css?v=fx8'],js:['pos-reports.js?v=fx8','pos-backoffice-reports.js?v=fx8']},
+  reports:{css:['pos-operations.css?v=register6','pos-v118.css?v=restaurant11'],js:['pos-reports.js?v=restaurant11','pos-backoffice-reports.js?v=restaurant11']},
   sales:{css:['restaurant-sales143.css'],js:['sales-math143.js','restaurant-sales143.js?v=reports1']},
   settings:{js:['restaurant-settings146.bundle.js']},
   inventory:{css:['inventory-menu-v104.css?v=stockusage2','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=review2','inventory-allocated.js?v=checkout3']},
   menu:{depends:['inventory'],js:['menu-v108.js?v=rowactions1']},
   kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=stocklinks1'],js:['preparation-waste124.js?v=layout2']},
-  pos:{css:['pos-v118.css?v=fx8'],js:['restaurant-pos150.bundle.js?v=fx8']}
+  pos:{css:['pos-v118.css?v=restaurant11'],js:['restaurant-pos150.bundle.js?v=restaurant11']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
  const pendingFiles=new Map();
@@ -659,6 +689,49 @@ window.restaurantAccounting124={sync,tablet};if(document.readyState==='loading')
 })();
 
 ;
+/* scripts/restaurant-report-summary.js */
+/* Summaries use each payment event once, independently of the number of menu lines. */
+var restaurantReportSummary = (() => {
+ const cents=v=>Math.round((Number(v)||0)*100);
+ function rows(events){
+  let gross=0,discount=0,refunds=0,fxNet=0,drawerChange=0;
+  const adjustments=new Map();
+  const methods=new Map(['Cash','BCEL QR','Bank'].map(name=>[name,0])),currencies=new Map();
+  for(const {order,refund} of events){
+   const d=order.data,net=cents(d.total),sign=refund?-1:1,method=d.payment||'Unspecified';
+   const before=d.subtotal==null?(d.lines?.length?d.lines.reduce((v,l)=>v+cents(l.quantity*l.unitPrice),0):net+cents(d.discount)):cents(d.subtotal);
+   if(refund)refunds+=net;else {gross+=before;discount+=before-net}
+   methods.set(method,(methods.get(method)||0)+sign*net);
+   const fx=d.fxTender;if(!fx)continue;
+   fxNet+=sign*net;
+   if(refund)continue; // The refund reverses the sale; its foreign tender was received only once.
+   const v=currencies.get(fx.currency)||{amount:0,lak:0,change:0};
+   v.amount+=cents(fx.amount);v.lak+=cents(fx.equivalentLak);v.change+=cents(fx.changeLak);
+   currencies.set(fx.currency,v);if(method!=='Cash'){
+    const change=cents(fx.changeLak);drawerChange+=change;
+    adjustments.set(method,(adjustments.get(method)||0)+change);
+   }
+  }
+  return [
+   ['Sales summary','LAK'],['Gross sales',gross/100],['Discounts on sales',discount/100],['Refunds after discounts',refunds/100],['Net sales',(gross-discount-refunds)/100],[],
+   ['Payment method','Net sales (LAK)','Net received after kip change (LAK)'],
+   ...[...methods].map(([method,value])=>[method,value/100,(value+(method==='Cash'?-drawerChange:adjustments.get(method)||0))/100]),[],
+   ['Foreign-currency payments','Net sales (LAK), included above'],['Paid in foreign currency',fxNet/100],
+   ['Currency','Foreign amount received','Valuation at recorded rates (LAK)','Change given (LAK)'],
+   ...[...currencies].map(([currency,v])=>[currency,v.amount/100,v.lak/100,v.change/100]),
+   ['Total foreign tender valued (LAK)',[...currencies.values()].reduce((s,v)=>s+v.lak,0)/100],
+   ['Cash change on foreign bank or QR payments (LAK)',drawerChange/100]
+  ];
+ }
+ function table(rows,esc){return '<table class="sales-summary"><tbody>'+rows.filter(r=>r.length).map(r=>'<tr>'+r.map(v=>'<td>'+esc(typeof v==='number'?v.toLocaleString('en-US',{maximumFractionDigits:2}):String(v))+'</td>').join('')+'</tr>').join('')+'</tbody></table>'}
+ function receiptNumber(o){
+  if(o.data?.offlineNonce?.startsWith('receipt-'+o.id+':')||(!Number(o.number)&&o.id))return 'R-L'+String(o.id).replaceAll('-','').toUpperCase();
+  return o.number==null?'':'R-'+o.number;
+ }
+ return {rows,table,receiptNumber};
+})();
+
+;
 /* scripts/restaurant-home139.js */
 /* Daily Workspace: navigation and complete receipt-date reports. No background polling. */
 (()=>{'use strict';
@@ -713,16 +786,21 @@ function drawReport(){
  if(report.error){host.innerHTML=`<p role="alert">${esc(report.error)}</p>`;return}
  if(!report.rows){host.innerHTML='<p class="home-empty139">Choose a period and load your sales graph. Only synced receipts are included.</p>';return}
  const s=summarize(report.rows,report.from,report.to),pages=Math.max(1,Math.ceil(report.rows.length/25));report.page=Math.min(report.page,pages-1);
- host.innerHTML=`<div class="home-sales-metrics139">${[['Receipt sales',money(s.sales)],['Refunded receipts',money(s.refunds)],['Net receipt sales',money(s.net)],['Paid receipts',s.count]].map(([label,value])=>`<div><small>${label}</small><strong>${value}</strong></div>`).join('')}</div><h4>Sales by receipt date · LAK</h4>${graph(s)}${s.count?'':'<p>No paid receipts in this period.</p>'}<p class="home-note139">${esc(report.from)} to ${esc(report.to)} · Sales grouped by payment date. Refunded receipts are deducted from their original sale date using their current status. This is not a cash-flow report. Offline sales appear after syncing.</p><div class="home-export139"><button type="button" data-report139="csv">Download sales CSV</button><button type="button" data-report139="items">Download items CSV</button><button type="button" data-report139="print">Print / Save PDF</button></div><div class="home-table139"><table><thead><tr><th>Receipt</th><th>Paid date</th><th>Payment</th><th>Status</th><th>Total LAK</th></tr></thead><tbody>${report.rows.slice(report.page*25,(report.page+1)*25).map(o=>`<tr><td>#R-${esc(o.number)}</td><td>${esc(day(o.paid_at))}</td><td>${esc(o.data?.payment||'')}</td><td>${esc(o.status)}</td><td>${money(Number(o.data?.total)||0)}</td></tr>`).join('')||'<tr><td colspan="5">No receipts found.</td></tr>'}</tbody></table></div><nav class="home-pager139" aria-label="Receipt pages"><button type="button" data-report139="prev" ${report.page===0?'disabled':''}>Prev</button><span>${report.page+1} of ${pages}</span><button type="button" data-report139="next" ${report.page===pages-1?'disabled':''}>Next</button></nav>`;
- host.onclick=e=>{const a=e.target.closest('[data-report139]')?.dataset.report139;if(!a||!reportAllowed())return;if(a==='prev'||a==='next'){report.page+=a==='prev'?-1:1;drawReport()}else if(a==='print')printReport(s);else download(a)};
+ host.innerHTML=`<div class="home-sales-metrics139">${[['Receipt sales',money(s.sales)],['Refunded receipts',money(s.refunds)],['Net receipt sales',money(s.net)],['Paid receipts',s.count]].map(([label,value])=>`<div><small>${label}</small><strong>${value}</strong></div>`).join('')}</div><h4>Sales by receipt date · LAK</h4>${graph(s)}${s.count?'':'<p>No paid receipts in this period.</p>'}<p class="home-note139">${esc(report.from)} to ${esc(report.to)} · Sales grouped by payment date. Refunded receipts are deducted from their original sale date using their current status. This is not a cash-flow report. Offline sales appear after syncing.</p><div class="home-export139"><button type="button" data-report139="csv">Download sales CSV</button><button type="button" data-report139="items">Download items CSV</button><button type="button" data-report139="shifts">Download shifts CSV</button><button type="button" data-report139="print">Print / Save PDF</button></div><div class="home-table139"><table><thead><tr><th>Receipt</th><th>Paid date</th><th>Payment</th><th>Status</th><th>Total LAK</th></tr></thead><tbody>${report.rows.slice(report.page*25,(report.page+1)*25).map(o=>`<tr><td>${esc(homeReceipt(o))}</td><td>${esc(day(o.paid_at))}</td><td>${esc(o.data?.payment||'')}</td><td>${esc(o.status)}</td><td>${money(Number(o.data?.total)||0)}</td></tr>`).join('')||'<tr><td colspan="5">No receipts found.</td></tr>'}</tbody></table></div><nav class="home-pager139" aria-label="Receipt pages"><button type="button" data-report139="prev" ${report.page===0?'disabled':''}>Prev</button><span>${report.page+1} of ${pages}</span><button type="button" data-report139="next" ${report.page===pages-1?'disabled':''}>Next</button></nav>`;
+ host.onclick=e=>{const a=e.target.closest('[data-report139]')?.dataset.report139;if(!a||!reportAllowed())return;if(a==='prev'||a==='next'){report.page+=a==='prev'?-1:1;drawReport()}else if(a==='shifts'){const filter={period:'custom',type:'shifts',from:report.from,to:report.to},owner=liveProfile.id,epoch=sessionEpoch121;restaurantModules125.ensure('reports').then(()=>{if(owner===liveProfile?.id&&epoch===sessionEpoch121&&reportAllowed())return posReports.download(filter,{sample:false},false)}).catch(e=>showCenterStatus(e.message,true))}else if(a==='print')printReport(s);else download(a)};
 }
 function csv(rows){return '\ufeff'+rows.map(row=>row.map(v=>{let s=String(v??'');if(/^\s*[=+@\-]/.test(s)||/^[\t\r]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"'}).join(',')).join('\r\n')}
-function download(kind){if(!report.rows||!reportAllowed())return;let rows;
- if(kind==='items')rows=[['Receipt','Paid date','Status','Item','Quantity','Unit price LAK','Line total before order discount LAK'],...report.rows.flatMap(o=>(o.data?.lines||[]).map(l=>[o.number,day(o.paid_at),o.status,l.name,l.quantity,l.unitPrice,Number(l.quantity)*Number(l.unitPrice)]))];
- else rows=[['Receipt','Paid date Laos','Paid timestamp','Status','Payment','Reference','Subtotal LAK','Discount LAK','Total LAK','Refunded at','Cashier'],...report.rows.map(o=>[o.number,day(o.paid_at),o.paid_at,o.status,o.data?.payment,o.data?.paymentReference,o.data?.subtotal,o.data?.discount,o.data?.total,o.refunded_at,o.data?.cashier])];
- const url=URL.createObjectURL(new Blob([csv(rows)],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=`POS-${kind==='items'?'items':'sales'}-${report.from}-${report.to}.csv`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+function homeReceipt(order){return restaurantReportSummary.receiptNumber(order)}
+function summaryRows(){
+ const events=report.rows.flatMap(order=>order.status==='refunded'?[{order,refund:false},{order,refund:true}]:[{order,refund:false}]);
+ return restaurantReportSummary.rows(events);
 }
-function printReport(s){const frame=document.createElement('iframe');frame.className='home-print139';frame.title='Printable sales report';document.body.append(frame);const d=frame.contentDocument;d.open();d.write(`<!doctype html><html><head><title>Oon Jai Sales Report</title><style>body{font:12px Arial;color:#173c2e;padding:20px}table{width:100%;border-collapse:collapse}th,td{padding:7px;border-bottom:1px solid #ddd;text-align:left}thead{display:table-header-group}tr{break-inside:avoid}svg{width:100%;max-height:190px}svg text{font-size:10px}</style></head><body><h1>Oon Jai · Sales report</h1><p>${esc(report.from)} to ${esc(report.to)} · Payment dates in Laos</p><p>Receipt sales: ${money(s.sales)} · Refunded receipts: ${money(s.refunds)} · Net receipt sales: ${money(s.net)}</p>${graph(s)}<p>Refunds deducted from original sale date using current receipt status. Synced receipts only.</p><table><thead><tr><th>Receipt</th><th>Date</th><th>Payment</th><th>Status</th><th>Total LAK</th></tr></thead><tbody>${report.rows.map(o=>`<tr><td>#R-${esc(o.number)}</td><td>${esc(day(o.paid_at))}</td><td>${esc(o.data?.payment||'')}</td><td>${esc(o.status)}</td><td>${money(Number(o.data?.total)||0)}</td></tr>`).join('')}</tbody></table></body></html>`);d.close();frame.contentWindow.onafterprint=()=>frame.remove();setTimeout(()=>{frame.contentWindow.focus();frame.contentWindow.print()},100);setTimeout(()=>frame.remove(),120000)}
+function download(kind){if(!report.rows||!reportAllowed())return;let rows;
+ if(kind==='items')rows=[['Receipt','Paid date','Status','Item','Quantity','Unit price LAK','Line total before order discount LAK'],...report.rows.flatMap(o=>(o.data?.lines||[]).map(l=>[homeReceipt(o),day(o.paid_at),o.status,l.name,l.quantity,l.unitPrice,Number(l.quantity)*Number(l.unitPrice)]))];
+ else rows=[['Receipt','Paid date Laos','Paid timestamp','Status','Payment','Reference','Subtotal LAK','Discount LAK','Total LAK','Refunded at','Cashier'],...report.rows.map(o=>[homeReceipt(o),day(o.paid_at),o.paid_at,o.status,o.data?.payment,o.data?.paymentReference,o.data?.subtotal,o.data?.discount,o.data?.total,o.refunded_at,o.data?.cashier])];
+ const url=URL.createObjectURL(new Blob([csv([['Oon Jai Restaurant',report.from,report.to,'Refunds attributed to original payment date'],...summaryRows(),[],['Details'],...rows])],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=`POS-${kind==='items'?'items':'sales'}-${report.from}-${report.to}.csv`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function printReport(s){const frame=document.createElement('iframe');frame.className='home-print139';frame.title='Printable sales report';document.body.append(frame);const d=frame.contentDocument;d.open();d.write(`<!doctype html><html><head><title>Oon Jai Sales Report</title><style>body{font:12px Arial;color:#173c2e;padding:20px}table{width:100%;border-collapse:collapse}th,td{padding:7px;border-bottom:1px solid #ddd;text-align:left}thead{display:table-header-group}tr{break-inside:avoid}svg{width:100%;max-height:190px}svg text{font-size:10px}</style></head><body><h1>Oon Jai · Sales report</h1><p>${esc(report.from)} to ${esc(report.to)} · Payment dates in Laos</p><p>Receipt sales: ${money(s.sales)} · Refunded receipts: ${money(s.refunds)} · Net receipt sales: ${money(s.net)}</p>${restaurantReportSummary.table(summaryRows(),esc)}${graph(s)}<p>Refunds deducted from original sale date using current receipt status. Synced receipts only.</p><table><thead><tr><th>Receipt</th><th>Date</th><th>Payment</th><th>Status</th><th>Total LAK</th></tr></thead><tbody>${report.rows.map(o=>`<tr><td>${esc(homeReceipt(o))}</td><td>${esc(day(o.paid_at))}</td><td>${esc(o.data?.payment||'')}</td><td>${esc(o.status)}</td><td>${money(Number(o.data?.total)||0)}</td></tr>`).join('')}</tbody></table></body></html>`);d.close();frame.contentWindow.onafterprint=()=>frame.remove();setTimeout(()=>{frame.contentWindow.focus();frame.contentWindow.print()},100);setTimeout(()=>frame.remove(),120000)}
 window.restaurantHome139={render,reset,summarize,csv,invalidate(){report.token++;report.rows=null;report.loading=false;report.error='Records changed. Load the report again for current totals.';}};
 })();
 

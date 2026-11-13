@@ -40,7 +40,7 @@
    await posOffline119.saveSnapshot(cacheKey(owner),snapshot);
    navigator.storage?.persist?.().catch(()=>{});
   }catch(e){if(!valid())return;
-   if(network(e)){
+   if(network(e)||!navigator.onLine){
     const cached=await posOffline119.getSnapshot(cacheKey(owner)).catch(()=>null);if(!valid())return;
     if(!s.loaded&&cached){Object.assign(s,cached.data,{loaded:true,owner});s.offlineQueue=await posOffline119.queue(owner);if(!valid())return;hooks.overlayPending();hooks.pick(hooks.catalog()[0]?.id,false)}
     s.offline=true;s.error=s.loaded?'Offline: sales remain on this device until synced.':'Connect once to prepare the POS on this device.';

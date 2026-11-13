@@ -251,3 +251,14 @@ html body.shell113 #restaurantApp #pos118 :is(.pos-main-tabs118,.pos-subtabs118)
 html body.shell113 #posChargeDialog>header [data-fx-payment]{height:32px!important;min-height:32px!important;background:#fffdf7!important;color:#174c38!important;padding:0 9px!important}
 .pos-fx-form dl{margin:0}.pos-fx-form dl>div{display:flex;justify-content:space-between;gap:12px;margin:4px 0}.pos-fx-form dd{margin:0;font-variant-numeric:tabular-nums}
 html body.shell113 #pos118 .receipt-wrap118 .receipt118{width:var(--receipt-width,80mm)!important;max-width:100%!important;box-sizing:border-box;overflow-wrap:anywhere}
+html body.shell113 #posChargeDialog .pos-payment-controls{display:grid;gap:10px;align-content:start;min-width:0}
+@media(min-width:650px){
+ html body.shell113 #posChargeDialog #pos-charge-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,.85fr);align-items:start;gap:16px}
+ html body.shell113 #posChargeDialog .pos-charge-fields{grid-template-columns:minmax(0,1fr)}
+ html body.shell113 #posChargeDialog .pos-payment-controls{position:sticky;top:0}
+ html body.shell113 #posChargeDialog .form-error118{grid-column:2}
+}
+@media(max-width:649px){
+ html body.shell113 #posChargeDialog #pos-charge-form{display:flex;flex-direction:column}
+ html body.shell113 #posChargeDialog .pos-payment-controls{order:-1}
+}

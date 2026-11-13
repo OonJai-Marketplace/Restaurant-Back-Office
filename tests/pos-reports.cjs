@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const ctx = {Intl, Date, Blob, shell113:{esc:String}, sessionEpoch121:1, liveProfile:{id:'actor'}, restaurantTabCan125:()=>true};
 vm.createContext(ctx);
+vm.runInContext(fs.readFileSync('scripts/restaurant-report-summary.js','utf8'),ctx);
 vm.runInContext(fs.readFileSync('scripts/pos-reports.js','utf8')+';globalThis.reports=posReports',ctx);
 const r=ctx.reports;
 const receipt={id:'A',number:42,status:'refunded',paid_at:'2024-02-29T16:59:59Z',refunded_at:'2024-02-29T17:00:00Z',
@@ -36,7 +37,16 @@ async function test(){
  ctx.document={body:{append(){}},createElement:()=>link={click(){},remove(){}}};
  await r.download(f,state,false);
  assert.equal(link.download,'POS-SAMPLE-items-2024-02-29-2024-02-29.csv');
- assert.equal((await blob.text()).split('\r\n').length,3);
+ const exported=await blob.text();assert.match(exported,/"Net sales","90.01"/);assert.match(exported,/"Cash","90.01"/);
+ assert.equal(exported.split('"Details"\r\n')[1].split('\r\n').length,3);
+ const fxSale={...receipt,data:{...receipt.data,payment:'BCEL QR',total:85,subtotal:100,fxTender:{currency:'USD',amount:5,rate:22,equivalentLak:110,changeLak:25}}};
+ const mix=[{order:fxSale,refund:false},{order:receipt,refund:false},{order:receipt,refund:true}];
+ const totals=ctx.restaurantReportSummary.rows(mix);const amount=k=>totals.find(r=>r[0]===k)?.[1];
+ assert.equal(amount('Gross sales'),200);assert.equal(amount('Net sales'),85);assert.equal(amount('BCEL QR'),85);
+ assert.equal(amount('Cash'),0);assert.equal(amount('USD'),5);assert.equal(amount('Paid in foreign currency'),85);
+ assert.equal(amount('Total foreign tender valued (LAK)'),110);
+ const result=ctx.restaurantReportSummary.rows([...mix,{order:fxSale,refund:true}]);assert.equal(result.find(r=>r[0]==='USD')[1],5);
+ await r.download({...f,type:'shifts'},state,false);assert.match(await blob.text(),/"Gross sales","100"/);
  await r.download({...f,from:'2024-03-01',to:'2024-03-01',type:'receipts'},state,false);
  assert.match(await blob.text(),/"Refund"/);assert.doesNotMatch(await blob.text(),/"Sale"/);
  await assert.rejects(r.download({...f,from:'2024-03-02',to:'2024-03-02'},state,false),/No transactions/);

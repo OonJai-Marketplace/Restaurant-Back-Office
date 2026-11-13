@@ -11,7 +11,36 @@ function legacy(owner,countOnly=false){return new Promise((resolve,reject)=>{let
 async function inspectLegacy(owner){if(legacyChecked.has(owner))return;legacyChecked.add(owner);try{const count=await legacy(owner,true);window.restaurantLegacyQueue126={owner,count};if(count)window.restaurantShell122?.sync()}catch{legacyChecked.delete(owner)}}
 async function exportLegacy(owner){if(typeof liveProfile==='undefined'||owner!==liveProfile?.id)throw Error('Sign in to the matching Restaurant account.');const records=await legacy(owner);if(!records.length)return;const blob=new Blob([JSON.stringify({source:'previous-restaurant-setup',owner,exportedAt:new Date().toISOString(),orders:records},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='restaurant-previous-orders.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 async function queue(owner){await inspectLegacy(owner);return (await transact('queue','readonly',s=>s.index('owner').getAll(owner))).sort((a,b)=>a.savedAt-b.savedAt)}
-window.posOffline119={getSnapshot:async owner=>{const r=await get('snapshots',owner);return r?.catalogRelease===134?r:null},saveSnapshot:(owner,data)=>put('snapshots',{owner,data,catalogRelease:134,savedAt:Date.now()}),queue,save:(owner,order,action,data)=>put('queue',{key:owner+':'+order.id,owner,order,action,data,savedAt:Date.now()}),remove:(owner,id)=>remove('queue',owner+':'+id),exportLegacy};
+async function saveEntry(owner,order,action,data){
+ const db=await open(),key=owner+':'+order.id;
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction('queue','readwrite'),store=tx.objectStore('queue'),read=store.get(key);
+  let conflict=false;
+  read.onsuccess=()=>{
+   const prior=read.result;
+   if(prior?.action==='pay'){conflict=true;tx.abort();return}
+   if(prior?.action==='save'&&!order.version)data={...data,checkoutSaveNonce:prior.data.offlineNonce};
+   const updated={...order,version:Math.max(order.version||0,prior?.order.version||0)};
+   store.put({key,owner,order:updated,action,data,savedAt:Date.now()});
+  };
+  tx.oncomplete=()=>{db.close();resolve()};tx.onabort=()=>{db.close();reject(conflict?Error('Payment already recorded on this device. Open Receipts.'):tx.error||Error('Local capture failed'))};
+ });
+}
+async function acknowledge(entry,order){
+ const db=await open();
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction('queue','readwrite'),store=tx.objectStore('queue'),read=store.get(entry.key);
+  read.onsuccess=()=>{
+   const current=read.result;if(!current)return;
+   if(current.data.offlineNonce===entry.data.offlineNonce)store.delete(entry.key);
+   else if(order.status==='unpaid'&&current.order.version===entry.order.version){
+    current.order.version=order.version;current.order.number=order.number;store.put(current);
+   }
+  };
+  tx.oncomplete=()=>{db.close();resolve()};tx.onabort=()=>{db.close();reject(tx.error||Error('Could not acknowledge local order'))};
+ });
+}
+window.posOffline119={acknowledge,getSnapshot:async owner=>{const r=await get('snapshots',owner);return r?.catalogRelease===134?r:null},saveSnapshot:(owner,data)=>put('snapshots',{owner,data,catalogRelease:134,savedAt:Date.now()}),queue,save:saveEntry,remove:(owner,id)=>remove('queue',owner+':'+id),exportLegacy};
 // The entry bootstrap owns the service worker; do not replace it when POS opens.
 
 })();
