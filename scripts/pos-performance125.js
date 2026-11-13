@@ -89,7 +89,7 @@
  window.restaurantPosAction125=el=>{const a=el.dataset.pos118,value=el.dataset.value118;
   if(a==='tab')return value==='Sales'?['New Order','Open Orders','Receipts','Online Orders'].some(sub=>allowed('Sales',sub)):allowed(value,'New Order');
   if(a==='sub')return allowed('Sales',value);
-  if(['settings','options','links','seed','export','export-pdf'].includes(a))return allowed('Management','New Order');
+  if(['settings','printer-setup','options','links','seed','export','export-pdf'].includes(a))return allowed('Management','New Order');
   if(['open-shift','close-shift','cash','shift-view'].includes(a))return allowed('Overview','New Order');
   if(a==='refund')return allowed('Sales','Receipts');
   if(a==='resume')return allowed('Sales','New Order');
