@@ -1,13 +1,13 @@
 /* One site and one repository. Load working code only when its module is opened. */
 (()=>{'use strict';
  const groups={
-  promotions:{css:['promotions146.css'],js:['promotion-kit146.js','restaurant-promotions146.js']},
-  readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js']},
+  promotions:{css:['promotions146.css?v=review16'],js:['promotion-kit146.js','restaurant-promotions146.js?v=review16']},
+  readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js?v=review16']},
   reports:{css:['pos-operations.css?v=register6','pos-v118.css?v=checkout15'],js:['pos-reports.js?v=checkout15','pos-backoffice-reports.js?v=checkout15']},
-  sales:{css:['restaurant-sales143.css'],js:['sales-math143.js','restaurant-sales143.js?v=reports1']},
-  settings:{js:['restaurant-settings146.bundle.js']},
-  inventory:{css:['inventory-menu-v104.css?v=stockusage2','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=review2','inventory-allocated.js?v=checkout3']},
-  menu:{depends:['inventory'],js:['menu-v108.js?v=rowactions1']},
+  sales:{css:['restaurant-sales143.css?v=review16'],js:['sales-math143.js','restaurant-sales143.js?v=review16']},
+  settings:{js:['restaurant-settings146.bundle.js?v=review16']},
+  inventory:{css:['inventory-menu-v104.css?v=review16','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=review16','inventory-allocated.js?v=checkout3']},
+  menu:{depends:['inventory'],js:['menu-v108.js?v=review16']},
   kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=stocklinks1'],js:['preparation-waste124.js?v=layout2']},
   pos:{css:['pos-v118.css?v=checkout15','pos-receipt.css?v=checkout15'],js:['restaurant-pos150.bundle.js?v=checkout15']}
  };

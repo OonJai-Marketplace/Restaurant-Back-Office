@@ -44,7 +44,7 @@ window.restaurantTableRows=(()=>{
   return !button.disabled&&!button.closest('[hidden],[inert]')&&button.getClientRects().length&&actionPermission121(button);
  }
  function sources(row){
-  const own=[...row.querySelectorAll('button,a[href]')].filter(b=>b.closest('tr')===row);
+  const own=[...row.querySelectorAll('button,a[href]')].filter(b=>b.closest('tr')===row&&b.dataset.rowMore===undefined);
   const order=row.dataset.order118;
   if(order&&window.pos118?.state.selected===order){
    const panel=row.closest('.pos-grid118')?.querySelector(':scope>section:last-child');
@@ -126,5 +126,5 @@ window.restaurantTableRows=(()=>{
   if(e.target.closest?.(controls))return;
   const s=target(e);if(s){e.preventDefault();e.stopPropagation();highlight(s);open(s)}
  },true);
- return {restore,reset};
+ return {restore,reset,openForRow(row){const s=context(row);if(s)open(s)}};
 })();

@@ -15,7 +15,11 @@
  const input=(name,label,value,extra='')=>`<label>${label}<input name="${name}" value="${esc(value)}" ${extra}></label>`;
  const numeric='type="number" min="0" step="any" inputmode="decimal"';
  const table=(headers,rows,kind='')=>{
-  const cards=kind==='sales-planner-table143'?`<div class="sales-mobile-cards143">${rows.length?rows.map(r=>`<article class="sales-mobile-card143">${r.map((c,i)=>`<div class="sales-mobile-cell143" data-cell143="${i}"><span class="sales-mobile-label143">${headers[i]}</span>${c}</div>`).join('')}</article>`).join(''):'<p>No matching records.</p>'}</div>`:'';
+  function plannerCard(row){
+   const cell=i=>`<div class="sales-mobile-cell143" data-cell143="${i}"><span class="sales-mobile-label143">${headers[i]}</span>${row[i]}</div>`;
+   return `<article class="sales-mobile-card143">${[0,3,5,6].map(cell).join('')}<details class="sales-card-details143"><summary>Calculation details</summary><div>${[1,2,4,7,8].map(cell).join('')}</div></details></article>`;
+  }
+  const cards=kind==='sales-planner-table143'?`<div class="sales-mobile-cards143">${rows.length?rows.map(plannerCard).join(''):'<p>No matching records.</p>'}</div>`:'';
   return `<div class="sales-table143 ${kind}">${cards?'<div class="sales-desktop-table143">':''}<table><thead><tr>${headers.map(h=>`<th scope="col">${h}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.map(r=>'<tr>'+r.map((c,i)=>`<td data-label="${esc(headers[i])}">${c}</td>`).join('')+'</tr>').join(''):`<tr><td colspan="${headers.length}">No matching records.</td></tr>`}</tbody></table>${cards?'</div>':''}${cards}</div>`;
  };
  const metric=(label,value)=>`<div><small>${label}</small><strong>${value}</strong></div>`;

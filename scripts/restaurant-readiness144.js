@@ -8,7 +8,7 @@
   function recipeIssues(id,seen=new Set()){
    if(seen.has(id))return ['Circular recipe'];const d=menu.get(id);if(!d)return ['Menu component missing'];const issues=[],next=new Set(seen).add(id);
    if(!d.recipe?.length)issues.push('Recipe quantities missing');
-   if(d.recipeReview135?.length)issues.push('Recipe source needs review');
+   if(d.recipeReview135?.length)issues.push('Recipe quantities or yield need verification');
    for(const l of d.recipe||[]){if(!positive(l.quantity))issues.push('Recipe quantity invalid');if(d.itemType==='bundle'){issues.push(...recipeIssues(l.itemId,next));const child=menu.get(l.itemId);if(child?.currency!==d.currency)issues.push('Recipe currencies differ');if(child&&!active(child))issues.push('Menu component inactive');}else issues.push(...ingredientIssues(l.itemId,d.currency));}
    for(const g of d.posOptions118||[])for(const o of g.options||[]){if(o.available===false)continue;if(!o.recipe?.length&&!o.posNoStock118)issues.push('Customization portions missing');for(const l of o.recipe||[]){if(!positive(l.quantity))issues.push('Customization quantity invalid');issues.push(...ingredientIssues(l.itemId,d.currency));}}
    return [...new Set(issues)];

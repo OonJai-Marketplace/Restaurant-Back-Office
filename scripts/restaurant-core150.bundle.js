@@ -91,7 +91,7 @@ async function openOnlineOrders(){if(!restaurantTabCan125('pos','pos-sales-onlin
 async function openPosManagement(){if(!restaurantTabCan125('pos','pos-management','manage'))return showCenterStatus('POS settings access required.',true);await switchTab('pos118');if(window.pos118){pos118.state.tab='Management';pos118.render()}}
 function toggleMobileNavigation(){document.body.classList.toggle('restaurant-nav-open')}
 function closeMobileNavigation(){document.body.classList.remove('restaurant-nav-open')}
-function clearRestaurantSession(){offlineAccess=false;try{sessionStorage.removeItem(offlineAccessKey())}catch{}window.restaurantTableRows?.reset();window.pos118?.clearReport?.();hydration132=null;window.menuStore108?.cancelLoad?.();window.kitchen124?.cancelLoad?.();window.restaurantHome139?.reset();window.restaurantSales143?.reset();window.restaurantReadiness144?.reset();window.RestaurantPromotions146?.reset();sessionEpoch121++;window.restaurantIntegration132?.reset();loginProgress132('');liveProfile=null;liveProfiles=[];restaurantMember=null;restaurantMembers=[];bannerRows={};window.resetMenuSales121?.();if(window.pos118)Object.assign(pos118.state,{busy:false,working:false,offline:false,syncError:'',loaded:false,owner:null,modeChosen:false,sample:false,schema125:false,balances125:null,catalogVersion125:null,summary125:null,receiptDate:null,acknowledged125:[],menu:[],ingredients:[],items:[],moves:[],stock:[],orders:[],shifts:[],cash:[],offlineQueue:[]});document.querySelector('dialog.restaurant-password-dialog[open]')?.close();document.querySelectorAll('.restaurant-modal,.im-edit-overlay112').forEach(x=>x.remove());if(window.menuStore108)Object.assign(menuStore108.state,{owner:null,loaded:false,ledgerLoaded144:false,editing:null,items:[],moves:[],menu:[],ingredients:[],categories:[]});document.getElementById('restaurantSettings121')?.replaceChildren();document.getElementById('restaurantOverviewGrid')?.replaceChildren();document.getElementById('restaurantApp').hidden=true;document.getElementById('loginGate').hidden=false;document.getElementById('loginGate').classList.remove('is-authenticated');document.querySelectorAll('.workspace-scroll>.tab-content:not(#restaurant-settings):not(#restaurant-overview)').forEach(x=>x.innerHTML='');}
+function clearRestaurantSession(){offlineAccess=false;try{sessionStorage.removeItem(offlineAccessKey())}catch{}window.restaurantTableRows?.reset();window.pos118?.clearReport?.();hydration132=null;window.menuStore108?.cancelLoad?.();window.menuStore108?.clearEditors?.();window.kitchen124?.cancelLoad?.();window.restaurantHome139?.reset();window.restaurantSales143?.reset();window.restaurantReadiness144?.reset();window.RestaurantPromotions146?.reset();sessionEpoch121++;window.restaurantIntegration132?.reset();loginProgress132('');liveProfile=null;liveProfiles=[];restaurantMember=null;restaurantMembers=[];bannerRows={};window.resetMenuSales121?.();if(window.pos118)Object.assign(pos118.state,{busy:false,working:false,offline:false,syncError:'',loaded:false,owner:null,modeChosen:false,sample:false,schema125:false,balances125:null,catalogVersion125:null,summary125:null,receiptDate:null,acknowledged125:[],menu:[],ingredients:[],items:[],moves:[],stock:[],orders:[],shifts:[],cash:[],offlineQueue:[]});document.querySelector('dialog.restaurant-password-dialog[open]')?.close();document.querySelectorAll('.restaurant-modal,.im-edit-overlay112').forEach(x=>x.remove());if(window.menuStore108)Object.assign(menuStore108.state,{owner:null,loaded:false,ledgerLoaded144:false,editing:null,items:[],moves:[],menu:[],ingredients:[],categories:[]});document.getElementById('restaurantSettings121')?.replaceChildren();document.getElementById('restaurantOverviewGrid')?.replaceChildren();document.getElementById('restaurantApp').hidden=true;document.getElementById('loginGate').hidden=false;document.getElementById('loginGate').classList.remove('is-authenticated');document.querySelectorAll('.workspace-scroll>.tab-content:not(#restaurant-settings):not(#restaurant-overview)').forEach(x=>x.innerHTML='');}
 async function logoutDemoUser(){clearRestaurantSession();if(ojmDb)await ojmDb.auth.signOut()}
 function passwordForm121(required=false, expectedUserId=null){
  const dialog=document.createElement('dialog');
@@ -360,13 +360,13 @@ window.restaurantPosMode128=()=> 'live';
 /* One site and one repository. Load working code only when its module is opened. */
 (()=>{'use strict';
  const groups={
-  promotions:{css:['promotions146.css'],js:['promotion-kit146.js','restaurant-promotions146.js']},
-  readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js']},
+  promotions:{css:['promotions146.css?v=review16'],js:['promotion-kit146.js','restaurant-promotions146.js?v=review16']},
+  readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js?v=review16']},
   reports:{css:['pos-operations.css?v=register6','pos-v118.css?v=checkout15'],js:['pos-reports.js?v=checkout15','pos-backoffice-reports.js?v=checkout15']},
-  sales:{css:['restaurant-sales143.css'],js:['sales-math143.js','restaurant-sales143.js?v=reports1']},
-  settings:{js:['restaurant-settings146.bundle.js']},
-  inventory:{css:['inventory-menu-v104.css?v=stockusage2','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=review2','inventory-allocated.js?v=checkout3']},
-  menu:{depends:['inventory'],js:['menu-v108.js?v=rowactions1']},
+  sales:{css:['restaurant-sales143.css?v=review16'],js:['sales-math143.js','restaurant-sales143.js?v=review16']},
+  settings:{js:['restaurant-settings146.bundle.js?v=review16']},
+  inventory:{css:['inventory-menu-v104.css?v=review16','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=review16','inventory-allocated.js?v=checkout3']},
+  menu:{depends:['inventory'],js:['menu-v108.js?v=review16']},
   kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=stocklinks1'],js:['preparation-waste124.js?v=layout2']},
   pos:{css:['pos-v118.css?v=checkout15','pos-receipt.css?v=checkout15'],js:['restaurant-pos150.bundle.js?v=checkout15']}
  };
@@ -516,7 +516,7 @@ window.restaurantTableRows=(()=>{
   return !button.disabled&&!button.closest('[hidden],[inert]')&&button.getClientRects().length&&actionPermission121(button);
  }
  function sources(row){
-  const own=[...row.querySelectorAll('button,a[href]')].filter(b=>b.closest('tr')===row);
+  const own=[...row.querySelectorAll('button,a[href]')].filter(b=>b.closest('tr')===row&&b.dataset.rowMore===undefined);
   const order=row.dataset.order118;
   if(order&&window.pos118?.state.selected===order){
    const panel=row.closest('.pos-grid118')?.querySelector(':scope>section:last-child');
@@ -598,7 +598,7 @@ window.restaurantTableRows=(()=>{
   if(e.target.closest?.(controls))return;
   const s=target(e);if(s){e.preventDefault();e.stopPropagation();highlight(s);open(s)}
  },true);
- return {restore,reset};
+ return {restore,reset,openForRow(row){const s=context(row);if(s)open(s)}};
 })();
 
 ;

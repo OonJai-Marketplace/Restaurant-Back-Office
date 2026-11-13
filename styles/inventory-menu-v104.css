@@ -48,3 +48,12 @@ html body.shell113 #restaurantApp .legend108 .costing-explain{border:1px solid #
 .im-sale-links [data-link-matches],.im-sale-links [data-link-list]>div{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin:5px 0}
 .im-sale-links [data-link-list]>div{justify-content:space-between}
 .im-sale-links [data-link-message]:empty,[data-similar-stock]:empty{display:none}
+
+html body.shell113 #restaurantApp .im-form104 .im-recipe-row104{display:grid;grid-template-columns:minmax(0,1fr) minmax(60px,90px) 44px;grid-template-areas:"ingredient quantity remove" "linecost linecost linecost";align-items:center;gap:4px 8px}
+.im-form104 .im-recipe-row104 select{grid-area:ingredient;min-width:0}
+.im-form104 .im-recipe-row104 .item-icon109{display:none}
+.im-form104 .im-recipe-row104 input{grid-area:quantity;min-width:0}
+.im-form104 .im-recipe-row104 output{grid-area:linecost}
+html body.shell113 #restaurantApp .im-form104 [data-im-action="remove-ingredient"]{grid-area:remove;width:44px;height:44px;min-width:0;min-height:44px;justify-self:end}
+#restaurantApp [data-row-more]{margin-inline-start:8px}
+#restaurantApp button.calculation-link{display:block;margin-top:4px;background:transparent;color:#18513b;text-decoration:underline;border:0}
