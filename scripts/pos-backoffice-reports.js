@@ -114,14 +114,48 @@
   dialog.innerHTML='<header><h2>'+esc((e.refund?'Refund · receipt ':'Receipt ')+posReports.receiptId(e.order.number))+'</h2>'+btn('Close','close')+'</header><p>'+esc([posReports.stamp(e.at),e.payment,e.service,d.cashier].filter(Boolean).join(' · '))+'</p><div class="ops-scroll"><table><thead><tr><th>Menu item</th><th>Quantity</th><th>Unit price</th><th>Line total</th></tr></thead><tbody>'+e.lines.map(l=>'<tr><td>'+esc(l[5])+(l[6]?'<small>'+esc(l[6])+'</small>':'')+'</td><td>'+num(l[8])+'</td><td>'+amount(cents(l[9]))+'</td><td>'+amount(cents(l[12]))+'</td></tr>').join('')+'</tbody></table></div><p><b>Receipt total · '+amount(e.value.net)+' LAK</b></p>'+(e.refund&&d.reason?'<p>Refund reason · '+esc(d.reason)+'</p>':'');
   dialog.querySelector('button').onclick=()=>dialog.close();dialog.onclick=ev=>{if(ev.target===dialog&&(ev.clientX<dialog.getBoundingClientRect().left||ev.clientX>dialog.getBoundingClientRect().right||ev.clientY<dialog.getBoundingClientRect().top||ev.clientY>dialog.getBoundingClientRect().bottom))dialog.close()};dialog.onclose=()=>dialog.remove();root().append(dialog);dialog.showModal();
  }
+ async function manageDiscounts(){
+  if(!isAdmin121())throw Error('Administrator access required.');
+  const user=liveProfile.id,session=sessionEpoch121;
+  const {data:config,error}=await ojmDb.from('pos_config118').select('data,version').eq('id',true).single();
+  if(error)throw Error(error.message);
+  if(!active()||session!==sessionEpoch121||liveProfile?.id!==user)return;
+  const modal=ui108.modal('Discounts','<form class="discount-presets"><div data-presets></div><button type="button" data-add>Add discount</button><p role="alert"></p><button type="submit">Save discounts</button></form>',[]);
+  const form=document.querySelector('.ui-overlay108:last-child .discount-presets'),overlay=form.closest('.ui-overlay108'),list=form.querySelector('[data-presets]');
+  function row(p={}){
+   const item=document.createElement('fieldset');item.dataset.id=p.id||crypto.randomUUID();
+   item.innerHTML='<label>Name<input name="name" required maxlength="80" placeholder="Discount name"></label><label>Type<select name="type"><option value="percent">Percentage</option><option value="amount">Fixed amount (LAK)</option></select></label><label>Value<input name="value" type="number" required min="0.01" step="0.01"></label><button type="button" data-remove>Remove</button>';
+   const name=item.querySelector('[name=name]'),type=item.querySelector('select'),value=item.querySelector('[name=value]');
+   name.value=p.name||'';type.value=p.type||'percent';value.value=p.value??'';
+   function limit(){if(type.value==='percent')value.max='100';else value.removeAttribute('max')}
+   type.onchange=limit;limit();item.querySelector('[data-remove]').onclick=()=>item.remove();list.append(item);return name;
+  }
+  for(const p of config.data.discountPresets||[])row(p);
+  form.querySelector('[data-add]').onclick=()=>row().focus();
+  form.onsubmit=async e=>{
+   e.preventDefault();const save=form.querySelector('[type=submit]');if(save.disabled)return;save.disabled=true;
+   try{
+    if(sessionEpoch121!==session||liveProfile?.id!==user||!isAdmin121())throw Error('Account changed. Reopen Discounts.');
+    const discountPresets=[...list.children].map(item=>({id:item.dataset.id,name:item.querySelector('[name=name]').value.trim(),type:item.querySelector('select').value,value:Number(item.querySelector('[name=value]').value)}));
+    const names=new Set();for(const p of discountPresets){const key=p.name.toLowerCase();if(!key||names.has(key))throw Error('Give each discount a different name.');names.add(key)}
+    const data={...config.data,discountPresets};
+    const result=await ojmDb.rpc('pos_manage118',{p_action:'config',p_version:config.version,p_data:data});if(result.error)throw Error(result.error.message);
+    if(sessionEpoch121!==session||liveProfile?.id!==user)return;
+    if(window.pos118){pos118.state.config=data;pos118.state.configVersion=result.data.version}
+    overlay.resolve108(true);showCenterStatus('Discounts saved.');
+   }catch(err){form.querySelector('[role=alert]').textContent=err.message}finally{save.disabled=false}
+  };
+  await modal;
+ }
  function render(){
   if(!active())return;const el=root(),m=summarize(state.events,state),v=m.summary;
-  el.innerHTML='<section class="ops-panel"><header><h2>POS sales reports</h2><div>'+(isAdmin121()?btn('Profitability','profit'):'')+' '+btn('Refresh','refresh',state.loading?'disabled':'')+'</div></header>'+controls()+(state.error?'<p role="alert">'+esc(state.error)+'</p>':state.loading?'<p role="status">Loading sales…</p>':'<div class="ops-kpis">'+moneyCols.map((label,j)=>'<button type="button" data-op="metric" data-value="'+['gross','discount','refund','net'][j]+'" aria-pressed="'+(state.metric===['gross','discount','refund','net'][j])+'"><small>'+label+' (LAK)</small><strong>'+amounts(v)[j]+'</strong></button>').join('')+'</div><p class="ops-note">'+v.sales+' sale receipts · '+v.returns+' refunds · '+num(v.qty)+' net items. Refunds are shown before discounts on the date issued. Discounts include refund reversals.</p>'+graph(m)+'<div class="ops-table-head"><h3>'+views[state.view]+'</h3><input aria-label="Search report rows" type="search" placeholder="Search rows" value="'+esc(state.find)+'"></div><div data-list>'+listing(m)+'</div>')+'</section>';
+  el.innerHTML='<section class="ops-panel"><header><h2>POS sales reports</h2><div>'+(isAdmin121()?btn('Discounts','discounts')+' '+btn('Profitability','profit'):'')+' '+btn('Refresh','refresh',state.loading?'disabled':'')+'</div></header>'+controls()+(state.error?'<p role="alert">'+esc(state.error)+'</p>':state.loading?'<p role="status">Loading sales…</p>':'<div class="ops-kpis">'+moneyCols.map((label,j)=>'<button type="button" data-op="metric" data-value="'+['gross','discount','refund','net'][j]+'" aria-pressed="'+(state.metric===['gross','discount','refund','net'][j])+'"><small>'+label+' (LAK)</small><strong>'+amounts(v)[j]+'</strong></button>').join('')+'</div><p class="ops-note">'+v.sales+' sale receipts · '+v.returns+' refunds · '+num(v.qty)+' net items. Refunds are shown before discounts on the date issued. Discounts include refund reversals.</p>'+graph(m)+'<div class="ops-table-head"><h3>'+views[state.view]+'</h3><input aria-label="Search report rows" type="search" placeholder="Search rows" value="'+esc(state.find)+'"></div><div data-list>'+listing(m)+'</div>')+'</section>';
   const query=el.querySelector('input[type=search]');if(query)query.oninput=()=>{state.find=query.value;state.page=0;el.querySelector('[data-list]').innerHTML=listing(m)};
   el.onchange=e=>{const k=e.target.dataset.key;if(!k)return;const v=e.target.value;if(['period','month','year'].includes(k)){
    if(!v)return;state.dates[k]=v;if(k==='period'&&v==='today')state.dates.from=state.dates.to=posReports.day(Date.now());state.find='';state.shift=state.item=state.payment=state.service='';load();
   }else{state[k]=v;state.find='';state.page=0;render()}};
   el.onclick=e=>{const b=e.target.closest('[data-op]');if(!b)return;const a=b.dataset.op,v=b.dataset.value;
+   if(a==='discounts'){manageDiscounts().catch(err=>showCenterStatus(err.message,true));return}
    if(a==='metric'){state.metric=v;render()}else if(a==='refresh')load();else if(a==='profit')switchTab('restaurant-sales143');else if(a==='range')posReports.openRange(b,state.dates,(from,to)=>{Object.assign(state.dates,{from,to});state.shift=state.item=state.payment=state.service='';load()});
    else if(a==='receipt')detail(m.receipts[Number(v)]);else if(a==='page'){state.page+=Number(v);render()}else if(a==='item'||a==='shift'){state[a]=v;state.view='receipts';state.find='';state.page=0;render()}
   };

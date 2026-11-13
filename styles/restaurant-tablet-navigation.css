@@ -4,7 +4,7 @@ html body.shell113.tablet118:not(.pos-focus122) #restaurantApp #appSidebar{
  display:flex!important;transform:none!important;width:var(--rail-width)!important;min-width:0!important;
  max-width:none!important;overflow-x:hidden;overflow-y:auto;z-index:1300!important;transition:none!important
 }
-html body.shell113.tablet118.restaurant-nav-open #restaurantApp #appSidebar{width:min(310px,85vw)!important;box-shadow:8px 0 24px #0b342638}
+html body.shell113.tablet118.restaurant-nav-open #restaurantApp #appSidebar{width:min(238px,85vw)!important;box-shadow:8px 0 24px #0b342638}
 html body.shell113.tablet118:not(.pos-focus122) #restaurantApp .main-content-area{margin-left:var(--rail-width)!important;width:calc(100% - var(--rail-width))!important}
 html body.shell113.tablet118 #restaurantApp #mobileMenuToggle{display:none!important}
 html body.shell113.tablet118:not(.pos-focus122) #restaurantApp .module-header{display:flex!important}
@@ -24,3 +24,12 @@ html body.shell113 #restaurantApp #workspaceTools108 #posFullscreen122:not([hidd
 html body.shell113 #restaurantApp #posFullscreen122 svg{width:16px;height:16px}
 html body.shell113.pos-focus122 #restaurantApp :is(#appSidebar,#sidebarScrim,.module-header,#categoryTabShell,#workspaceTools108,.pos-main-tabs118,.pos-subtabs118){display:none!important}
 html body.shell113.pos-focus122 #restaurantApp .main-content-area{margin:0!important;width:100%!important}
+
+html body.shell113.tablet118 #restaurantApp{--tablet-top:calc(env(safe-area-inset-top,0px) + 10px);padding-top:var(--tablet-top);box-sizing:border-box}
+html body.shell113.tablet118 #restaurantApp #appSidebar{padding:var(--tablet-top) 0 0!important;box-sizing:border-box}
+html body.shell113.tablet118 #restaurantApp #appSidebar .sidebar-brand{box-sizing:border-box}
+html body.shell113.tablet118 #restaurantApp #appSidebar .sidebar-brand h2 b{display:block}
+html body.shell113.tablet118 #restaurantApp #appSidebar #closeNavigation130{display:none!important}
+html body.shell113.tablet118 #restaurantApp #appSidebar .logo-tile113{display:grid!important;place-items:center!important;padding:3px!important;margin:0!important}
+html body.shell113.tablet118 #restaurantApp #companyLogo101{display:block!important;position:static!important;transform:none!important;object-fit:contain!important;object-position:center!important;margin:0!important;padding:0!important}
+html body.shell113.tablet118 #restaurantApp #appSidebar .logo-tile113 #companyLogo101{width:36px!important;height:36px!important;min-width:0!important;min-height:0!important;max-width:100%!important;max-height:100%!important;box-sizing:border-box}

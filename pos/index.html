@@ -2,7 +2,7 @@
 
 <html lang="en">
 <head>
-<base href="../"><meta name="restaurant-release" content="2026-11-13-tablet">
+<base href="../"><meta name="restaurant-release" content="2026-11-13-register">
 <meta charset="utf-8"/><script>const posLaunch150=new URL(location.href);posLaunch150.searchParams.set("workspace","pos");history.replaceState(history.state,"",posLaunch150);</script><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
 <meta content="#bd593a" name="theme-color"/><title>Oon Jai POS</title>
 
@@ -3884,7 +3884,7 @@ html body.shell113.tablet118:not(.pos-focus122) #restaurantApp #appSidebar{
  display:flex!important;transform:none!important;width:var(--rail-width)!important;min-width:0!important;
  max-width:none!important;overflow-x:hidden;overflow-y:auto;z-index:1300!important;transition:none!important
 }
-html body.shell113.tablet118.restaurant-nav-open #restaurantApp #appSidebar{width:min(310px,85vw)!important;box-shadow:8px 0 24px #0b342638}
+html body.shell113.tablet118.restaurant-nav-open #restaurantApp #appSidebar{width:min(238px,85vw)!important;box-shadow:8px 0 24px #0b342638}
 html body.shell113.tablet118:not(.pos-focus122) #restaurantApp .main-content-area{margin-left:var(--rail-width)!important;width:calc(100% - var(--rail-width))!important}
 html body.shell113.tablet118 #restaurantApp #mobileMenuToggle{display:none!important}
 html body.shell113.tablet118:not(.pos-focus122) #restaurantApp .module-header{display:flex!important}
@@ -3904,6 +3904,15 @@ html body.shell113 #restaurantApp #workspaceTools108 #posFullscreen122:not([hidd
 html body.shell113 #restaurantApp #posFullscreen122 svg{width:16px;height:16px}
 html body.shell113.pos-focus122 #restaurantApp :is(#appSidebar,#sidebarScrim,.module-header,#categoryTabShell,#workspaceTools108,.pos-main-tabs118,.pos-subtabs118){display:none!important}
 html body.shell113.pos-focus122 #restaurantApp .main-content-area{margin:0!important;width:100%!important}
+
+html body.shell113.tablet118 #restaurantApp{--tablet-top:calc(env(safe-area-inset-top,0px) + 10px);padding-top:var(--tablet-top);box-sizing:border-box}
+html body.shell113.tablet118 #restaurantApp #appSidebar{padding:var(--tablet-top) 0 0!important;box-sizing:border-box}
+html body.shell113.tablet118 #restaurantApp #appSidebar .sidebar-brand{box-sizing:border-box}
+html body.shell113.tablet118 #restaurantApp #appSidebar .sidebar-brand h2 b{display:block}
+html body.shell113.tablet118 #restaurantApp #appSidebar #closeNavigation130{display:none!important}
+html body.shell113.tablet118 #restaurantApp #appSidebar .logo-tile113{display:grid!important;place-items:center!important;padding:3px!important;margin:0!important}
+html body.shell113.tablet118 #restaurantApp #companyLogo101{display:block!important;position:static!important;transform:none!important;object-fit:contain!important;object-position:center!important;margin:0!important;padding:0!important}
+html body.shell113.tablet118 #restaurantApp #appSidebar .logo-tile113 #companyLogo101{width:36px!important;height:36px!important;min-width:0!important;min-height:0!important;max-width:100%!important;max-height:100%!important;box-sizing:border-box}
 </style></head>
 <body class="shell113">
 <div class="restaurant-login login-gate" id="loginGate"><form id="restaurantLogin" class="login-card" onsubmit="return false">
@@ -3915,7 +3924,7 @@ html body.shell113.pos-focus122 #restaurantApp .main-content-area{margin:0!impor
 </form></div>
 <div id="restaurantLoading132" hidden role="status" aria-live="polite"><div class="loading-orbit1444" aria-hidden="true"><i style="--i:0"><b></b></i><i style="--i:1"><b></b></i><i style="--i:2"><b></b></i><i style="--i:3"><b></b></i><i style="--i:4"><b></b></i><i style="--i:5"><b></b></i></div><p>Preparing your workspace…</p></div><div class="app-layout" hidden="" id="restaurantApp">
 <aside class="sidebar no-print" id="appSidebar">
-<div class="sidebar-brand"><button aria-label="Logo and theme settings" class="logo-tile113" title="Logo and theme settings" type="button"><img alt="Oon Jai" class="restaurant-brand-logo" id="companyLogo101" src="assets/brand/oonjai-logo.png"/></button><h2>Oon Jai Marketplace</h2><button id="closeNavigation130" type="button" aria-label="Close navigation" onclick="closeMobileNavigation()">×</button></div>
+<div class="sidebar-brand"><button aria-label="Logo and theme settings" class="logo-tile113" title="Logo and theme settings" type="button"><img alt="Oon Jai" class="restaurant-brand-logo" id="companyLogo101" src="assets/brand/oonjai-logo.png"/></button><h2><b>Oon Jai</b> <b>Marketplace</b></h2><button id="closeNavigation130" type="button" aria-label="Close navigation" onclick="closeMobileNavigation()">×</button></div>
 <div class="universal-search108"><input aria-label="Search restaurant sections" id="restaurantSearch121" placeholder="Search sections…" type="search"/></div><div class="nav-category" data-module="dashboard" id="nav-module-dashboard"><button aria-label="Overview" class="nav-header" onclick="switchTab('restaurant-overview')" type="button"><span aria-hidden="true" class="nav-icon113"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" viewBox="0 0 24 24"><path d="M3 11l9-9 9 9 M5 10v12h14V10 M10 22v-7h4v7"></path></svg></span>Overview</button></div>
 <div class="nav-category" data-module="inventory" id="nav-module-inventory"><button aria-label="Inventory" class="nav-header" onclick="switchTab('inv-overview')" type="button"><span aria-hidden="true" class="nav-icon113"><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" viewBox="0 0 24 24"><path d="M3 7l9-4 9 4v11l-9 4-9-4z M3 7l9 5 9-5 M12 12v10"></path></svg></span><span data-inventory-label128>Inventory</span> <span class="arrow">▼</span></button><div class="nav-links"><button class="tab-btn" onclick="switchTab('inv-overview')" type="button">Overview</button><button class="tab-btn" onclick="switchTab('inv-items')" type="button">Master List</button><button class="tab-btn" onclick="switchTab('inv-allocated')" type="button">Allocated</button><button class="tab-btn" onclick="switchTab('inv-stock-in')" type="button">Stock In</button><button class="tab-btn" onclick="switchTab('inv-stock-out')" type="button">Stock Out</button><button class="tab-btn" onclick="switchTab('inv-adj')" type="button">Adjustments</button><button class="tab-btn" onclick="switchTab('inv-val')" type="button">Valuation</button></div></div>
 <div class="nav-category" data-module="kitchen" id="nav-module-kitchen"><button class="nav-header" aria-label="Kitchen" onclick="switchTab('inv-bulk132')" type="button"><span class="nav-icon113" aria-hidden="true">♧</span>Kitchen <span class="arrow">▼</span></button><div class="nav-links"><button class="tab-btn" onclick="switchTab('inv-bulk132')" type="button">Bulk plan</button><button class="tab-btn" onclick="switchTab('inv-preparation124')" type="button">Prepare</button><button class="tab-btn" onclick="switchTab('inv-waste124')" type="button">Wastage</button></div></div>
@@ -3967,7 +3976,7 @@ html body.shell113.pos-focus122 #restaurantApp .main-content-area{margin:0!impor
    for(let attempt=0;attempt<2;attempt++)try{
     await new Promise((resolve,reject)=>{
      const script=document.createElement('script');let timer,runtimeError;
-     const src=new URL('scripts/restaurant-core150.bundle.js?v=tablet1',document.baseURI).href;
+     const src=new URL('scripts/restaurant-core150.bundle.js?v=register6',document.baseURI).href;
      const capture=e=>{if(e.filename===src)runtimeError=e.error||Error(e.message)};
      const done=err=>{clearTimeout(timer);window.removeEventListener('error',capture);script.onload=null;script.onerror=null;if(err)reject(err);else resolve()};
      window.addEventListener('error',capture);script.src=src;

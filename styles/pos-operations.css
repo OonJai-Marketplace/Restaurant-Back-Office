@@ -10,3 +10,8 @@
 @media(max-width:650px){.ops-kpis{grid-template-columns:1fr 1fr}.ops-controls label{flex:1 1 130px;min-width:0}.ops-controls select,.ops-controls input{min-width:0;width:100%}.ops-table-head input{width:50%}.ops-panel td,.ops-panel th{padding:7px}.ops-panel header{flex-wrap:wrap}}
 .ops-kpis>button{text-align:left;border:1px solid #cfdcce;border-radius:9px;padding:12px;background:#fffdf8}.ops-kpis>button[aria-pressed=true]{border-color:#39735a;background:#e7f1e6}
 .ops-panel .alloc-line button[data-allocation]{flex:0 0 auto;width:auto;min-width:0;white-space:nowrap}
+
+.discount-presets [data-presets]{display:grid;gap:8px}
+.discount-presets fieldset{display:grid;grid-template-columns:minmax(9em,2fr) minmax(8em,1fr) minmax(4em,.7fr) auto;align-items:end;gap:8px;margin:0;padding:8px;border:1px solid #cad7cd}
+.discount-presets :is(input,select){width:100%;min-width:0}
+@media(max-width:600px){.discount-presets fieldset{grid-template-columns:1fr 1fr}}

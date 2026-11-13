@@ -330,13 +330,13 @@ window.restaurantPosMode128=()=> 'live';
  const groups={
   promotions:{css:['promotions146.css'],js:['promotion-kit146.js','restaurant-promotions146.js']},
   readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js']},
-  reports:{css:['pos-operations.css?v=checkout3','pos-v118.css?v=cashier4'],js:['pos-reports.js?v=checkout3','pos-backoffice-reports.js?v=checkout3']},
+  reports:{css:['pos-operations.css?v=register6','pos-v118.css?v=register6'],js:['pos-reports.js?v=checkout3','pos-backoffice-reports.js?v=register6']},
   sales:{css:['restaurant-sales143.css'],js:['sales-math143.js','restaurant-sales143.js?v=reports1']},
   settings:{js:['restaurant-settings146.bundle.js']},
-  inventory:{css:['inventory-menu-v104.css?v=stockusage2','pos-operations.css?v=checkout3'],js:['restaurant-inventory144.bundle.js?v=review2','inventory-allocated.js?v=checkout3']},
+  inventory:{css:['inventory-menu-v104.css?v=stockusage2','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=review2','inventory-allocated.js?v=checkout3']},
   menu:{depends:['inventory'],js:['menu-v108.js?v=rowactions1']},
   kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=stocklinks1'],js:['preparation-waste124.js?v=layout2']},
-  pos:{css:['pos-v118.css?v=cashier4'],js:['restaurant-pos150.bundle.js?v=cashier5']}
+  pos:{css:['pos-v118.css?v=register6'],js:['restaurant-pos150.bundle.js?v=register6']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
  const pendingFiles=new Map();
@@ -603,7 +603,7 @@ function sync(){queued=false;const yes=tablet();if(yes!==lastTablet){lastTablet=
 function queue(){if(!queued){queued=true;requestAnimationFrame(sync)}}
 function ready(){const sidebar=$('appSidebar'),trigger=$('mobileMenuToggle');trigger?.setAttribute('aria-controls','appSidebar');
  const toggle=window.toggleMobileNavigation,close=window.closeMobileNavigation;
- window.toggleMobileNavigation=()=>{toggle();aria();if(drawer()&&document.body.classList.contains('restaurant-nav-open'))$('closeNavigation130')?.focus()};
+ window.toggleMobileNavigation=()=>{toggle();aria();if(drawer()&&document.body.classList.contains('restaurant-nav-open'))(tablet()?sidebar.querySelector('.logo-tile113'):$('closeNavigation130'))?.focus({preventScroll:true})};
  window.closeMobileNavigation=()=>{const restore=drawer()&&sidebar.contains(document.activeElement);close();aria();if(restore)(tablet()?sidebar.querySelector('.logo-tile113'):trigger)?.focus({preventScroll:true})};
  sidebar.addEventListener('click',e=>{if(e.target.closest('.nav-header,.tab-btn'))closeMobileNavigation()});
  document.addEventListener('keydown',e=>{if(e.key!=='Tab'||!drawer()||!document.body.classList.contains('restaurant-nav-open'))return;const items=[...sidebar.querySelectorAll('button:not(:disabled),input:not(:disabled),a[href]')].filter(n=>n.getClientRects().length&&!n.closest('[hidden]'));const first=items[0],last=items.at(-1);if(!first)return;if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}});

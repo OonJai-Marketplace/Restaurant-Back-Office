@@ -25,7 +25,7 @@ function sync(){queued=false;const yes=tablet();if(yes!==lastTablet){lastTablet=
 function queue(){if(!queued){queued=true;requestAnimationFrame(sync)}}
 function ready(){const sidebar=$('appSidebar'),trigger=$('mobileMenuToggle');trigger?.setAttribute('aria-controls','appSidebar');
  const toggle=window.toggleMobileNavigation,close=window.closeMobileNavigation;
- window.toggleMobileNavigation=()=>{toggle();aria();if(drawer()&&document.body.classList.contains('restaurant-nav-open'))$('closeNavigation130')?.focus()};
+ window.toggleMobileNavigation=()=>{toggle();aria();if(drawer()&&document.body.classList.contains('restaurant-nav-open'))(tablet()?sidebar.querySelector('.logo-tile113'):$('closeNavigation130'))?.focus({preventScroll:true})};
  window.closeMobileNavigation=()=>{const restore=drawer()&&sidebar.contains(document.activeElement);close();aria();if(restore)(tablet()?sidebar.querySelector('.logo-tile113'):trigger)?.focus({preventScroll:true})};
  sidebar.addEventListener('click',e=>{if(e.target.closest('.nav-header,.tab-btn'))closeMobileNavigation()});
  document.addEventListener('keydown',e=>{if(e.key!=='Tab'||!drawer()||!document.body.classList.contains('restaurant-nav-open'))return;const items=[...sidebar.querySelectorAll('button:not(:disabled),input:not(:disabled),a[href]')].filter(n=>n.getClientRects().length&&!n.closest('[hidden]'));const first=items[0],last=items.at(-1);if(!first)return;if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}});
