@@ -1,6 +1,6 @@
 /* Restaurant navigation, account controls and POS notifications. */
 (()=>{'use strict';
-const $=id=>document.getElementById(id);let focus=false,tabletFocus=false,nativeOwned=false,queued=false;
+const $=id=>document.getElementById(id);let focus=false,tabletFocus=false,queued=false;
 function hidden(node,value){if(node&&node.hidden!==value)node.hidden=value}
 function closePanels(){for(const id of ['workspaceApps122','headerNotices104'])$(id)?.remove();$('upcomingBell101')?.setAttribute('aria-expanded','false')}
 function sync(){queued=false;window.restaurantTableRows?.restore();const signed=!!liveProfile&&!$('restaurantApp').hidden;hidden($('workspaceTools108'),!signed);hidden($('switchAccount110'),!signed||liveProfile?.role!=='admin');if(!signed){closePanels();if(focus)leaveFocus();return}
@@ -31,15 +31,13 @@ async function enterFocus(){
  focus=true;tabletFocus=restaurantAccounting124.tablet();
  document.body.classList.add('pos-focus122');$('posFullscreen122').setAttribute('aria-pressed','true');
  sync();document.querySelector('[data-exit-focus122]')?.focus({preventScroll:true});
- if(tabletFocus){rememberTabletFocus(liveProfile.id);return}
- try{if(!document.fullscreenElement&&document.documentElement.requestFullscreen){await document.documentElement.requestFullscreen();nativeOwned=focus&&!!document.fullscreenElement}}catch{}
+ if(tabletFocus)rememberTabletFocus(liveProfile.id);
 }
-async function leaveFocus(){
+function leaveFocus(){
  if(!focus)return;
  if(tabletFocus)rememberTabletFocus(null);
  focus=false;tabletFocus=false;document.body.classList.remove('pos-focus122');$('posFullscreen122')?.setAttribute('aria-pressed','false');
  if(liveProfile)$('posFullscreen122')?.focus({preventScroll:true});
- const owned=nativeOwned;nativeOwned=false;if(owned&&document.fullscreenElement)try{await document.exitFullscreen()}catch{}
 }
 function notices(){const rows=window.WordOfHope183?.notices?.()||[];if(!liveProfile||!restaurantCan('pos'))return rows;const s=window.pos118?.state;if(!s)return rows;const prefix=s.sample?'Sample · ':'';const legacy=window.restaurantLegacyQueue126;if(legacy?.owner===liveProfile.id&&legacy.count)rows.push({title:legacy.count+' saved orders from the previous setup',detail:'Download these orders for review before importing them into Restaurant.',open:()=>window.posOffline119.exportLegacy(liveProfile.id)});if(restaurantTabCan125('pos','pos-sales-online')&&(s.loaded||s.sample)){const orders=s.orders.filter(o=>o.status==='unpaid'&&o.data?.service==='Online');if(orders.length)rows.push({title:prefix+orders.length+' unpaid online order'+(orders.length===1?'':'s'),detail:'Open Online Orders to review.',open:()=>openOnlineOrders()})}if(!s.sample&&s.offlineQueue.length)rows.push({title:s.offlineQueue.length+' orders pending sync',detail:'Open POS to review the saved orders.',open:()=>switchTab('pos118')});if(!s.sample&&s.syncError)rows.push({title:'POS sync needs attention',detail:s.syncError,open:()=>switchTab('pos118')});return rows}
 function notifications(){const was=!!$('headerNotices104');closePanels();if(was)return;const panel=document.createElement('section');panel.id='headerNotices104';panel.className='header-notices104';panel.setAttribute('aria-label','Notifications');panel.innerHTML='<header><strong>Notifications</strong><button type="button" aria-label="Close notifications">×</button></header><div id="headerNoticeList104"></div>';panel.querySelector('header button').onclick=closePanels;const rows=notices();for(const row of rows){const b=document.createElement('button');b.innerHTML='<strong>'+escapeHtml(row.title)+'</strong><span>'+escapeHtml(row.detail)+'</span>';b.onclick=()=>{closePanels();row.open()};panel.lastChild.append(b)}if(!rows.length)panel.lastChild.innerHTML='<p>No current restaurant notifications.</p>'+(!window.pos118?.state.loaded?'<p>Open POS to load the latest live orders and sync status.</p>':'');if(liveProfile?.role==='admin'){const b=document.createElement('button');b.textContent='Word of Hope inbox';b.onclick=()=>{closePanels();window.WordOfHope183?.open()};panel.append(b)}document.body.append(panel);$('upcomingBell101').setAttribute('aria-expanded','true')}
@@ -50,7 +48,6 @@ function ready(){
  $('upcomingBell101').onclick=notifications;$('switchAccount110').onclick=workspaceMenu;$('signOut110').onclick=()=>signout();$('posFullscreen122').onclick=()=>focus?leaveFocus():enterFocus();
  document.addEventListener('pointerdown',e=>{if(!e.target.closest('#workspaceTools108,#workspaceApps122,#headerNotices104'))closePanels();if(!e.target.closest('.universal-search108'))$('searchResults121')?.replaceChildren()});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'){closePanels();$('searchResults121')?.replaceChildren();if(focus&&!tabletFocus)leaveFocus();closeMobileNavigation()}});
- document.addEventListener('fullscreenchange',()=>{if(nativeOwned&&!document.fullscreenElement)leaveFocus()});
  new MutationObserver(queue).observe($('restaurantApp'),{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class']});sync();brand();
 }
 window.restaurantShell122={sync,brand,enterFocus,leaveFocus,restoreTabletFocus,tabletFocusActive:()=>tabletFocus};
