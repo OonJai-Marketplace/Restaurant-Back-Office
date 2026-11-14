@@ -63,7 +63,6 @@
   <!--                   GOOGLE FONTS             -->
   <!-- ========================================== -->
   <link rel="preload" as="image" href="assets/images/banner-full.12b9cbe236.webp" fetchpriority="high">
-  <link rel="preconnect" href="https://i.postimg.cc">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -607,15 +606,30 @@
 
         <div class="home-cards-grid">
           <div class="home-card" role="button" tabindex="0" onclick="App.switchMainTab('menu')" aria-label="Go to Menu">
-            <div class="home-card-slider" id="homeSliderMenu"></div>
+            <div class="home-card-slider" id="homeSliderMenu">
+              <img class="active" src="assets/images/home-1-full.79d81d586f.webp"
+                   srcset="assets/images/home-1-card.4a6d7dfbfe.webp 480w, assets/images/home-1-full.79d81d586f.webp 900w"
+                   sizes="(max-width: 767px) calc(100vw - 60px), calc((100vw - 120px) / 3)"
+                   width="900" height="498" decoding="async" fetchpriority="high" alt="Plant-based meal at Oon Jai">
+            </div>
             <div class="home-card-btn">Explore Menu</div>
           </div>
           <div class="home-card" role="button" tabindex="0" onclick="App.switchMainTab('hope')" aria-label="Go to Words of Hope">
-            <div class="home-card-slider" id="homeSliderHope"></div>
+            <div class="home-card-slider" id="homeSliderHope">
+              <img class="active" src="assets/images/home-hope-full.363d3c3f9d.webp"
+                   srcset="assets/images/home-hope-card.f37b93557b.webp 480w, assets/images/home-hope-full.363d3c3f9d.webp 900w"
+                   sizes="(max-width: 767px) calc(100vw - 60px), calc((100vw - 120px) / 3)"
+                   width="900" height="498" decoding="async" alt="Thought of the Day card">
+            </div>
             <div class="home-card-btn">Words of Hope</div>
           </div>
           <div class="home-card" role="button" tabindex="0" onclick="App.switchMainTab('review')" aria-label="Go to Reviews">
-            <div class="home-card-slider" id="homeSliderReview"></div>
+            <div class="home-card-slider" id="homeSliderReview">
+              <img class="active" src="assets/images/home-review-full.a1a183b14d.webp"
+                   srcset="assets/images/home-review-card.3936413df6.webp 480w, assets/images/home-review-full.a1a183b14d.webp 900w"
+                   sizes="(max-width: 767px) calc(100vw - 60px), calc((100vw - 120px) / 3)"
+                   width="900" height="498" decoding="async" alt="Five-star guest review of the mini bowl">
+            </div>
             <div class="home-card-btn">Customer Reviews</div>
           </div>
         </div>
@@ -1008,13 +1022,10 @@ const App = (function() {
   const hopeImagesData = [
     "assets/images/10-full.362290844c.webp", "assets/images/11-full.4d63bbcce7.webp", "assets/images/12-full.37c8c9a346.webp",
     "assets/images/3-full.98d46e26ae.webp", "assets/images/4-full.f6ff8b2ca3.webp", "assets/images/5-full.b0b9a73e95.webp",
-    "assets/images/6-full.e439ce137b.webp", "assets/images/7-full.693031d79e.webp", "https://i.postimg.cc/tgbxX81R/8.jpg", "assets/images/9-full.70d783dc76.webp"
+    "assets/images/6-full.e439ce137b.webp", "assets/images/7-full.693031d79e.webp", "assets/images/hope-8-full.690cf9409a.webp", "assets/images/9-full.70d783dc76.webp"
   ];
-  const googleReviewPhotosData = ["assets/images/review-10-full.91bc362188.webp", "assets/images/review-11-full.83f082cc17.webp", "assets/images/review-12-full.407fc4bf79.webp", "assets/images/review-13-full.bb1dc8dc8b.webp", "assets/images/review-2-full.9127b4c13e.webp", "assets/images/review-3-full.447f2d1f52.webp", "assets/images/review-5-full.dfaea519b2.webp", "https://i.postimg.cc/rmr832Mm/Review-7.jpg", "assets/images/review-8-full.de8f5ee3cd.webp"];
+  const googleReviewPhotosData = ["assets/images/review-10-full.91bc362188.webp", "assets/images/review-11-full.83f082cc17.webp", "assets/images/review-12-full.407fc4bf79.webp", "assets/images/review-13-full.bb1dc8dc8b.webp", "assets/images/review-2-full.9127b4c13e.webp", "assets/images/review-3-full.447f2d1f52.webp", "assets/images/review-5-full.dfaea519b2.webp", "assets/images/review-7-full.dda4254d13.webp", "assets/images/review-8-full.de8f5ee3cd.webp"];
 
-  const homeMenuImages = ["assets/images/home-1-full.79d81d586f.webp"];
-  const homeHopeImages = ["https://i.postimg.cc/qv0HJGGq/Home-2.png"];
-  const homeReviewImages = ["https://i.postimg.cc/sgyCjJJM/Home-3.png"];
 
   // --- INTERNAL UTILITIES ---
   function formatKip(amount) { return amount.toLocaleString('en-US') + ' Kip'; }
@@ -1279,14 +1290,11 @@ const App = (function() {
     }, 35);
   }
 
-  function imageAttributes(src, { thumbnail = false, eager = false, priority = 'auto', responsive = false } = {}) {
+  function imageAttributes(src, { thumbnail = false, eager = false, priority = 'auto' } = {}) {
     const asset = imageAssets[src];
     const variant = thumbnail && asset?.thumbnail ? asset.thumbnail : { src, ...asset };
     const dimensions = variant.width ? ` width="${variant.width}" height="${variant.height}"` : '';
-    const sources = responsive && asset?.small
-      ? ` srcset="${escapeHtml(asset.small.src)} ${asset.small.width}w, ${escapeHtml(src)} ${asset.width}w" sizes="(max-width: 767px) calc(100vw - 60px), calc((100vw - 120px) / 3)"`
-      : '';
-    return `src="${escapeHtml(variant.src)}"${dimensions}${sources} loading="${eager ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${priority}" onerror="this.onerror=null;this.removeAttribute('srcset');this.src='${imageFallback}'"`;
+    return `src="${escapeHtml(variant.src)}"${dimensions} loading="${eager ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${priority}" onerror="this.onerror=null;this.removeAttribute('srcset');this.src='${imageFallback}'"`;
   }
 
   function setupCarousel(trackId, dotsId, imagesArray) {
@@ -1331,31 +1339,6 @@ const App = (function() {
     syncAnimations();
   }
 
-  function initHomeSliders() {
-    const createHomeSlider = (containerId, imagesArray, delayOffset) => {
-      const container = document.getElementById(containerId);
-      if (!container) return;
-      const validImages = imagesArray.filter(link => link.trim() !== "");
-      if (validImages.length === 0) return;
-
-      const isFirstPreview = containerId === 'homeSliderMenu' && !!container.closest('.tab-pane.active');
-      container.innerHTML = validImages.map((src, i) => `<img ${imageAttributes(src, { eager: isFirstPreview && i === 0, priority: isFirstPreview && i === 0 ? 'high' : 'auto', responsive: true })} class="${i === 0 ? 'active' : ''}" alt="Home Preview">`).join('');
-      if (validImages.length > 1) {
-        let currentIndex = 0;
-        const imgs = container.querySelectorAll('img');
-        setTimeout(() => setInterval(() => {
-            if (document.hidden || reducedMotion.matches || !container.clientWidth) return;
-            imgs[currentIndex].classList.remove('active');
-            currentIndex = (currentIndex + 1) % validImages.length;
-            imgs[currentIndex].classList.add('active');
-        }, 3500), delayOffset);
-      }
-    };
-    createHomeSlider('homeSliderMenu', homeMenuImages, 0);
-    createHomeSlider('homeSliderHope', homeHopeImages, 800);
-    createHomeSlider('homeSliderReview', homeReviewImages, 1600);
-  }
-
   function applyPublicContent144(publicContent) {
     hasPublicMenu=!!publicContent.menu;
     if(hasPublicMenu) for(const key of Object.keys(menuData)) menuData[key]=publicContent.menu[key]||[];
@@ -1386,7 +1369,6 @@ const App = (function() {
     setupCarousel('hopeCarouselTrack', 'hopeCarouselDots', hopeImagesData);
     setupCarousel('reviewCarouselTrack', 'reviewCarouselDots', googleReviewPhotosData);
     initVerticalReviewsCarousel();
-    initHomeSliders();
     App._reRenderStore();
     setupForm();
     setupTabSwiping();
