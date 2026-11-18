@@ -1,15 +1,15 @@
 /* One site and one repository. Load working code only when its module is opened. */
 (()=>{'use strict';
  const groups={
-  promotions:{css:['promotions146.css?v=review16'],js:['promotion-kit146.js','restaurant-promotions146.js?v=review16']},
-  readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js?v=review16']},
-  reports:{css:['pos-operations.css?v=register6','pos-v118.css?v=shift24'],js:['pos-reports.js?v=shift24','pos-backoffice-reports.js?v=shift24']},
-  sales:{css:['restaurant-sales143.css?v=review16'],js:['sales-math143.js?v=shift24','restaurant-sales143.js?v=shift24']},
-  settings:{js:['restaurant-settings146.bundle.js?v=review16']},
-  inventory:{css:['inventory-menu-v104.css?v=review16','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=review16','inventory-allocated.js?v=checkout3']},
-  menu:{depends:['inventory'],js:['menu-v108.js?v=review16']},
-  kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=stocklinks1'],js:['preparation-waste124.js?v=layout2']},
-  pos:{css:['pos-v118.css?v=shift24','pos-receipt.css?v=shift24'],js:['restaurant-pos150.bundle.js?v=shift24']}
+  promotions:{css:['promotions146.css?v=offline25'],js:['promotion-kit146.js','restaurant-promotions146.js?v=offline25']},
+  readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js?v=offline25']},
+  reports:{css:['pos-operations.css?v=register6','pos-v118.css?v=offline25'],js:['pos-reports.js?v=offline25','pos-backoffice-reports.js?v=offline25']},
+  sales:{css:['restaurant-sales143.css?v=offline25'],js:['sales-math143.js?v=offline25','restaurant-sales143.js?v=offline25']},
+  settings:{js:['restaurant-settings146.bundle.js?v=offline25']},
+  inventory:{css:['inventory-menu-v104.css?v=offline25','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=offline25','inventory-allocated.js?v=offline25']},
+  menu:{depends:['inventory'],js:['menu-v108.js?v=offline25']},
+  kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=offline25'],js:['preparation-waste124.js?v=offline25']},
+  pos:{css:['pos-v118.css?v=offline25','pos-receipt.css?v=offline25'],js:['restaurant-pos150.bundle.js?v=offline25']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
  const pendingFiles=new Map();

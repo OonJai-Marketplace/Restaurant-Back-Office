@@ -139,15 +139,20 @@ const offlineAccessKey=()=>'restaurant-cashier-tab:'+new URL(OJM_SUPABASE_URL).h
 let offlineAccess=false;
 function cacheCashierAccess(){
  try{
-  if(!restaurantTabCan125('pos','pos-sales-new','sell')){sessionStorage.removeItem(offlineAccessKey());return}
-  const tabs=Object.fromEntries(['pos-overview','pos-sales-new','pos-sales-open','pos-sales-receipts'].map(k=>[k,restaurantTabCan125('pos',k)]));
-  sessionStorage.setItem(offlineAccessKey(),JSON.stringify({id:liveProfile.id,name:liveProfile.full_name,tabs}));
+  const permissions={};
+  if(restaurantTabCan125('pos','pos-sales-new','sell'))permissions.pos={view:true,sell:true,tabs:Object.fromEntries(['pos-overview','pos-sales-new','pos-sales-open','pos-sales-receipts'].map(k=>[k,restaurantTabCan125('pos',k)]))};
+  for(const [scope,tabs] of Object.entries({inventory:['inv-preparation124'],menu:['menu-ingredients','menu-recipe','menu-costing','menu-pricing']})){
+   const allowed=Object.fromEntries(tabs.map(k=>[k,restaurantTabCan125(scope,k)]));if(Object.values(allowed).some(Boolean))permissions[scope]={view:true,tabs:allowed};
+  }
+  if(!Object.keys(permissions).length){sessionStorage.removeItem(offlineAccessKey());return}
+  sessionStorage.setItem(offlineAccessKey(),JSON.stringify({id:liveProfile.id,name:liveProfile.full_name,permissions}));
  }catch{}
 }
 function offlineCashier(session){
  if(globalThis.navigator?.onLine!==false||!session?.user?.id)return null;
  try{const access=JSON.parse(sessionStorage.getItem(offlineAccessKey()));if(access?.id!==session.user.id)return null;
-  return [{data:{id:access.id,full_name:access.name,status:'active',role:'staff'}},{data:{enabled:true,permissions:{pos:{view:true,sell:true,tabs:access.tabs}}}}];
+  const permissions=access.permissions||{pos:{view:true,sell:true,tabs:access.tabs}};
+  return [{data:{id:access.id,full_name:access.name,status:'active',role:'staff'}},{data:{enabled:true,permissions}}];
  }catch{return null}
 }
 async function hydrateCore132(session){if(!session?.user){clearRestaurantSession();return}if(liveProfile?.id===session.user.id&&!(offlineAccess&&navigator.onLine))return;const epoch=++sessionEpoch121;
@@ -161,7 +166,7 @@ async function hydrateCore132(session){if(!session?.user){clearRestaurantSession
  // Authorization is complete. Close login before downloading modules or records.
  document.getElementById('loginGate').hidden=true;document.getElementById('loginGate').classList.add('is-authenticated');document.getElementById('restaurantApp').hidden=false;loginProgress132('');
  const restoreFocus=window.restaurantShell122?.restoreTabletFocus();
- void openRestaurantWorkspace142(offlineAccess||restoreFocus?'pos118':id,liveProfile.id,epoch,restoreFocus);
+ void openRestaurantWorkspace142(restoreFocus?'pos118':id,liveProfile.id,epoch,restoreFocus);
  // Branding is optional presentation data; it must never delay sign-in.
  void loginWait140(loadBanners(),'Branding request timed out.').catch(()=>{});
 }
@@ -174,7 +179,7 @@ async function openRestaurantWorkspace142(id,owner,epoch,restoreFocus=false){
   if(restoreFocus)await restaurantShell122.enterFocus();
   const group=restaurantModules125.groupFor(id);
   if(['inventory','menu'].includes(group))await menuStore108.load();
-  if(group==='kitchen')await kitchen124.load();
+  if(group==='kitchen'&&id!=='inv-bulk132')await kitchen124.load();
   if(group==='pos'&&!pos118.state.sample)await pos118.load();
   if(current()&&(id==='inv-bulk132'||id==='menu-integration132'))await restaurantIntegration132.load();
  }catch(error){if(current())showCenterStatus(error.message||'This area could not load. Open it again to retry.',true)}
@@ -360,15 +365,15 @@ window.restaurantPosMode128=()=> 'live';
 /* One site and one repository. Load working code only when its module is opened. */
 (()=>{'use strict';
  const groups={
-  promotions:{css:['promotions146.css?v=review16'],js:['promotion-kit146.js','restaurant-promotions146.js?v=review16']},
-  readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js?v=review16']},
-  reports:{css:['pos-operations.css?v=register6','pos-v118.css?v=shift24'],js:['pos-reports.js?v=shift24','pos-backoffice-reports.js?v=shift24']},
-  sales:{css:['restaurant-sales143.css?v=review16'],js:['sales-math143.js?v=shift24','restaurant-sales143.js?v=shift24']},
-  settings:{js:['restaurant-settings146.bundle.js?v=review16']},
-  inventory:{css:['inventory-menu-v104.css?v=review16','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=review16','inventory-allocated.js?v=checkout3']},
-  menu:{depends:['inventory'],js:['menu-v108.js?v=review16']},
-  kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=stocklinks1'],js:['preparation-waste124.js?v=layout2']},
-  pos:{css:['pos-v118.css?v=shift24','pos-receipt.css?v=shift24'],js:['restaurant-pos150.bundle.js?v=shift24']}
+  promotions:{css:['promotions146.css?v=offline25'],js:['promotion-kit146.js','restaurant-promotions146.js?v=offline25']},
+  readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js?v=offline25']},
+  reports:{css:['pos-operations.css?v=register6','pos-v118.css?v=offline25'],js:['pos-reports.js?v=offline25','pos-backoffice-reports.js?v=offline25']},
+  sales:{css:['restaurant-sales143.css?v=offline25'],js:['sales-math143.js?v=offline25','restaurant-sales143.js?v=offline25']},
+  settings:{js:['restaurant-settings146.bundle.js?v=offline25']},
+  inventory:{css:['inventory-menu-v104.css?v=offline25','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=offline25','inventory-allocated.js?v=offline25']},
+  menu:{depends:['inventory'],js:['menu-v108.js?v=offline25']},
+  kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=offline25'],js:['preparation-waste124.js?v=offline25']},
+  pos:{css:['pos-v118.css?v=offline25','pos-receipt.css?v=offline25'],js:['restaurant-pos150.bundle.js?v=offline25']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
  const pendingFiles=new Map();
@@ -662,6 +667,22 @@ function ready(){const sidebar=$('appSidebar'),trigger=$('mobileMenuToggle');tri
  new MutationObserver(queue).observe($('restaurantApp'),{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class']});new MutationObserver(queue).observe(document.body,{childList:true});sync();
 }
 window.restaurantAccounting124={sync,tablet};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
+})();
+
+;
+/* scripts/restaurant-local152.js */
+/* Device-only snapshots, separated by account; no network requests or sync loop. */
+(()=>{'use strict';
+ function access(owner,area,value){return new Promise((resolve,reject)=>{
+  if(!owner)return resolve(null);const request=indexedDB.open('oonjai-restaurant-local152',1);
+  request.onupgradeneeded=()=>request.result.createObjectStore('snapshots',{keyPath:'key'});
+  request.onerror=()=>reject(request.error);request.onsuccess=()=>{const db=request.result,tx=db.transaction('snapshots',value===undefined?'readonly':'readwrite'),store=tx.objectStore('snapshots');let result;
+   const query=value===undefined?store.get(owner+':'+area):value===null?store.delete(owner+':'+area):store.put({key:owner+':'+area,owner,area,savedAt:Date.now(),value});query.onsuccess=()=>result=query.result;
+   tx.oncomplete=()=>{db.close();resolve(result||null)};tx.onerror=tx.onabort=()=>{db.close();reject(tx.error||Error('Device storage is unavailable'))};};
+ });}
+ async function read(query,controller,ms=6000){let timer;try{return await Promise.race([Promise.resolve(query.abortSignal?query.abortSignal(controller.signal):query),new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('Connection timed out. Use Refresh to try again.'))},ms)})])}finally{clearTimeout(timer)}}
+ const network=e=>navigator.onLine===false||/failed to fetch|networkerror|network request failed|load failed|timed out|abort/i.test(e?.message||'');
+ window.restaurantLocal152={get:(owner,area)=>access(owner,area).catch(()=>null),put:(owner,area,value)=>access(owner,area,value),remove:(owner,area)=>access(owner,area,null).catch(()=>{}),read,network};
 })();
 
 ;

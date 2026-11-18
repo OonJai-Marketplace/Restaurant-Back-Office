@@ -17,7 +17,7 @@
  }
  function schedule(delay){clearTimeout(timer);timer=setTimeout(()=>{const s=window.pos118?.state;
   const older=s?.tab==='Sales'&&s.sub==='Receipts'&&s.orders.filter(o=>['paid','refunded'].includes(o.status)).length>100;
-  if(active()&&s&&!s.sample&&s.loaded&&!s.working&&!older)pos118.load({background:true});else schedule(8000)},delay||8000)}
+  if(active()&&s&&!s.sample&&s.loaded&&!s.working&&!older)pos118.load({background:true})},delay||8000)}
  function cacheKey(owner){return owner+':priority125'}
  async function load(s,hooks,{background=false}={}){
   if(s.busy||!liveProfile?.id||s.sample)return;
@@ -51,7 +51,7 @@
     if(!s.loaded&&cached){Object.assign(s,cached.data,{loaded:true,owner});s.offlineQueue=await posOffline119.queue(owner);if(!valid())return;hooks.overlayPending();hooks.pick(hooks.catalog()[0]?.id,false)}
     s.offline=true;s.error=s.loaded?'Offline: sales remain on this device until synced.':'Connect once to prepare the POS on this device.';
    }else{s.loaded=false;s.offline=false;s.error=e.message;showCenterStatus(e.message,true)}
-  }finally{if(valid()){s.busy=false;if(background&&s.loaded&&s.tab==='Management'&&document.activeElement?.closest('.pos-report-controls'))updateStatus(s);else if(!background||catalogChanged||!s.loaded||s.tab!=='Sales'||s.sub!=='New Order')pos118.render();else updateStatus(s);schedule(s.offline?30000:8000)}}
+  }finally{if(valid()){s.busy=false;if(background&&s.loaded&&s.tab==='Management'&&document.activeElement?.closest('.pos-report-controls'))updateStatus(s);else if(!background||catalogChanged||!s.loaded||s.tab!=='Sales'||s.sub!=='New Order')pos118.render();else updateStatus(s)}}
  }
  function updateStatus(s){const sync=document.querySelector('.pos-tab-actions132 [data-pos118=sync]');if(sync){sync.textContent='Sync'+(s.offlineQueue.length?' · '+s.offlineQueue.length:s.offline?' · Offline':'');sync.title=s.offlineQueue.length+' pending orders';}const node=document.querySelector('.pos-sync118');if(node)node.textContent=s.offlineQueue.length?s.offlineQueue.length+' pending sync':s.offline?'Offline':'Synced';
   // Never replace focused input nodes, scroll positions or a current draft during polling.
@@ -107,7 +107,7 @@
   return true;
  };
  window.posPerformance125={rpc,load,accepted,allowed,clamp,overview,report,moreReceipts,schedule,network};
- document.addEventListener('visibilitychange',()=>{if(active())schedule(100)});
- addEventListener('focus',()=>{if(active())schedule(100)});
+ // Refresh on explicit navigation, a completed write, or the Sync button; no idle polling.
+
  addEventListener('offline',()=>{const s=window.pos118?.state;if(s&&!s.sample&&s.loaded){s.offline=true;updateStatus(s)}});
 })();

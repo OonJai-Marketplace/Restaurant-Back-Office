@@ -57,3 +57,16 @@ html body.shell113.tablet118 .restaurant-dialog :is(input,select,textarea){font-
 
 html body.shell113 #appSidebar .oonjai-hub-button{color:#fffaf1!important;background:#ffffff0c;border-color:#d9b45c66;margin:6px 8px}
 html body.shell113 #loginGate .oonjai-hub-button{color:#17553e;margin:0 auto}
+
+/* Apply to scroll containers and modal backgrounds too, including taps beside icons. */
+html{touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html body.shell113,html body.shell113 :is(#restaurantApp,#appSidebar,.workspace-scroll,.restaurant-modal,.ui-overlay108,.restaurant-dialog,.im-edit-overlay112){touch-action:manipulation}
+@media(any-pointer:coarse){
+ html body.shell113 :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea){font-size:16px!important}
+}
+html body.shell113.tablet118 :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea){font-size:16px!important}
+html body.shell113 .restaurant-dialog>header [data-close]{width:44px!important;min-width:44px!important;max-width:44px!important;height:44px!important;min-height:44px!important;padding:0!important;flex:0 0 44px!important;font:700 24px/1 system-ui!important}
+
+/* Beat the older kitchen rule containing two IDs; 14px fields can trigger focus zoom. */
+html body.shell113.tablet118 #restaurantApp :is(#pos118,.tab-content) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea){font-size:16px!important}
+@media(any-pointer:coarse){html body.shell113 #restaurantApp :is(#pos118,.tab-content) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea){font-size:16px!important}}

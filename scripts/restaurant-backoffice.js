@@ -96,15 +96,20 @@ const offlineAccessKey=()=>'restaurant-cashier-tab:'+new URL(OJM_SUPABASE_URL).h
 let offlineAccess=false;
 function cacheCashierAccess(){
  try{
-  if(!restaurantTabCan125('pos','pos-sales-new','sell')){sessionStorage.removeItem(offlineAccessKey());return}
-  const tabs=Object.fromEntries(['pos-overview','pos-sales-new','pos-sales-open','pos-sales-receipts'].map(k=>[k,restaurantTabCan125('pos',k)]));
-  sessionStorage.setItem(offlineAccessKey(),JSON.stringify({id:liveProfile.id,name:liveProfile.full_name,tabs}));
+  const permissions={};
+  if(restaurantTabCan125('pos','pos-sales-new','sell'))permissions.pos={view:true,sell:true,tabs:Object.fromEntries(['pos-overview','pos-sales-new','pos-sales-open','pos-sales-receipts'].map(k=>[k,restaurantTabCan125('pos',k)]))};
+  for(const [scope,tabs] of Object.entries({inventory:['inv-preparation124'],menu:['menu-ingredients','menu-recipe','menu-costing','menu-pricing']})){
+   const allowed=Object.fromEntries(tabs.map(k=>[k,restaurantTabCan125(scope,k)]));if(Object.values(allowed).some(Boolean))permissions[scope]={view:true,tabs:allowed};
+  }
+  if(!Object.keys(permissions).length){sessionStorage.removeItem(offlineAccessKey());return}
+  sessionStorage.setItem(offlineAccessKey(),JSON.stringify({id:liveProfile.id,name:liveProfile.full_name,permissions}));
  }catch{}
 }
 function offlineCashier(session){
  if(globalThis.navigator?.onLine!==false||!session?.user?.id)return null;
  try{const access=JSON.parse(sessionStorage.getItem(offlineAccessKey()));if(access?.id!==session.user.id)return null;
-  return [{data:{id:access.id,full_name:access.name,status:'active',role:'staff'}},{data:{enabled:true,permissions:{pos:{view:true,sell:true,tabs:access.tabs}}}}];
+  const permissions=access.permissions||{pos:{view:true,sell:true,tabs:access.tabs}};
+  return [{data:{id:access.id,full_name:access.name,status:'active',role:'staff'}},{data:{enabled:true,permissions}}];
  }catch{return null}
 }
 async function hydrateCore132(session){if(!session?.user){clearRestaurantSession();return}if(liveProfile?.id===session.user.id&&!(offlineAccess&&navigator.onLine))return;const epoch=++sessionEpoch121;
@@ -118,7 +123,7 @@ async function hydrateCore132(session){if(!session?.user){clearRestaurantSession
  // Authorization is complete. Close login before downloading modules or records.
  document.getElementById('loginGate').hidden=true;document.getElementById('loginGate').classList.add('is-authenticated');document.getElementById('restaurantApp').hidden=false;loginProgress132('');
  const restoreFocus=window.restaurantShell122?.restoreTabletFocus();
- void openRestaurantWorkspace142(offlineAccess||restoreFocus?'pos118':id,liveProfile.id,epoch,restoreFocus);
+ void openRestaurantWorkspace142(restoreFocus?'pos118':id,liveProfile.id,epoch,restoreFocus);
  // Branding is optional presentation data; it must never delay sign-in.
  void loginWait140(loadBanners(),'Branding request timed out.').catch(()=>{});
 }
@@ -131,7 +136,7 @@ async function openRestaurantWorkspace142(id,owner,epoch,restoreFocus=false){
   if(restoreFocus)await restaurantShell122.enterFocus();
   const group=restaurantModules125.groupFor(id);
   if(['inventory','menu'].includes(group))await menuStore108.load();
-  if(group==='kitchen')await kitchen124.load();
+  if(group==='kitchen'&&id!=='inv-bulk132')await kitchen124.load();
   if(group==='pos'&&!pos118.state.sample)await pos118.load();
   if(current()&&(id==='inv-bulk132'||id==='menu-integration132'))await restaurantIntegration132.load();
  }catch(error){if(current())showCenterStatus(error.message||'This area could not load. Open it again to retry.',true)}

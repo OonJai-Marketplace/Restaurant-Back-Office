@@ -1,7 +1,7 @@
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
 const source=fs.readFileSync('scripts/inventory-menu-v104.js','utf8');
 function fixture(rows,beforeRead=async()=>{}){
- const c={window:{},console,AbortController,setTimeout,clearTimeout,liveProfile:{id:'owner'},sessionEpoch121:1,readEpoch125:0,readController125:null,loadJob132:null,state:{owner:null,loaded:false,busy:false,moves:[]},tables:{items:'inventory_items104',moves:'inventory_movements104'},restaurantCan:()=>true,rendered:()=>false,render(){},calls:[]};
+ const c={window:{},navigator:{onLine:true},structuredClone,restaurantLocal152:{get:async()=>null,put:async()=>{},network:()=>false},console,AbortController,setTimeout,clearTimeout,liveProfile:{id:'owner'},sessionEpoch121:1,readEpoch125:0,readController125:null,loadJob132:null,state:{owner:null,loaded:false,busy:false,moves:[]},tables:{items:'inventory_items104',moves:'inventory_movements104'},restaurantCan:()=>true,rendered:()=>false,render(){},calls:[]};
  c.ojmDb={from(table){const q={start:0,end:999,select(){return this},order(){return this},range(a,b){this.start=a;this.end=b;return this},abortSignal(){return this},async then(resolve,reject){try{c.calls.push([table,this.start,this.end]);await beforeRead(table,this.start,c);resolve({data:(rows[table]||[]).slice(this.start,this.end+1)})}catch(e){reject(e)}}};return q}};
  vm.createContext(c);vm.runInContext(source.slice(source.indexOf(' function catalogOnly144('),source.indexOf(' async function save(')),c);return c;
 }
@@ -10,7 +10,7 @@ function fixture(rows,beforeRead=async()=>{}){
  let c=fixture(rows);await c.load();assert.equal(c.state.moves.length,2307,'Stock must include every inventory movement and POS deduction beyond the API page limit');console.log('PASS Complete ledger pagination');
  c=fixture(rows,async(table,start,c)=>{if(table==='pos_stock118'&&start===0){c.liveProfile={id:'other'};c.sessionEpoch121++;c.readEpoch125++;c.state={owner:'other',loaded:false,moves:[]}}});await c.load();assert.equal(c.state.loaded,false);assert.equal(c.state.moves.length,0);assert.equal(c.state.owner,'other');console.log('PASS Late stock response cannot enter another session');
  c=fixture(rows,async(table,start)=>{if(table==='pos_stock118'&&start>0)throw Error('Network failed on second page')});await c.load();assert.equal(c.state.loaded,false);assert.equal(c.state.moves.length,0);assert.match(c.state.error,/Network/);console.log('PASS Interrupted pagination does not publish a partial balance');
- c=fixture(rows);await c.load(false,{catalogOnly:true});assert(c.state.loaded);assert.equal(c.state.ledgerLoaded144,false);assert.equal(c.calls.some(([t])=>t==='inventory_movements104'||t==='pos_stock118'),false);console.log('PASS Menu reads skip both stock ledgers');
+ c=fixture(rows);await c.load(false,{catalogOnly:true});assert(c.state.loaded);assert.equal(!!c.state.ledgerLoaded144,false);assert.equal(c.calls.some(([t])=>t==='inventory_movements104'||t==='pos_stock118'),false);console.log('PASS Menu reads skip both stock ledgers');
  await c.load(false,{catalogOnly:false});assert(c.state.ledgerLoaded144);assert.equal(c.state.moves.length,2307);console.log('PASS Moving from Menu to Inventory loads every stock movement');
  c=fixture(rows);await Promise.all([c.load(false,{catalogOnly:true}),c.load(false,{catalogOnly:false})]);assert(c.state.ledgerLoaded144);assert.equal(c.state.moves.length,2307);console.log('PASS Concurrent full load upgrades a pending catalog-only load');
  console.log('COMPLETE 6');
