@@ -100,13 +100,18 @@
   if(['open-shift','close-shift','cash','shift-view','shift-receipts'].includes(a))return allowed('Overview','New Order');
   if(a==='refund')return allowed('Sales','Receipts');
   if(a==='resume')return allowed('Sales','New Order');
-  if(a==='menu-display')return isAdmin121();
+  if(['menu-display','manage-discounts','manage-tables'].includes(a))return isAdmin121();
   if(a==='menu')return restaurantRouteAllowed128('menu-recipe');
   if(a==='categories')return restaurantRouteAllowed128('menu-categories');
   if(a==='inventory')return restaurantRouteAllowed128('inv-overview');
   return true;
  };
- window.posPerformance125={rpc,load,accepted,allowed,clamp,overview,report,moreReceipts,schedule,network};
+ async function cacheConfig(owner,config,configVersion){
+  const epoch=sessionEpoch121,key=cacheKey(owner),cached=await posOffline119.getSnapshot(key);
+  if(!cached||liveProfile?.id!==owner||epoch!==sessionEpoch121)return;
+  await posOffline119.saveSnapshot(key,{...cached.data,config,configVersion});
+ }
+ window.posPerformance125={cacheConfig,rpc,load,accepted,allowed,clamp,overview,report,moreReceipts,schedule,network};
  // Refresh on explicit navigation, a completed write, or the Sync button; no idle polling.
 
  addEventListener('offline',()=>{const s=window.pos118?.state;if(s&&!s.sample&&s.loaded){s.offline=true;updateStatus(s)}});

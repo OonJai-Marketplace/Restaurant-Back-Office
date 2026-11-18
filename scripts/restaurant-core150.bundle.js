@@ -259,7 +259,14 @@ async function startRestaurantLogin140(){
  }catch(err){if(action===loginAction140){loginAutomatic140=false;error.textContent=err.message}}
  finally{if(action===loginAction140)loginStatus140('')}
 }
-async function restaurantReady(){document.addEventListener('click',e=>{const b=e.target.closest('[data-im-action],[data-m108],[data-pos118]');if(b&&!actionPermission121(b)){e.preventDefault();e.stopImmediatePropagation();showCenterStatus('This action is not included in your access.',true)}},true);let pending=false;new MutationObserver(rs=>{if(pending||!rs.some(r=>[...r.addedNodes].some(n=>n.nodeType===1&&!n.classList.contains('area-banner113'))))return;pending=true;requestAnimationFrame(()=>{pending=false;decorate121()})}).observe(document.querySelector('.workspace-scroll'),{childList:true,subtree:true});document.getElementById('restaurantSearch121').oninput=e=>{let box=document.getElementById('searchResults121');if(!box){box=document.createElement('div');box.id='searchResults121';e.target.parentElement.append(box)}const q=e.target.value.trim().toLowerCase();box.innerHTML='';if(!q)return;document.querySelectorAll('#appSidebar .nav-category:not([hidden]) button:not([hidden])').forEach(b=>{if(b.textContent.toLowerCase().includes(q)){const x=document.createElement('button');x.textContent=b.textContent;x.onclick=()=>{b.click();box.innerHTML='';e.target.value=''};box.append(x)}})};
+async function restaurantReady(){document.addEventListener('click',e=>{const b=e.target.closest('[data-im-action],[data-m108],[data-pos118]');if(b&&!actionPermission121(b)){e.preventDefault();e.stopImmediatePropagation();showCenterStatus('This action is not included in your access.',true)}},true);let pending=false;new MutationObserver(rs=>{if(pending||!rs.some(r=>[...r.addedNodes].some(n=>n.nodeType===1&&!n.classList.contains('area-banner113'))))return;pending=true;requestAnimationFrame(()=>{pending=false;decorate121()})}).observe(document.querySelector('.workspace-scroll'),{childList:true,subtree:true});document.getElementById('restaurantSearch121').oninput=e=>{
+ let box=document.getElementById('searchResults121');if(!box){box=document.createElement('div');box.id='searchResults121';box.setAttribute('role','region');box.setAttribute('aria-label','Search results');e.target.parentElement.append(box)}
+ const q=e.target.value.trim().toLocaleLowerCase();box.replaceChildren();if(!q)return;
+ const add=(label,fn)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=()=>{Promise.resolve(fn()).catch(err=>showCenterStatus(err.message,true));box.replaceChildren();e.target.value=''};box.append(b)};
+ if(restaurantTabCan125('pos','pos-sales-new'))add('Search menu for “'+e.target.value.trim()+'”',async()=>{const query=e.target.value.trim();await switchTab('pos118');if(!pos118.state.loaded)await pos118.load();pos118.searchMenu154(query)});
+ const seen=new Set();document.querySelectorAll('#appSidebar button[onclick]').forEach(b=>{const id=b.getAttribute('onclick').match(/switchTab\(['"]([^'"]+)['"]/)?.[1];if(!id)return;if(seen.has(id)||!restaurantRouteAllowed128(id))return;if(b.textContent.toLocaleLowerCase().includes(q)){seen.add(id);add(b.textContent.trim(),()=>switchTab(id))}});
+ if(!box.children.length){const p=document.createElement('p');p.textContent='No matching sections. Use the menu search in POS to find food.';p.style.padding='12px';box.append(p)}
+ };
  window.addEventListener('online',async()=>{
   if(!offlineAccess||!liveProfile)return;
   const owner=liveProfile.id,epoch=sessionEpoch121;
@@ -367,13 +374,13 @@ window.restaurantPosMode128=()=> 'live';
  const groups={
   promotions:{css:['promotions146.css?v=access26'],js:['promotion-kit146.js','restaurant-promotions146.js?v=access26']},
   readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js?v=access26']},
-  reports:{css:['pos-operations.css?v=register6','pos-v118.css?v=access26'],js:['pos-reports.js?v=access26','pos-backoffice-reports.js?v=access26']},
+  reports:{css:['pos-setup154.css?v=154','pos-operations.css?v=register6','pos-v118.css?v=setup154'],js:['pos-money.js?v=setup154','pos-setup154.js?v=154','pos-reports.js?v=setup154','pos-backoffice-reports.js?v=setup154']},
   sales:{css:['restaurant-sales143.css?v=access26'],js:['sales-math143.js?v=access26','restaurant-sales143.js?v=access26']},
-  settings:{js:['restaurant-settings146.bundle.js?v=access26']},
+  settings:{css:['pos-setup154.css?v=154'],js:['pos-money.js?v=setup154','pos-setup154.js?v=154','restaurant-settings146.bundle.js?v=setup154']},
   inventory:{css:['inventory-menu-v104.css?v=access26','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=access26','inventory-allocated.js?v=access26']},
   menu:{depends:['inventory'],js:['menu-v108.js?v=access26']},
   kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=access26'],js:['preparation-waste124.js?v=access26']},
-  pos:{css:['pos-v118.css?v=access26','pos-receipt.css?v=access26'],js:['restaurant-pos150.bundle.js?v=access26']}
+  pos:{css:['pos-setup154.css?v=154','pos-v118.css?v=setup154','pos-receipt.css?v=setup154'],js:['pos-setup154.js?v=154','restaurant-pos150.bundle.js?v=setup154']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
  const pendingFiles=new Map();
