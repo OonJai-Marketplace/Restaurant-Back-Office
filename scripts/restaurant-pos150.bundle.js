@@ -1369,14 +1369,23 @@ function field(label,name,value='',type='text',attrs=''){
  const decimal=type==='number'&&/^(amount|tip|rate|value|discountLimit|oprice|gextra)/.test(name);
  return `<label>${label}<input name="${name}" type="${decimal?'text':type}" value="${esc(value)}" ${decimal?'data-pos-money="'+(name==='rate'?6:2)+'" inputmode="decimal"':''} ${attrs}></label>`;
 }
-function foreignPayment(previous,payment,totalLak,apply){
+function cashierFxRate(currency,config=S.config){
+  const item=config?.fxRateSettings?.[currency];
+  if(!item||!Number.isFinite(Number(item.bcelRate))||Number(item.bcelRate)<=0)return null;
+  const buffer=Number(item.bufferPercent);
+  if(!Number.isFinite(buffer)||buffer<0||buffer>20)return null;
+  const unit=currency==='USD'?10:currency==='THB'?1:0.01;
+  const adjusted=Math.floor((Number(item.bcelRate)*(1-buffer/100)+1e-9)/unit)*unit;
+  return adjusted>0?{rate:Number(adjusted.toFixed(6)),bcelRate:Number(item.bcelRate),buffer,date:item.date||'',rateType:item.rateType||'NOTE'}:null;
+ }
+ function foreignPayment(previous,payment,totalLak,apply){
  const currencies=[...new Set([...acceptedCurrencies(),...(previous?.currency?[previous.currency]:[])])];
  if(!currencies.length)throw Error('No foreign currencies are enabled. Add them in Management → Payments & Access → Payment Settings.');
  const root=dialog('Foreign currency payment',`<form class="pos-fx-form">
  <label>Payment method<select name="method">${S.config.methods.map(v=>'<option>'+esc(v)+'</option>').join('')}</select></label>
  <label>Currency received<select name="currency">${currencies.map(v=>'<option>'+esc(v)+'</option>').join('')}</select></label>
  ${field('Amount received','amount',previous?.amount??'','number','min="0.01" max="9999999999.99" step="0.01" required inputmode="decimal"')}
- ${field('Exchange rate · LAK per 1 foreign unit','rate',previous?.rate??'','number','min="0.000001" max="99999999.999999" step="0.000001" required inputmode="decimal"')}
+ ${field('Cashier exchange rate · LAK per 1 foreign unit','rate',previous?.rate??'','number','min="0.000001" max="99999999.999999" step="0.000001" required inputmode="decimal"')}<p data-fx-rate-info role="status" aria-live="polite"></p>
  <dl><div><dt>Total including tip</dt><dd>${currencyAmount(totalLak,'LAK')}</dd></div><div><dt>Received in kip</dt><dd data-converted>—</dd></div><div><dt data-balance-label>Change in kip</dt><dd data-balance aria-live="polite">—</dd></div></dl>
  <div>${previous?'<button type="button" data-clear-fx>Clear FX</button>':''}<button type="submit">Use FX payment</button></div></form>`,async()=>{
   const result=calculate();
@@ -1386,6 +1395,32 @@ function foreignPayment(previous,payment,totalLak,apply){
  root.querySelector('.pos-dialog118').classList.add('pos-fx-dialog');
  const form=root.querySelector('form'),fields=form.elements;
  fields.method.value=payment;fields.currency.value=previous?.currency||currencies[0];
+  const rateInfo=form.querySelector('[data-fx-rate-info]');
+  function useConfiguredRate(){
+   const code=fields.currency.value,locked=code==='USD'||code==='THB',setting=cashierFxRate(code);
+   if(locked){
+    fields.rate.readOnly=true;
+    fields.rate.setAttribute('aria-readonly','true');
+    if(previous?.currency===code&&Number(previous.rate)>0){
+     fields.rate.value=String(previous.rate);
+     rateInfo.textContent='Existing payment rate retained. Close and start a new FX payment to use updated settings.';
+    }else if(setting){
+     fields.rate.value=String(setting.rate);
+     rateInfo.textContent='BCEL '+setting.rateType+' '+(setting.date||'date not recorded')+' · '+setting.bcelRate.toLocaleString('en-US')+' LAK − '+setting.buffer+'% buffer = '+setting.rate.toLocaleString('en-US')+' LAK. Administrator controlled.';
+    }else{
+     fields.rate.value='';
+     rateInfo.textContent='No valid '+code+' BCEL reference rate is saved. Ask an administrator to configure the currency before accepting it.';
+    }
+   }else{
+    fields.rate.readOnly=false;
+    fields.rate.removeAttribute('aria-readonly');
+    fields.rate.value=previous?.currency===code?String(previous.rate||''):'';
+    rateInfo.textContent='For this currency, enter the approved exchange rate manually.';
+   }
+   refresh();
+  }
+  fields.currency.addEventListener('change',useConfiguredRate);
+  useConfiguredRate();
  function calculate(){
   const amount=posMoney.value(fields.amount),rate=posMoney.value(fields.rate);const amountText=posMoney.raw(fields.amount.value),rateText=posMoney.raw(fields.rate.value);
   if(!fields.amount.validity.valid||!fields.rate.validity.valid)return null;
@@ -1565,7 +1600,16 @@ async function printPaper(width,title,content,{system=false}={}){
   return 'System print window opened. Check the selected printer and paper size.';
  }catch(error){frame.remove();throw error}
 }
-function settings(){if(!restaurantCan('pos','manage'))throw Error('Administrator access required');const c=S.config;let selectedCurrencies=acceptedCurrencies(c);const root=dialog('POS settings',`<form><h3>Payments & discounts</h3>${['Cash','BCEL QR','Bank'].map(m=>`<label class="check"><input type="checkbox" name="methods" value="${m}" ${c.methods.includes(m)?'checked':''}>${m}</label>`).join('')}<fieldset class="pos-currency-settings"><legend>Foreign currencies at checkout</legend><p>Choose the currencies you accept. Kip (₭) remains the base currency.</p><div data-currency-list></div><div class="pos-currency-add"><label>Add currency<select data-currency-choice aria-label="Add currency"></select></label><button type="button" data-add-currency>Add</button></div></fieldset>${field('Cashier discount limit (%)','discountLimit',c.discountLimit,'number','min="0" max="100" required')}<h3>Legacy cashier list</h3><p>Restaurant sign-in and permissions are managed in Settings → Users & Access. This legacy list does not grant restaurant access.</p>${(typeof liveProfiles!=='undefined'?liveProfiles:[]).filter(p=>p.role!=='admin').map(p=>`<label class="check"><input type="checkbox" name="cashiers" value="${esc(p.id)}" ${c.cashiers.includes(p.id)?'checked':''}>${esc(p.full_name||p.email)}</label>`).join('')||'<p>No additional staff profiles loaded.</p>'}<h3>Printing</h3><label>Receipt paper<select name="receiptWidth"><option value="56" ${n(c.receiptWidth)===56?'selected':''}>56 mm · 5.6 cm</option><option value="80" ${n(c.receiptWidth)===80?'selected':''}>80 mm</option><option value="58" ${n(c.receiptWidth)===58?'selected':''}>58 mm</option></select></label>${field('Receipt footer','receiptFooter',c.receiptFooter)}<p>Open Configure Printing to select a USB printer, print a sample without a sale, or set this device’s paper width.</p><button type="submit">Save settings</button></form>`,async(d,f)=>{const values={...c,...d,fxCurrencies:[...selectedCurrencies],discountLimit:n(d.discountLimit),receiptWidth:n(d.receiptWidth),methods:new FormData(f).getAll('methods'),cashiers:new FormData(f).getAll('cashiers')};if(!values.methods.length)throw Error('Enable at least one payment method');if(S.sample)S.config=values;else{await rpc('pos_manage118',{p_action:'config',p_data:values,p_version:S.configVersion});await load()}showCenterStatus(S.sample?'Sample settings updated.':'POS settings saved.');render()},{explicitClose:true});
+function settings(){if(!restaurantCan('pos','manage'))throw Error('Administrator access required');const c=S.config;let selectedCurrencies=acceptedCurrencies(c);const existingRates=c.fxRateSettings||{};const fxSettings=['USD','THB'].map(code=>{
+  const item=existingRates[code]||{},initialBuffer=item.bufferPercent??(code==='USD'?0.5:1);
+  return '<div class="pos-fx-setting"><h4>'+code+' · BCEL buying rate</h4>'+
+  '<label>BCEL reference rate (LAK per 1 '+code+')<input type="number" name="fxRate'+code+'" min="0" max="99999999" step="any" inputmode="decimal" value="'+esc(item.bcelRate??'')+'" placeholder="Enter BCEL rate"></label>'+
+  '<label>Safety buffer (%)<input type="number" name="fxBuffer'+code+'" min="0" max="20" step="0.01" required inputmode="decimal" value="'+esc(initialBuffer)+'"></label>'+
+  '<label>Rate type<select name="fxType'+code+'"><option value="NOTE" '+((item.rateType||'NOTE')==='NOTE'?'selected':'')+'>Banknotes / cash (NOTE)</option><option value="EFT" '+(item.rateType==='EFT'?'selected':'')+'>Electronic transfer (EFT)</option></select></label>'+
+  '<label>BCEL rate date<input type="date" name="fxDate'+code+'" value="'+esc(item.date||'')+'"></label>'+
+  '<p data-fx-preview="'+code+'"></p></div>';
+ }).join('');
+ const root=dialog('POS settings',`<form><h3>Payments & discounts</h3>${['Cash','BCEL QR','Bank'].map(m=>`<label class="check"><input type="checkbox" name="methods" value="${m}" ${c.methods.includes(m)?'checked':''}>${m}</label>`).join('')}<fieldset class="pos-currency-settings"><legend>Foreign currencies at checkout</legend><p>Choose the currencies you accept. Kip (₭) remains the base currency.</p><div data-currency-list></div><div class="pos-currency-add"><label>Add currency<select data-currency-choice aria-label="Add currency"></select></label><button type="button" data-add-currency>Add</button></div></fieldset><fieldset class="pos-currency-settings"><legend>BCEL reference rates & safety buffers</legend><p>Enter the BCEL buying rate manually. USD starts at 0.5% and THB at 1%. Cashiers use the automatically adjusted rates.</p><div class="pos-fx-settings-grid">${fxSettings}</div></fieldset>${field('Cashier discount limit (%)','discountLimit',c.discountLimit,'number','min="0" max="100" required')}<h3>Legacy cashier list</h3><p>Restaurant sign-in and permissions are managed in Settings → Users & Access. This legacy list does not grant restaurant access.</p>${(typeof liveProfiles!=='undefined'?liveProfiles:[]).filter(p=>p.role!=='admin').map(p=>`<label class="check"><input type="checkbox" name="cashiers" value="${esc(p.id)}" ${c.cashiers.includes(p.id)?'checked':''}>${esc(p.full_name||p.email)}</label>`).join('')||'<p>No additional staff profiles loaded.</p>'}<h3>Printing</h3><label>Receipt paper<select name="receiptWidth"><option value="56" ${n(c.receiptWidth)===56?'selected':''}>56 mm · 5.6 cm</option><option value="80" ${n(c.receiptWidth)===80?'selected':''}>80 mm</option><option value="58" ${n(c.receiptWidth)===58?'selected':''}>58 mm</option></select></label>${field('Receipt footer','receiptFooter',c.receiptFooter)}<p>Open Configure Printing to select a USB printer, print a sample without a sale, or set this device’s paper width.</p><button type="submit">Save settings</button></form>`,async(d,f)=>{const rates={...existingRates};for(const code of ['USD','THB']){const raw=String(d['fxRate'+code]??'').trim(),b=Number(d['fxBuffer'+code]);if(!Number.isFinite(b)||b<0||b>20)throw Error('The '+code+' buffer must be between 0% and 20%.');if(raw&&(!Number.isFinite(Number(raw))||Number(raw)<=0))throw Error('Enter a positive '+code+' BCEL rate.');rates[code]={bcelRate:raw?Number(raw):null,bufferPercent:b,rateType:d['fxType'+code]==='EFT'?'EFT':'NOTE',date:d['fxDate'+code]||''}}const values={...c,...d,fxRateSettings:rates,fxCurrencies:[...selectedCurrencies],discountLimit:n(d.discountLimit),receiptWidth:n(d.receiptWidth),methods:new FormData(f).getAll('methods'),cashiers:new FormData(f).getAll('cashiers')};if(!values.methods.length)throw Error('Enable at least one payment method');if(S.sample)S.config=values;else{await rpc('pos_manage118',{p_action:'config',p_data:values,p_version:S.configVersion});await load()}showCenterStatus(S.sample?'Sample settings updated.':'POS settings saved.');render()},{explicitClose:true});
  root.querySelector('.pos-dialog118').classList.add('pos-settings-dialog');
  const list=root.querySelector('[data-currency-list]'),choice=root.querySelector('[data-currency-choice]');
  function drawCurrencies(){
