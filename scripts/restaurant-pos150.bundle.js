@@ -1422,7 +1422,7 @@ function cashierFxRate(currency,config=S.config){
   fields.currency.addEventListener('change',useConfiguredRate);
   useConfiguredRate();
  function calculate(){
-  const amount=posMoney.value(fields.amount),rate=posMoney.value(fields.rate);const amountText=posMoney.raw(fields.amount.value),rateText=posMoney.raw(fields.rate.value);
+  const amount=posMoney.value(fields.amount),rate=posMoney.value(fields.rate);const amountText=posMoney.raw(fields.amount.value),rateText=posMoney.raw(fields.rate.value);const approved=fields.currency.value==='USD'||fields.currency.value==='THB'?(previous?.currency===fields.currency.value&&Number(previous.rate)>0?Number(previous.rate):cashierFxRate(fields.currency.value)?.rate):null;if((fields.currency.value==='USD'||fields.currency.value==='THB')&&(!approved||Math.abs(rate-approved)>0.000001))return null;
   if(!fields.amount.validity.valid||!fields.rate.validity.valid)return null;
   // Multiply decimal input as integers, then round once to LAK cents.
   const units=(v,digits)=>{const [whole,fraction='']=v.split('.');return BigInt(whole+(fraction+'0'.repeat(digits)).slice(0,digits))};
@@ -1619,6 +1619,16 @@ function settings(){if(!restaurantCan('pos','manage'))throw Error('Administrator
  root.querySelector('[data-add-currency]').onclick=()=>{if(choice.value&&!selectedCurrencies.includes(choice.value)){selectedCurrencies.push(choice.value);drawCurrencies()}};
  list.onclick=e=>{const b=e.target.closest('[data-remove-currency]');if(b){selectedCurrencies=selectedCurrencies.filter(c=>c!==b.dataset.removeCurrency);drawCurrencies()}};
  drawCurrencies();
+ const form=root.querySelector('form');
+ function drawFxPreview(){
+  for(const code of ['USD','THB']){
+   const raw=form.elements['fxRate'+code].value,buffer=Number(form.elements['fxBuffer'+code].value),out=form.querySelector('[data-fx-preview="'+code+'"]');
+   if(!raw||Number(raw)<=0||!Number.isFinite(buffer)||buffer<0||buffer>20){out.textContent='Cashier rate: enter a valid BCEL rate and buffer.';continue}
+   const unit=code==='USD'?10:1,rate=Math.floor((Number(raw)*(1-buffer/100)+1e-9)/unit)*unit;
+   out.textContent='Cashier rate: ₭'+rate.toLocaleString('en-US')+' per '+code;
+  }
+ }
+ form.addEventListener('input',drawFxPreview);drawFxPreview();
 }
 function shiftHooks(){return {state:S,dialog,esc,render,load,rpc,currentUser,owner:offlineOwner,currencies:acceptedCurrencies,paperWidth,printPaper,runPrintButton,pending:()=>posOffline119.queue(offlineOwner()),status:showCenterStatus}}
 async function shift(action){return posShifts.open(action,shiftHooks())}
