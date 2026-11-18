@@ -41,3 +41,19 @@ html body.shell113.tablet118:not(.restaurant-nav-open) #restaurantApp #appSideba
 @media(min-width:740px){.home-columns139{grid-template-columns:minmax(0,2fr) minmax(195px,1fr)}.home-columns139>aside{display:grid;grid-template-columns:minmax(0,1fr);align-content:start;gap:12px}}
 
 .home-work139>.home-panel139,.home-columns139>aside>.home-panel139{margin-bottom:0}
+
+/* Navigation taps must not trigger browser double-tap zoom. Pinch zoom remains available. */
+html body.shell113 :is(#appSidebar,#mobileMenuToggle,#workspaceTools108,.pos-main-tabs118,.pos-subtabs118,.settings-tabs121,.restaurant-dialog) :is(button,a,[role=button]),
+html body.shell113 :is(#mobileMenuToggle,.nav-header){touch-action:manipulation}
+html body.shell113 .oonjai-hub-button{display:inline-grid!important;place-items:center!important;width:44px!important;min-width:44px!important;height:44px!important;padding:0!important;border:1px solid currentColor;border-radius:10px;text-decoration:none;box-sizing:border-box;flex:0 0 44px}
+html body.shell113 .oonjai-hub-button svg{display:block;width:21px;height:21px}
+html body.shell113 .oonjai-hub-button:focus-visible{outline:3px solid #d9b45c;outline-offset:3px}
+@media(any-pointer:coarse){
+ html body.shell113 #restaurantApp .workspace-scroll :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea),
+ html body.shell113 .restaurant-dialog :is(input,select,textarea){font-size:16px!important}
+}
+html body.shell113.tablet118 #restaurantApp .workspace-scroll :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea),
+html body.shell113.tablet118 .restaurant-dialog :is(input,select,textarea){font-size:16px!important}
+
+html body.shell113 #appSidebar .oonjai-hub-button{color:#fffaf1!important;background:#ffffff0c;border-color:#d9b45c66;margin:6px 8px}
+html body.shell113 #loginGate .oonjai-hub-button{color:#17553e;margin:0 auto}
