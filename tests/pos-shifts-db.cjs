@@ -1,0 +1,47 @@
+const {PGlite}=require('@electric-sql/pglite'),{readFileSync}=require('node:fs'),assert=require('node:assert/strict');
+(async()=>{
+ const db=new PGlite();
+ await db.exec(`create role anon;create role authenticated;create schema auth;create schema restaurant_private;
+ create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('test.uid',true),'')::uuid$$;
+ create function public.pos_allowed118() returns boolean language sql as $$select auth.uid() is not null$$;
+ create function public.restaurant_can121(text,text) returns boolean language sql as $$select auth.uid() is not null and ($2<>'manage' or current_setting('test.admin',true)='yes')$$;
+ create function public.restaurant_tab_can125(text,text,text default 'view') returns boolean language sql as $$select auth.uid() is not null$$;
+ create table profiles(id uuid primary key,full_name text);
+ create table pos_shifts118(id uuid primary key default gen_random_uuid(),cashier uuid references profiles,opened_at timestamptz default now(),closed_at timestamptz,opening numeric check(opening>=0),expected numeric,counted numeric);
+ create unique index one_open on pos_shifts118(cashier) where closed_at is null;
+ create table pos_orders118(id uuid primary key default gen_random_uuid(),number int,status text,data jsonb,refunded_at timestamptz);
+ create table pos_cash118(id uuid primary key default gen_random_uuid(),shift_id uuid,amount numeric,reason text,created_by uuid,created_at timestamptz default now());
+ create table pos_config118(id boolean primary key,data jsonb,version int);
+ insert into profiles values('11111111-1111-4111-8111-111111111111','Cashier A'),('22222222-2222-4222-8222-222222222222','Cashier B');
+ set test.uid='11111111-1111-4111-8111-111111111111';`);
+ const migration=readFileSync('supabase/migrations/20261118040652_pos_shift_reconciliation.sql','utf8');
+ // Optionally exercise the guarded checkout patch against definitions captured from the current deployment.
+ if(process.env.POS_CURRENT_SQL){
+  await db.exec('create table inventory_items104(id uuid,data jsonb);');
+  for(const name of ['pos_order118','pos_cashier_snapshot125'])await db.exec(readFileSync(process.env.POS_CURRENT_SQL+'/'+name+'.sql','utf8'));
+  await db.exec(migration);
+ }else await db.exec(migration.replace(/do \$patch\$[\s\S]*?end\$patch\$;/,''));
+ const manage=async(action,data)=> (await db.query('select pos_manage118($1,$2::jsonb,0) r',[action,JSON.stringify(data)])).rows[0].r;
+ const open={openingCash:{LAK:100000,USD:20,THB:300},openingNonce:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'};
+ const shift=await manage('open',open);assert.equal((await manage('open',open)).id,shift.id);await assert.rejects(()=>manage('open',{openingCash:{LAK:0}}),/already open/);
+ const sale=async(payment,total,tendered,fx=null,tip=0)=>db.query("insert into pos_orders118(number,status,data) values(1,'paid',$1::jsonb)",[JSON.stringify({shiftId:shift.id,payment,total,subtotal:total,tip,collectedTotal:total+tip,tendered,fxTender:fx})]);
+ await sale('Cash',90000,120000,null,10000);await sale('Cash',200000,1100000,{currency:'USD',amount:50,equivalentLak:1100000,changeLak:900000});await sale('Cash',50000,65000,{currency:'THB',amount:100,equivalentLak:65000,changeLak:15000});await sale('BCEL QR',200000,250000);await sale('Bank',100000,100000);
+ for(const [payment,total] of [['Cash',20000],['BCEL QR',10000]])await db.query("insert into pos_orders118(number,status,data,refunded_at) values(2,'refunded',$1::jsonb,now())",[JSON.stringify({shiftId:'other',refundShiftId:shift.id,payment,total,collectedTotal:total})]);
+ await manage('cash',{shiftId:shift.id,amount:1000000,currency:'LAK',reason:'Float added'});await manage('cash',{shiftId:shift.id,amount:-5,currency:'USD',reason:'Cash removed'});
+ await db.query("insert into pos_cash118(shift_id,amount,kind,reason) values($1,-50000,'change','Change for receipt test')",[shift.id]);
+ const read=async()=> (await db.query('select pos_shift_report152($1) r',[shift.id])).rows[0].r;
+ const report=await read(),cash=Object.fromEntries(report.cash.map(x=>[x.currency,x]));
+ assert.equal(cash.LAK.expected,215000);assert.equal(cash.USD.expected,65);assert.equal(cash.THB.expected,400);assert.equal(cash.LAK.change,985000);assert.equal(cash.LAK.cashOut,0);
+ assert.equal(report.methods.find(x=>x.method==='BCEL QR').net,190000);assert.equal(report.totals.tips,10000);assert.equal(report.totals.collected,620000);
+ await assert.rejects(()=>manage('close',{shiftId:shift.id,amount:215000}),/count each currency/);
+ await assert.rejects(()=>manage('close',{shiftId:shift.id,reviewToken:report.reviewToken,countedCash:{LAK:215000,USD:65}}),/actual count for THB/);
+ await manage('cash',{shiftId:shift.id,amount:500,currency:'LAK',reason:'New cash'});
+ await assert.rejects(()=>manage('close',{shiftId:shift.id,reviewToken:report.reviewToken,countedCash:{LAK:215000,USD:65,THB:400}}),/activity changed/);
+ const current=await read();const closed=await manage('close',{shiftId:shift.id,reviewToken:current.reviewToken,countedCash:{LAK:215000,USD:64,THB:400}});
+ const final=closed.closing_report;assert.equal(final.cash.find(x=>x.currency==='LAK').variance,-500);assert.equal(final.cash.find(x=>x.currency==='USD').variance,-1);
+ assert.deepEqual(await read(),final);assert.equal((await manage('close',{shiftId:shift.id,countedCash:{LAK:0}})).id,shift.id,'Retry returns the original closed shift');
+ await db.query("update pos_orders118 set data=data||'{\"total\":999999}'::jsonb where status='paid'");assert.deepEqual(await read(),final,'Closed receipt is frozen');
+ await db.exec("set test.uid='22222222-2222-4222-8222-222222222222'");await assert.rejects(read,/access required/);assert.equal((await db.query('select pos_shift_history152() r')).rows[0].r.length,0);
+ await db.exec("set test.uid=''");await assert.rejects(read,/access required/);
+ console.log('PASS original-currency cash, change, manual movements, methods, tips, refunds, count validation, stale-close protection, idempotency, frozen receipt and cashier isolation');await db.close();
+})().catch(e=>{console.error(e);process.exitCode=1});

@@ -63,7 +63,7 @@
   s.orders=[order,...s.orders.filter(o=>o.id!==order.id)];
   if(order.status==='paid'&&!wasPaid){
    if(s.balances125)for(const [id,quantity] of Object.entries(usage||{}))s.balances125[id]=Number(s.balances125[id]||0)-quantity;
-   if(order.data.payment==='Cash')s.shiftExpected125=Number(s.shiftExpected125||0)+Number(order.data.collectedTotal??order.data.total);
+   if(order.data.payment==='Cash'&&!order.data.fxTender)s.shiftExpected125=Number(s.shiftExpected125||0)+Number(order.data.collectedTotal??order.data.total);
    else s.shiftExpected125=Number(s.shiftExpected125||0)-paymentChange(order.data);
    if(s.summary125){s.summary125.received+=Number(order.data.total||0);s.summary125.paidCount++;if(existing?.status==='unpaid')s.summary125.openCount=Math.max(0,s.summary125.openCount-1)}
   }
@@ -77,8 +77,8 @@
   for(const [tab,sub] of [['Sales','New Order'],['Sales','Open Orders'],['Sales','Receipts'],['Sales','Online Orders'],['Overview','New Order'],['Management','New Order']])if(allowed(tab,sub)){s.tab=tab;s.sub=sub;return}
  }
  function overview(s){const m=v=>new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(Number(v)||0)+' LAK',esc=shell113.esc,summary=s.summary125||{},shift=s.shifts.find(x=>x.cashier===liveProfile.id&&!x.closed_at),button=(title,a)=>`<button type="button" data-pos118="${a}">${title}</button>`;
-  const pending=s.offlineQueue.filter(e=>e.action==='pay'&&!s.acknowledged125?.includes(e.order.id)).reduce((n,e)=>n+(e.data.payment==='Cash'?Number(e.order.data.collectedTotal??e.order.data.total):-paymentChange(e.order.data)),0);
-  return `<div class="pos-metrics118">${[['Net sales today',m(Number(summary.received||0)-Number(summary.refunds||0))],['Paid orders today',summary.paidCount||0],['Open orders',summary.openCount||0],['Refunds today',m(summary.refunds)]].map(([title,value])=>`<section class="pos-card118 pos-metric118"><div>${title}<strong>${value}</strong></div></section>`).join('')}</div><section class="pos-card118"><h2>Current shift</h2><p>${esc(liveProfile.full_name||'Cashier')}</p>${shift?`<p>Opening float: ${m(shift.opening)}</p><p>Expected drawer: ${m(Number(s.shiftExpected125||0)+pending)}${pending?' · includes pending local cash sales':''}</p>${button('Cash In / Out','cash')}${button('Close Shift','close-shift')}`:button('Open Shift','open-shift')}<p>${s.offline?'Last saved totals; reconnect to refresh.':'Totals cover all sales today, independently of the recent receipt list.'}</p></section>`;
+  const pending=s.offlineQueue.filter(e=>e.action==='pay'&&!s.acknowledged125?.includes(e.order.id)).reduce((n,e)=>n+(e.data.payment==='Cash'&&!e.data.fxTender?Number(e.order.data.collectedTotal??e.order.data.total):-paymentChange(e.order.data)),0);
+  return `<div class="pos-metrics118">${[['Net sales today',m(Number(summary.received||0)-Number(summary.refunds||0))],['Paid orders today',summary.paidCount||0],['Open orders',summary.openCount||0],['Refunds today',m(summary.refunds)]].map(([title,value])=>`<section class="pos-card118 pos-metric118"><div>${title}<strong>${value}</strong></div></section>`).join('')}</div><section class="pos-card118"><h2>Current shift</h2><p>${esc(liveProfile.full_name||'Cashier')}</p>${shift?`<p>Opening float: ${m(shift.opening)}</p><p>Expected kip drawer: ${m(Number(s.shiftExpected125||0)+pending)}${pending?' · includes pending local cash sales':''}</p>${button('Cash In / Out','cash')}${button('Close Shift','close-shift')}`:button('Open Shift','open-shift')}<p>${s.offline?'Last saved totals; reconnect to refresh.':'Totals cover all sales today, independently of the recent receipt list.'}</p></section>`;
  }
  async function report(from,to){if(!restaurantTabCan125('pos','pos-management')||!restaurantTabCan125('pos','pos-sales-receipts'))throw Error('Report access required');
   const owner=liveProfile.id,epoch=sessionEpoch121,rows=[];let before=null;
@@ -97,7 +97,7 @@
   if(a==='sub')return allowed('Sales',value);
   if(a==='printer-setup')return restaurantRouteAllowed128('pos118');
   if(['settings','options','links','seed','export','export-pdf'].includes(a))return allowed('Management','New Order');
-  if(['open-shift','close-shift','cash','shift-view'].includes(a))return allowed('Overview','New Order');
+  if(['open-shift','close-shift','cash','shift-view','shift-receipts'].includes(a))return allowed('Overview','New Order');
   if(a==='refund')return allowed('Sales','Receipts');
   if(a==='resume')return allowed('Sales','New Order');
   if(a==='menu-display')return isAdmin121();

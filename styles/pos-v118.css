@@ -323,3 +323,32 @@ html body.shell113 .pos-currency-chip button { width:44px!important;min-width:44
 .pos-currency-add label { flex:1;min-width:0 }
 html body.shell113 #posChargeDialog .pos-payment-preview118 { overflow:auto }
 @media(max-width:420px){html body.shell113 .pos-fx-dialog .pos-fx-form { grid-template-columns:minmax(0,1fr) }}
+
+/* Shift totals and physical cash counts remain readable on tablets. */
+html body.shell113 .pos-receipt-overlay .pos-shift-dialog{width:min(920px,100%)!important}
+html body.shell113 .pos-receipt-overlay .pos-shift-receipt{width:min(480px,100%)!important}
+html body.shell113 .pos-shift-dialog .pos-shift-form{display:block!important}
+.pos-shift-meta{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.pos-shift-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.pos-shift-summary>div{padding:12px;border:1px solid #c2d2c4;background:#f1f6ed;border-radius:8px}
+.pos-shift-summary strong{display:block;font-variant-numeric:tabular-nums;font-size:18px;margin-top:5px}
+.pos-shift-table{overflow:auto;margin:12px 0}
+html body.shell113 .pos-shift-dialog table{width:100%;border-collapse:collapse;min-width:430px}
+html body.shell113 .pos-shift-dialog :is(th,td){padding:8px!important;border-bottom:1px solid #cad6cb;text-align:right!important;font-variant-numeric:tabular-nums;white-space:nowrap}
+html body.shell113 .pos-shift-dialog tr>:first-child{text-align:left!important}
+.pos-shift-counts{display:grid;gap:12px;margin:12px 0}
+.pos-shift-counts>section{padding:12px;border:1px solid #c2d2c4;border-radius:8px;background:#fffdf7}
+.pos-shift-counts>section>header{display:flex;justify-content:space-between;gap:8px;padding:0;margin-bottom:10px;background:none;color:inherit}
+.pos-shift-counts>section>div{display:grid;grid-template-columns:minmax(0,1fr) minmax(140px,1fr) minmax(100px,1fr);gap:14px;align-items:center}
+.pos-shift-counts strong{display:block;font-variant-numeric:tabular-nums}
+html body.shell113 .pos-shift-dialog input{font-size:16px!important;height:44px!important;min-height:44px!important;box-sizing:border-box;width:100%;min-width:0;text-align:right}
+html body.shell113 .pos-shift-dialog label{margin:0!important;min-width:0}
+.pos-shift-counts output{font-weight:700;color:#17553e}
+.pos-shift-counts output[data-short=true]{color:#9b302b}
+.pos-shift-counts details{margin-top:8px;font-size:13px}
+.pos-shift-counts dl>div{display:flex;justify-content:space-between;gap:8px}.pos-shift-counts dd{margin:0;font-variant-numeric:tabular-nums}
+.pos-shift-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-top:18px}
+html body.shell113 .pos-shift-dialog button[type=submit]{background:#17553e!important;color:white!important;min-height:44px}
+.pos-opening-cash{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:16px 0}
+.pos-shift-history{display:grid;gap:8px}.pos-shift-history button{display:flex!important;justify-content:space-between;align-items:center;gap:12px;padding:12px!important;text-align:left}
+@media(max-width:550px){.pos-shift-summary,.pos-opening-cash{grid-template-columns:1fr}.pos-shift-counts>section>div{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)}.pos-shift-counts output{grid-column:1/-1}.pos-shift-history button{flex-wrap:wrap}}
