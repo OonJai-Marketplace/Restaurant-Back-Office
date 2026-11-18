@@ -365,15 +365,15 @@ window.restaurantPosMode128=()=> 'live';
 /* One site and one repository. Load working code only when its module is opened. */
 (()=>{'use strict';
  const groups={
-  promotions:{css:['promotions146.css?v=offline25'],js:['promotion-kit146.js','restaurant-promotions146.js?v=offline25']},
-  readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js?v=offline25']},
-  reports:{css:['pos-operations.css?v=register6','pos-v118.css?v=offline25'],js:['pos-reports.js?v=offline25','pos-backoffice-reports.js?v=offline25']},
-  sales:{css:['restaurant-sales143.css?v=offline25'],js:['sales-math143.js?v=offline25','restaurant-sales143.js?v=offline25']},
-  settings:{js:['restaurant-settings146.bundle.js?v=offline25']},
-  inventory:{css:['inventory-menu-v104.css?v=offline25','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=offline25','inventory-allocated.js?v=offline25']},
-  menu:{depends:['inventory'],js:['menu-v108.js?v=offline25']},
-  kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=offline25'],js:['preparation-waste124.js?v=offline25']},
-  pos:{css:['pos-v118.css?v=offline25','pos-receipt.css?v=offline25'],js:['restaurant-pos150.bundle.js?v=offline25']}
+  promotions:{css:['promotions146.css?v=access26'],js:['promotion-kit146.js','restaurant-promotions146.js?v=access26']},
+  readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js?v=access26']},
+  reports:{css:['pos-operations.css?v=register6','pos-v118.css?v=access26'],js:['pos-reports.js?v=access26','pos-backoffice-reports.js?v=access26']},
+  sales:{css:['restaurant-sales143.css?v=access26'],js:['sales-math143.js?v=access26','restaurant-sales143.js?v=access26']},
+  settings:{js:['restaurant-settings146.bundle.js?v=access26']},
+  inventory:{css:['inventory-menu-v104.css?v=access26','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=access26','inventory-allocated.js?v=access26']},
+  menu:{depends:['inventory'],js:['menu-v108.js?v=access26']},
+  kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=access26'],js:['preparation-waste124.js?v=access26']},
+  pos:{css:['pos-v118.css?v=access26','pos-receipt.css?v=access26'],js:['restaurant-pos150.bundle.js?v=access26']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
  const pendingFiles=new Map();

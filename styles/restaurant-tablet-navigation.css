@@ -70,3 +70,9 @@ html body.shell113 .restaurant-dialog>header [data-close]{width:44px!important;m
 /* Beat the older kitchen rule containing two IDs; 14px fields can trigger focus zoom. */
 html body.shell113.tablet118 #restaurantApp :is(#pos118,.tab-content) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea){font-size:16px!important}
 @media(any-pointer:coarse){html body.shell113 #restaurantApp :is(#pos118,.tab-content) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea){font-size:16px!important}}
+
+html body.shell113 .password-reset153{width:min(560px,calc(100vw - 24px))!important}
+.password-reset153 label{display:grid;gap:6px;margin:14px 0}
+html body.shell113 .password-reset153 input{width:100%;box-sizing:border-box;font-size:16px!important;min-height:44px}
+.password-reset-actions153{display:flex;gap:8px;flex-wrap:wrap}
+html body.shell113 .password-reset153 [hidden]{display:none!important}

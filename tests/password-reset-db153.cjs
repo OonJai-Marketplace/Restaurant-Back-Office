@@ -1,0 +1,25 @@
+const {PGlite}=require('@electric-sql/pglite'),fs=require('node:fs'),assert=require('node:assert/strict');
+(async()=>{
+ const db=new PGlite();await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create schema restaurant_private;
+ create function auth.role() returns text language sql as $$select current_setting('test.role',true)$$;
+ create table profiles(id uuid primary key,role text,status text);
+ create table restaurant_members121(user_id uuid primary key,must_change_password boolean default false,enabled boolean default true,permissions jsonb default '{"pos":{"view":true,"sell":true}}');
+ create table auth.users(id uuid primary key,encrypted_password text);
+ insert into profiles values('11111111-1111-4111-8111-111111111111','admin','active'),('22222222-2222-4222-8222-222222222222','staff','active'),('33333333-3333-4333-8333-333333333333','admin','active');
+ insert into restaurant_members121(user_id) select id from profiles;
+ insert into auth.users select id,'fake-old' from profiles;set test.role='service_role';`);
+ await db.exec(fs.readFileSync('supabase/migrations/20261118043717_restaurant_temporary_password_reset.sql','utf8'));
+ await db.exec('create trigger password_changed after update of encrypted_password on auth.users for each row execute function restaurant_password_changed121()');
+ const actor='11111111-1111-4111-8111-111111111111',target='22222222-2222-4222-8222-222222222222',nonce='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+ const reset=(action,t=target,a=actor,n=nonce)=>db.query('select restaurant_password_reset153($1,$2,$3,$4)',[action,t,a,n]);
+ const member=async()=> (await db.query('select * from restaurant_members121 where user_id=$1',[target])).rows[0];
+ await assert.rejects(()=>reset('begin',actor),/Administrator/);await assert.rejects(()=>reset('begin','33333333-3333-4333-8333-333333333333'),/staff/);await assert.rejects(()=>reset('begin',actor,target),/Administrator/);
+ await db.exec("set test.role='authenticated'");await assert.rejects(()=>reset('begin'),/Server access/);await db.exec("set test.role='service_role'");
+ await reset('begin');assert((await member()).must_change_password);await assert.rejects(()=>reset('begin'),/already in progress/);
+ await db.query('update auth.users set encrypted_password=$1 where id=$2',['fake-temporary',target]);assert((await member()).must_change_password,'Admin Auth update must retain change requirement');
+ await assert.rejects(()=>reset('complete',target,actor,'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'),/request changed/);await reset('complete');let m=await member();assert(m.must_change_password);assert(!m.password_reset_pending);assert(m.password_reset_at);assert.equal(m.password_reset_by,actor);assert(m.enabled);assert(m.permissions.pos.sell);
+ await db.query('update auth.users set encrypted_password=$1 where id=$2',['fake-personal',target]);assert(!(await member()).must_change_password,'Staff change clears restriction');
+ await reset('begin');await reset('failed');assert((await member()).must_change_password);assert(!(await member()).password_reset_pending);
+ const rights=(await db.query("select has_function_privilege('anon','public.restaurant_password_reset153(text,uuid,uuid,uuid)','execute') a,has_function_privilege('authenticated','public.restaurant_password_reset153(text,uuid,uuid,uuid)','execute') u,has_function_privilege('service_role','public.restaurant_password_reset153(text,uuid,uuid,uuid)','execute') s")).rows[0];assert.deepEqual(rights,{a:false,u:false,s:true});
+ console.log('PASS restricted reset RPC, administrator targets, concurrent reset guard, mandatory change through Auth update, staff password completion and unchanged permissions');await db.close();
+})().catch(e=>{console.error(e);process.exitCode=1});
