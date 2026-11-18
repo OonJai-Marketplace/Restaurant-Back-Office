@@ -362,13 +362,13 @@ window.restaurantPosMode128=()=> 'live';
  const groups={
   promotions:{css:['promotions146.css?v=review16'],js:['promotion-kit146.js','restaurant-promotions146.js?v=review16']},
   readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js?v=review16']},
-  reports:{css:['pos-operations.css?v=register6','pos-v118.css?v=tablet21'],js:['pos-reports.js?v=tablet21','pos-backoffice-reports.js?v=tablet21']},
-  sales:{css:['restaurant-sales143.css?v=review16'],js:['sales-math143.js?v=tablet21','restaurant-sales143.js?v=tablet21']},
+  reports:{css:['pos-operations.css?v=register6','pos-v118.css?v=device22'],js:['pos-reports.js?v=device22','pos-backoffice-reports.js?v=device22']},
+  sales:{css:['restaurant-sales143.css?v=review16'],js:['sales-math143.js?v=device22','restaurant-sales143.js?v=device22']},
   settings:{js:['restaurant-settings146.bundle.js?v=review16']},
   inventory:{css:['inventory-menu-v104.css?v=review16','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=review16','inventory-allocated.js?v=checkout3']},
   menu:{depends:['inventory'],js:['menu-v108.js?v=review16']},
   kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=stocklinks1'],js:['preparation-waste124.js?v=layout2']},
-  pos:{css:['pos-v118.css?v=tablet21','pos-receipt.css?v=tablet21'],js:['restaurant-pos150.bundle.js?v=tablet21']}
+  pos:{css:['pos-v118.css?v=device22','pos-receipt.css?v=device22'],js:['restaurant-pos150.bundle.js?v=device22']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
  const pendingFiles=new Map();
@@ -422,7 +422,7 @@ function sync(){queued=false;window.restaurantTableRows?.restore();const signed=
  const area=['inv-bulk132','inv-preparation124','inv-waste124'].includes(active?.id)?'kitchen':active?.dataset.module||'dashboard';
  for(const cat of document.querySelectorAll('#appSidebar .nav-category')){const selected=restaurantNavSelected(cat,area,active?.id);cat.classList.toggle('current-module136',selected);cat.classList.toggle('active-category',selected);if(cat.classList.contains('module-active121'))cat.classList.remove('module-active121');const h=cat.querySelector('.nav-header');if(selected)h.setAttribute('aria-current','page');else h.removeAttribute('aria-current')}
  hidden($('posFullscreen122'),!restaurantTabCan125('pos','pos-sales-new'));if(!pos&&focus)leaveFocus();
- if(pos&&!pos.querySelector('.pos-focus-bar122')){const bar=document.createElement('div');bar.className='pos-focus-bar122';bar.innerHTML='<strong>Point of Sale · Current Order</strong><button type="button" data-exit-focus122>Exit POS focus</button>';bar.lastChild.onclick=leaveFocus;pos.prepend(bar)}
+ if(pos&&!pos.querySelector('.pos-focus-bar122')){const bar=document.createElement('div');bar.className='pos-focus-bar122';bar.innerHTML='<strong>Point of Sale · Current Order</strong><button type="button" data-focus-printer>Printer</button><button type="button" data-exit-focus122>Exit POS focus</button>';bar.querySelector('[data-focus-printer]').onclick=()=>window.pos118?.printerSetup();bar.lastChild.onclick=leaveFocus;pos.prepend(bar)}
  const count=notices().reduce((n,r)=>n+(r.count||1),0),badge=$('headerNoticeBadge104');hidden(badge,!count);const badgeText=count>99?'99+':String(count);if(badge.textContent!==badgeText)badge.textContent=badgeText;$('upcomingBell101').setAttribute('aria-label',count+' notifications');
 }
 function queue(){if(!queued){queued=true;requestAnimationFrame(sync)}}

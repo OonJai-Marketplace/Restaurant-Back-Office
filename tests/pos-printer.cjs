@@ -1,6 +1,6 @@
 const {readFileSync}=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const source=readFileSync('scripts/pos-printer.js','utf8');
-function fixture({supported=true,claimFails=false,stall=false}={}){
+function fixture({supported=true,claimFails=false,stall=false,userAgent="",platform="",touch=0,secure=true,blocked=false,system=true}={}){
  const writes=[],calls=[],store=new Map(),events={};
  const device={vendorId:123,productId:456,productName:'Test thermal',serialNumber:'one',opened:false,configuration:null,
  configurations:[{configurationValue:1,interfaces:[{interfaceNumber:2,alternates:[{alternateSetting:0,interfaceClass:7,endpoints:[{direction:'out',type:'bulk',endpointNumber:3}]}]}]}],
@@ -11,10 +11,16 @@ function fixture({supported=true,claimFails=false,stall=false}={}){
  const canvas={width:384,height:2,getContext:()=>({fillRect(){},drawImage(){},getImageData:()=>({data:pixels})})};
  const doc={fonts:{ready:Promise.resolve()},querySelectorAll:()=>[{getBoundingClientRect:()=>({width:200,height:1})}],createElement:()=>({...canvas})};
  const usb={requestDevice:async()=>device,getDevices:async()=>[device],addEventListener:(k,v)=>events[k]=v};
- const ctx={navigator:supported?{usb}:{},localStorage:{getItem:k=>store.get(k),setItem:(k,v)=>store.set(k,v)},Uint8Array,Event:class{},document:{},window:{dispatchEvent(){},html2canvas:async()=>canvas}};
+ const ctx={navigator:{...(supported?{usb}:{}),userAgent,platform,maxTouchPoints:touch},localStorage:{getItem:k=>store.get(k),setItem:(k,v)=>store.set(k,v)},Uint8Array,Event:class{},document:{permissionsPolicy:{allowsFeature:()=>!blocked}},window:{isSecureContext:secure,...(system?{print(){}}:{}),dispatchEvent(){},html2canvas:async()=>canvas}};
  vm.runInNewContext(source,ctx);return {...ctx,api:ctx.window.posPrinter,device,writes,calls,doc,events};
 }
 (async()=>{
+ const android=fixture({userAgent:'Mozilla/5.0 (Linux; Android 13) Chrome/130 Safari/537.36'});assert.equal(android.api.capabilities().platform,'Android website');assert.equal(android.api.capabilities().usb,true);
+ const ipad=fixture({supported:false,platform:'MacIntel',touch:5});assert.equal(ipad.api.capabilities().platform,'iPad / iPhone');assert.equal(ipad.api.capabilities().system,true);assert.equal(ipad.api.capabilities().usb,false);
+ const native=fixture({supported:false,userAgent:'Mozilla/5.0 (Linux; Android 13; Device; wv) AppleWebKit/537.36'});assert.equal(native.api.capabilities().system,false);assert.match(native.api.capabilities().guide,/native printer connection/);
+ assert.equal(fixture({secure:false}).api.supported(),false);assert.equal(fixture({blocked:true}).api.supported(),false);
+ const known=fixture();assert.equal((await known.api.authorized()).length,1);known.navigator.usb.getDevices=async()=>[{...known.device}];known.navigator.usb.requestDevice=()=>{throw Error('Must reuse permission')};await known.api.select(known.device);assert.equal(known.device.opened,true);
+ const absent=fixture();absent.navigator.usb.getDevices=async()=>[];await assert.rejects(()=>absent.api.select(absent.device),/no longer connected/);
  const f=fixture();assert.equal(f.api.preference().mode,'unconfigured');await f.api.select();assert.deepEqual(f.calls,[2]);assert.match(f.api.status(),/^Connected/);
  await f.api.printDocument(f.doc,58);assert.deepEqual(f.writes[0],[27,64]);assert.deepEqual(f.writes[1].slice(0,8),[29,118,48,0,48,0,2,0]);assert(f.writes[1].slice(8).every(v=>v===255));
  assert.deepEqual(f.writes.at(-1),[27,100,4]);

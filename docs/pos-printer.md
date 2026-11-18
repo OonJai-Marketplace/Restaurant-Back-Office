@@ -1,6 +1,10 @@
 # Receipt printing on each register
 
 Open **Printer** from the POS toolbar, or **Management → Configure Printing**.
+The Printer button also remains available in POS focus mode.
+The connection panel detects browser capabilities, not device brand. **Refresh devices**
+lists currently connected, previously permitted USB printer interfaces; it does not
+claim that an empty permitted list means no physical printer exists.
 No order or payment is required to print the sample. Samples carry `TEST · NOT A SALE`
 and do not call sale/payment, stock, or receipt-number APIs.
 

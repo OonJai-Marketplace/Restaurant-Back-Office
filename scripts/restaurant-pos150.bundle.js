@@ -5,7 +5,16 @@
 (()=>{'use strict';
 const key='restaurant-printer151';
 let device=null,port=null,busy=false;
-const supported=()=>!!navigator.usb?.requestDevice;
+function capabilities(){
+ const ua=navigator.userAgent||'',ipad=/iPad|iPhone/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1),android=/Android/.test(ua),embedded=android&&/; wv\)/.test(ua);
+ const platform=ipad?'iPad / iPhone':android?(embedded?'Android app':'Android website'):/Windows/.test(ua)?'Windows':/Mac/.test(ua)?'Mac':'This device';
+ let permitted=true;try{permitted=(document.permissionsPolicy||document.featurePolicy)?.allowsFeature('usb')!==false}catch{}
+ const usb=window.isSecureContext!==false&&permitted&&!!navigator.usb?.requestDevice;
+ const system=!embedded&&typeof window.print==='function';
+ const reason=window.isSecureContext===false?'Open the secure HTTPS POS address to request printer permission.':!permitted?'This page is not allowed to request USB access. Open the POS directly in its own browser tab.':embedded?'This installed Android app needs a native printer connection. Its web screen cannot discover USB or Bluetooth printers.':ipad?'This browser does not expose direct USB printer access. AirPrint opens the device print window; direct printing needs a compatible native or local printer connection.':android?'This Android browser does not expose USB access. Open the POS directly in an up-to-date Chrome browser.':'This browser does not expose USB access. A compatible browser or a native/local printer connection is required for direct printing.';
+ return {platform,usb,system,guide:usb?(android?'Connect the thermal printer by USB using the tablet’s USB host/OTG connection.':'Connect the thermal printer by USB to this device.')+' Tap Find USB printer and allow access. Direct printing supports compatible ESC/POS printers; the device brand does not determine compatibility.':reason};
+}
+const supported=()=>capabilities().usb;
 function preference(){try{return JSON.parse(localStorage.getItem(key))||{mode:'unconfigured'}}catch{return {mode:'unconfigured'}}}
 function save(value){localStorage.setItem(key,JSON.stringify(value))}
 function describe(d){return d.productName||'USB receipt printer'}
@@ -30,13 +39,18 @@ async function connect(d){
   throw Error('USB access failed. Close other apps using this printer and check the USB cable and permission. If its installed driver controls it, choose System printing; keep your working driver. '+(error.message||''));
  }
 }
-async function select(){
+async function authorized(){
+ if(!supported())return [];
+ return (await navigator.usb.getDevices()).filter(d=>{try{endpoint(d);return true}catch{return false}});
+}
+async function select(existing=null){
  if(busy)throw Error('Wait for the current print job.');
  if(!supported())throw Error('This app/browser does not expose USB printer access. Use System printing on this device.');
  // requestDevice runs inside the cashier’s tap, before any other awaited work.
  busy=true;
  try{
-  const chosen=await navigator.usb.requestDevice({filters:[{classCode:7},{classCode:255}]});
+  const chosen=existing||await navigator.usb.requestDevice({filters:[{classCode:7},{classCode:255}]});
+  if(existing&&!(await authorized()).some(d=>matches(d,existing)))throw Error('This printer is no longer connected or permitted. Tap Find USB printer again.');
   await connect(chosen);save({mode:'usb',vendorId:chosen.vendorId,productId:chosen.productId,serialNumber:chosen.serialNumber||'',name:describe(chosen)});return describe(chosen);
  }catch(error){if(error.name!=='NotFoundError')await close();throw error}finally{busy=false}
 }
@@ -99,7 +113,7 @@ async function printDocument(doc,width){
  finally{busy=false}
 }
 navigator.usb?.addEventListener('disconnect',event=>{if(event.device===device){device=null;port=null}window.dispatchEvent(new Event('restaurant:printer-status'))});
-window.posPrinter={supported,preference,select,useSystem,status,printDocument,rasterBand};
+window.posPrinter={supported,capabilities,authorized,preference,select,useSystem,status,printDocument,rasterBand};
 })();
 
 ;
@@ -1032,21 +1046,30 @@ function paperWidth(){
  return [56,58,80].includes(Number(preference))?Number(preference):56;
 }
 function printerSetup(){
- const ipad=/iPad|iPhone/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+ if(!restaurantRouteAllowed128('pos118'))throw Error('POS access required.');
+ const capability=posPrinter.capabilities();
  const root=dialog('Receipt printer',`<div class="pos-printer-settings">
  <label>Roll width on this device<select name="devicePaper"><option value="56">56 mm · 5.6 cm</option><option value="58">58 mm</option><option value="80">80 mm</option><option value="restaurant">Restaurant setting (${n(S.config.receiptWidth)} mm)</option></select></label>
- <h4>Printer connection</h4><p data-printer-status role="status"></p>
- <div class="pos-actions118"><button type="button" data-find-usb>Find USB printer</button><button type="button" data-system-printer>Use system printing</button></div>
- <p>${posPrinter.supported()?'For direct printing, connect your ESC/POS thermal printer by USB to this tablet, tap Find USB printer and allow access. Select only your receipt printer. The POS remembers it on this device. Direct USB printing skips the system preview.':ipad?'This iPad browser cannot access a USB thermal printer directly. AirPrint uses the iPad print window. Direct printing needs a compatible printer app or local printer connection; permission inside this web page cannot enable USB access.':'This app/browser does not expose direct USB access. On a compatible Android tablet, open the POS in Chrome to use a USB printer. System printing uses the installed print service.'}</p>
+ <h4>Printer connection</h4><p><strong>${esc(capability.platform)}</strong> · ${capability.usb?'Direct USB available':capability.system?'System printing available':'Native printer connection required'}</p><p data-printer-status role="status"></p>
+ <div class="pos-actions118"><button type="button" data-find-usb ${capability.usb?'':'hidden'}>Find USB printer</button><button type="button" data-system-printer ${capability.system?'':'hidden'}>Use system printing</button></div>
+ <p>${esc(capability.guide)}</p>
+ ${capability.usb?'<section aria-label="Permitted USB printers"><h4>Permitted USB printers</h4><button type="button" data-refresh-printers>Refresh devices</button><div data-printer-list role="status">Tap Refresh devices to see connected printers you already allowed. Tap Find USB printer to grant permission to another printer.</div></section>':''}
+ <details><summary>Bluetooth or Wi-Fi printer?</summary><p>USB discovery only lists USB connections. Pairing a Bluetooth printer in tablet settings does not give this website access to it. Direct Bluetooth or Wi-Fi printing requires a supported printer connection for that model; it is not enabled by this USB setting.</p></details>
  <p>Keep your existing printer driver. If another app or driver controls the USB connection, use System printing. In its print window, choose the thermal printer and matching paper size; the tablet may otherwise select Letter or A4.</p>
  <button type="button" data-test-paper>Print sample receipt</button><p>A sample is marked TEST · NOT A SALE. No payment, sale, receipt number or stock movement is recorded.</p>
  <output role="status"></output><small data-receipt-stock></small></div>`,null,{explicitClose:true});
  const picker=root.querySelector('[name=devicePaper]'),status=root.querySelector('output'),connection=root.querySelector('[data-printer-status]');
  const refresh=()=>{connection.textContent=posPrinter.status()};refresh();
  const find=root.querySelector('[data-find-usb]'),system=root.querySelector('[data-system-printer]'),test=root.querySelector('[data-test-paper]');
- const run=async job=>{find.disabled=system.disabled=test.disabled=true;status.textContent='';try{status.textContent=await job()||''}catch(error){status.textContent=error.name==='NotFoundError'?'No printer selected. Connect your printer, then try again.':error.message}finally{find.disabled=system.disabled=test.disabled=false;refresh()}};
+ const run=async job=>{root.querySelectorAll('[data-find-usb],[data-system-printer],[data-test-paper],[data-refresh-printers],[data-use-printer]').forEach(b=>b.disabled=true);status.textContent='';try{status.textContent=await job()||''}catch(error){status.textContent=error.name==='NotFoundError'?'No printer selected. Connect your printer, then try again.':error.message}finally{root.querySelectorAll('[data-find-usb],[data-system-printer],[data-test-paper],[data-refresh-printers],[data-use-printer]').forEach(b=>b.disabled=false);refresh()}};
  find.onclick=()=>run(async()=>{const name=await posPrinter.select();return name+' connected. Print a sample to check the paper.'});
  system.onclick=()=>run(async()=>{await posPrinter.useSystem();return 'System printing selected on this device.'});
+ const refreshDevices=root.querySelector('[data-refresh-printers]');
+ if(refreshDevices)refreshDevices.onclick=()=>run(async()=>{
+  const devices=await posPrinter.authorized(),list=root.querySelector('[data-printer-list]');list.replaceChildren();
+  if(!devices.length){list.textContent='No permitted USB printer is currently connected. Connect its USB cable, then tap Find USB printer and allow access.';return}
+  for(const device of devices){const button=document.createElement('button');button.type='button';button.dataset.usePrinter='';button.textContent='Connect · '+(device.productName||'USB receipt printer');button.onclick=()=>run(async()=>{const name=await posPrinter.select(device);return name+' connected. Print a sample to check the paper.'});list.append(button)}
+ });
  picker.value=devicePaper();
  if(offlineOwner()&&!S.sample)posReceiptBook.ready(offlineOwner(),posReceiptBook.yearOf(Date.now())).then(ready=>{
   if(root.isConnected)root.querySelector('[data-receipt-stock]').textContent=ready?'This register is ready to issue receipts offline.':'Open a shift online once to prepare offline receipts on this register.';
@@ -1426,7 +1449,7 @@ function mount(){if($('#pos118'))return;const host=document.createElement('div')
  }if(t.matches('[data-choice118]')){const key=t.dataset.choice118,value=t.value;S.choices[key]=t.type==='checkbox'?[...host.querySelectorAll('[data-choice118="'+CSS.escape(key)+'"]:checked')].map(n=>n.value):t.value?[t.value]:[];render();host.querySelector('[data-choice118="'+CSS.escape(key)+'"][value="'+CSS.escape(value)+'"]')?.focus({preventScroll:true})}else if(t.matches('[data-draft118]'))render();else if(t.matches('[data-receipt-date118]')){S.receiptDate=t.value;if(window.posPerformance125&&!S.sample)await load({background:true});render()}}catch(e){showCenterStatus(e.message,true)}})}
 const previous=switchTab;window.switchTab=function(id,...args){mount();const result=previous.call(this,id,...args);if(result!==false&&id==='pos118'){if(!S.modeChosen&&liveProfile?.id){S.modeChosen=true;if(restaurantPosMode128()==='live'){S.sample=false;S.loaded=false;S.orders=[];S.shifts=[];S.cash=[];S.picked=null;fresh();restoreDraft();S.tab='Sales';S.sub='New Order'}}if(S.owner&&S.owner!==liveProfile?.id){S.sample=false;S.loaded=false;S.owner=null;S.modeChosen=false;S.orders=[];S.shifts=[];S.cash=[];fresh()}if(!S.sample&&!S.loaded)load();render();document.body.dataset.area113='pos'}return result};
 const logout=logoutDemoUser;window.logoutDemoUser=async function(...args){posReports.clear();S.loaded=false;S.owner=null;S.modeChosen=false;S.sample=false;S.menu=[];S.ingredients=[];S.items=[];S.stock=[];S.balances125=null;S.schema125=false;S.catalogVersion125=null;S.summary125=null;S.offlineQueue=[];S.orders=[];S.shifts=[];S.cash=[];fresh();return logout.apply(this,args)};
-window.pos118={prepareReceiptNumbers,clearReport(){posReports.clear()},setDraft146(order){draft=structuredClone(order);rememberDraft();S.selected=order.id;S.tab='Sales';S.sub='New Order';render()},openOptions132:options,state:S,catalog,render,load,syncPending,total,stock,get draft(){return draft},fresh,save,receipt,virtualMoves,pendingStock};window.addEventListener('online',()=>{if(!S.sample&&S.loaded)load()});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
+window.pos118={printerSetup,prepareReceiptNumbers,clearReport(){posReports.clear()},setDraft146(order){draft=structuredClone(order);rememberDraft();S.selected=order.id;S.tab='Sales';S.sub='New Order';render()},openOptions132:options,state:S,catalog,render,load,syncPending,total,stock,get draft(){return draft},fresh,save,receipt,virtualMoves,pendingStock};window.addEventListener('online',()=>{if(!S.sample&&S.loaded)load()});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
 })();
 
 ;

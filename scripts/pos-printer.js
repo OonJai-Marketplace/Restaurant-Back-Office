@@ -2,7 +2,16 @@
 (()=>{'use strict';
 const key='restaurant-printer151';
 let device=null,port=null,busy=false;
-const supported=()=>!!navigator.usb?.requestDevice;
+function capabilities(){
+ const ua=navigator.userAgent||'',ipad=/iPad|iPhone/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1),android=/Android/.test(ua),embedded=android&&/; wv\)/.test(ua);
+ const platform=ipad?'iPad / iPhone':android?(embedded?'Android app':'Android website'):/Windows/.test(ua)?'Windows':/Mac/.test(ua)?'Mac':'This device';
+ let permitted=true;try{permitted=(document.permissionsPolicy||document.featurePolicy)?.allowsFeature('usb')!==false}catch{}
+ const usb=window.isSecureContext!==false&&permitted&&!!navigator.usb?.requestDevice;
+ const system=!embedded&&typeof window.print==='function';
+ const reason=window.isSecureContext===false?'Open the secure HTTPS POS address to request printer permission.':!permitted?'This page is not allowed to request USB access. Open the POS directly in its own browser tab.':embedded?'This installed Android app needs a native printer connection. Its web screen cannot discover USB or Bluetooth printers.':ipad?'This browser does not expose direct USB printer access. AirPrint opens the device print window; direct printing needs a compatible native or local printer connection.':android?'This Android browser does not expose USB access. Open the POS directly in an up-to-date Chrome browser.':'This browser does not expose USB access. A compatible browser or a native/local printer connection is required for direct printing.';
+ return {platform,usb,system,guide:usb?(android?'Connect the thermal printer by USB using the tablet’s USB host/OTG connection.':'Connect the thermal printer by USB to this device.')+' Tap Find USB printer and allow access. Direct printing supports compatible ESC/POS printers; the device brand does not determine compatibility.':reason};
+}
+const supported=()=>capabilities().usb;
 function preference(){try{return JSON.parse(localStorage.getItem(key))||{mode:'unconfigured'}}catch{return {mode:'unconfigured'}}}
 function save(value){localStorage.setItem(key,JSON.stringify(value))}
 function describe(d){return d.productName||'USB receipt printer'}
@@ -27,13 +36,18 @@ async function connect(d){
   throw Error('USB access failed. Close other apps using this printer and check the USB cable and permission. If its installed driver controls it, choose System printing; keep your working driver. '+(error.message||''));
  }
 }
-async function select(){
+async function authorized(){
+ if(!supported())return [];
+ return (await navigator.usb.getDevices()).filter(d=>{try{endpoint(d);return true}catch{return false}});
+}
+async function select(existing=null){
  if(busy)throw Error('Wait for the current print job.');
  if(!supported())throw Error('This app/browser does not expose USB printer access. Use System printing on this device.');
  // requestDevice runs inside the cashier’s tap, before any other awaited work.
  busy=true;
  try{
-  const chosen=await navigator.usb.requestDevice({filters:[{classCode:7},{classCode:255}]});
+  const chosen=existing||await navigator.usb.requestDevice({filters:[{classCode:7},{classCode:255}]});
+  if(existing&&!(await authorized()).some(d=>matches(d,existing)))throw Error('This printer is no longer connected or permitted. Tap Find USB printer again.');
   await connect(chosen);save({mode:'usb',vendorId:chosen.vendorId,productId:chosen.productId,serialNumber:chosen.serialNumber||'',name:describe(chosen)});return describe(chosen);
  }catch(error){if(error.name!=='NotFoundError')await close();throw error}finally{busy=false}
 }
@@ -96,5 +110,5 @@ async function printDocument(doc,width){
  finally{busy=false}
 }
 navigator.usb?.addEventListener('disconnect',event=>{if(event.device===device){device=null;port=null}window.dispatchEvent(new Event('restaurant:printer-status'))});
-window.posPrinter={supported,preference,select,useSystem,status,printDocument,rasterBand};
+window.posPrinter={supported,capabilities,authorized,preference,select,useSystem,status,printDocument,rasterBand};
 })();
