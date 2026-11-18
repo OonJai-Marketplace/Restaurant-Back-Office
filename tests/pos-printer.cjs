@@ -1,6 +1,6 @@
 const {readFileSync}=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const source=readFileSync('scripts/pos-printer.js','utf8');
-function fixture({supported=true,claimFails=false,stall=false,userAgent="",platform="",touch=0,secure=true,blocked=false,system=true}={}){
+function fixture({supported=true,claimFails=false,stall=false,userAgent="",platform="",touch=0,secure=true,blocked=false,system=true,canvasWidth=384,canvasHeight=2}={}){
  const writes=[],calls=[],store=new Map(),events={};
  const device={vendorId:123,productId:456,productName:'Test thermal',serialNumber:'one',opened:false,configuration:null,
  configurations:[{configurationValue:1,interfaces:[{interfaceNumber:2,alternates:[{alternateSetting:0,interfaceClass:7,endpoints:[{direction:'out',type:'bulk',endpointNumber:3}]}]}]}],
@@ -8,7 +8,7 @@ function fixture({supported=true,claimFails=false,stall=false,userAgent="",platf
  async claimInterface(i){calls.push(i);if(claimFails)throw Error('claimed by driver')},async selectAlternateInterface(){},
  async transferOut(ep,data){writes.push([...data]);return {status:stall?'stall':'ok',bytesWritten:data.length}}};
  const pixels=new Uint8ClampedArray(384*2*4).fill(0);for(let i=3;i<pixels.length;i+=4)pixels[i]=255;
- const canvas={width:384,height:2,getContext:()=>({fillRect(){},drawImage(){},getImageData:()=>({data:pixels})})};
+ const canvas={width:canvasWidth,height:canvasHeight,getContext:()=>({fillRect(){},drawImage(){},getImageData:()=>({data:pixels})})};
  const doc={fonts:{ready:Promise.resolve()},querySelectorAll:()=>[{getBoundingClientRect:()=>({width:200,height:1})}],createElement:()=>({...canvas})};
  const usb={requestDevice:async()=>device,getDevices:async()=>[device],addEventListener:(k,v)=>events[k]=v};
  const ctx={navigator:{...(supported?{usb}:{}),userAgent,platform,maxTouchPoints:touch},localStorage:{getItem:k=>store.get(k),setItem:(k,v)=>store.set(k,v)},Uint8Array,Event:class{},document:{permissionsPolicy:{allowsFeature:()=>!blocked}},window:{isSecureContext:secure,...(system?{print(){}}:{}),dispatchEvent(){},html2canvas:async()=>canvas}};
@@ -24,6 +24,7 @@ function fixture({supported=true,claimFails=false,stall=false,userAgent="",platf
  const f=fixture();assert.equal(f.api.preference().mode,'unconfigured');await f.api.select();assert.deepEqual(f.calls,[2]);assert.match(f.api.status(),/^Connected/);
  await f.api.printDocument(f.doc,58);assert.deepEqual(f.writes[0],[27,64]);assert.deepEqual(f.writes[1].slice(0,8),[29,118,48,0,48,0,2,0]);assert(f.writes[1].slice(8).every(v=>v===255));
  assert.deepEqual(f.writes.at(-1),[27,100,4]);
+ const scaled=fixture({canvasWidth:768,canvasHeight:4});await scaled.api.select();await scaled.api.printDocument(scaled.doc,58);assert.deepEqual(scaled.writes[1].slice(0,8),[29,118,48,0,48,0,2,0],'Rescaling preserves both dimensions');
  f.events.disconnect({device:f.device});assert.match(f.api.status(),/^Selected/);await f.api.printDocument(f.doc,58);assert.equal(f.calls.length,2);
  await f.api.useSystem();assert.equal(f.device.opened,false);assert.equal(f.api.preference().mode,'system');
  const fail=fixture({claimFails:true});await assert.rejects(fail.api.select,/keep your working driver/);assert.equal(fail.api.preference().mode,'unconfigured');assert.equal(fail.device.opened,false);

@@ -96,13 +96,16 @@ async function printDocument(doc,width){
   for(const article of doc.querySelectorAll('article')){
    const rect=article.getBoundingClientRect();
    if(!rect.width||rect.height*dots/rect.width>16000)throw Error('This receipt is too long for direct USB printing. Choose System printing.');
-   const canvas=await render(article,{backgroundColor:'#fff',scale:dots/rect.width,logging:false,imageTimeout:5000});
-   // Normalize rounding to the exact printer dot width.
-   const normalized=doc.createElement('canvas');normalized.width=dots;normalized.height=canvas.height;
-   const context=normalized.getContext('2d');context.fillStyle='#fff';context.fillRect(0,0,dots,canvas.height);context.drawImage(canvas,0,0,dots,canvas.height);
-   const pixels=context.getImageData(0,0,dots,canvas.height).data;
+   const canvas=await render(article,{backgroundColor:'#fff',scale:dots/rect.width,logging:false,imageTimeout:5000,
+    windowWidth:Math.max(320,doc.documentElement?.clientWidth||1024),windowHeight:Math.max(320,doc.documentElement?.clientHeight||768),scrollX:0,scrollY:0});
+   if(!canvas.width||!canvas.height)throw Error('The receipt could not be rendered. Nothing was sent to the printer.');
+   // Rescale both dimensions together: never squeeze or stretch the receipt/logo.
+   const normalized=doc.createElement('canvas');normalized.width=dots;normalized.height=Math.max(1,Math.round(canvas.height*dots/canvas.width));
+   const height=normalized.height;
+   const context=normalized.getContext('2d');context.fillStyle='#fff';context.fillRect(0,0,dots,height);context.drawImage(canvas,0,0,dots,height);
+   const pixels=context.getImageData(0,0,dots,height).data;
    started=true;await send(Uint8Array.from([0x1b,0x40]));
-   for(let y=0;y<canvas.height;y+=64)await send(rasterBand(pixels,dots,canvas.height,y,Math.min(64,canvas.height-y)));
+   for(let y=0;y<height;y+=64)await send(rasterBand(pixels,dots,height,y,Math.min(64,height-y)));
    await send(Uint8Array.from([0x1b,0x64,4]));
   }
   return 'Sent to '+describe(device)+'. Check the printed paper.';

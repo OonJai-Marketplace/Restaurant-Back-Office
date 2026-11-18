@@ -17,11 +17,11 @@ article.pos-thermal-paper .paper-brand,
 article.pos-thermal-paper .receipt-foot118 { text-align: center }
 article.pos-thermal-paper .paper-brand img {
   display: block;
-  width: 34mm;
-  height: 18mm;
+  /* The logo asset is square. The USB rasterizer does not implement object-fit. */
+  width: 18mm;
+  height: auto;
   max-width: 100%;
   margin: 0 auto 1mm;
-  object-fit: contain;
 }
 article.pos-thermal-paper .paper-brand strong { display: block; font-size: 14px }
 article.pos-thermal-paper .paper-brand b { display: block; font-size: 11px }
@@ -37,10 +37,7 @@ article.pos-thermal-paper .paper-meta strong { white-space: nowrap; text-align: 
 article.pos-thermal-paper .paper-meta strong.paper-local-ref { white-space: normal; min-width: 0; overflow-wrap: anywhere }
 article.pos-thermal-paper .paper-timestamp { display: block; text-align: center; font: 9px/1.35 Georgia, serif !important; margin-top: 2mm }
 
-/* The app shell sets global type with !important. Mirror the paper face inside its overlays. */
-html body.shell113 .ui-overlay108 article.pos-thermal-paper,
-html body.shell113 .ui-overlay108 article.pos-thermal-paper *,
-html body.shell113 #pos118 article.pos-thermal-paper,
-html body.shell113 #pos118 article.pos-thermal-paper * { font-family: Georgia, serif !important }
-html body.shell113 .ui-overlay108 .ui-dialog108 article.pos-thermal-paper p,
-html body.shell113 #pos118 article.pos-thermal-paper p { font-size: 11px !important; line-height: 1.35 !important }
+/* Keep amount columns and the compact FX summary identical in every output. */
+article.pos-thermal-paper .receipt-row118 > span:first-child { flex: 1 }
+article.pos-thermal-paper .receipt-row118 > span:last-child { flex: none; white-space: nowrap }
+article.pos-thermal-paper .receipt-fx > span { display: block }
