@@ -14,7 +14,7 @@ function restaurantTabCan125(scope,tab,action='view'){
  return !tabs||tabs[tab]===true;
 }
 window.restaurantTabCan125=restaurantTabCan125;
-window.restaurantTabId125=(id)=>({'inv-allocated':'inv-items','menu-details':'menu-recipe','menu-integration132':'menu-recipe','inv-bulk132':'inv-preparation124'}[id]||id);
+window.restaurantTabId125=(id)=>({'inv-consignment':'inv-items','inv-allocated':'inv-items','menu-details':'menu-recipe','menu-integration132':'menu-recipe','inv-bulk132':'inv-preparation124'}[id]||id);
 window.restaurantPosTab125=(tab,sub)=>tab==='Overview'?'pos-overview':tab==='Management'?'pos-management':({'New Order':'pos-sales-new','Open Orders':'pos-sales-open','Receipts':'pos-sales-receipts','Online Orders':'pos-sales-online'}[sub]||'pos-sales-new');
 window.restaurantFirstTab125=scope=>Object.keys(restaurantTabs125[scope]||{}).find(id=>restaurantTabCan125(scope,id));
 window.restaurantStart125=()=>{

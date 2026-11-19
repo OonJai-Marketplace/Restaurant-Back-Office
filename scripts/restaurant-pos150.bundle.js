@@ -59,7 +59,9 @@ function totals(opening,sales,refunds,moves){
  t.discounts=t.grossSales-t.sales;t.netSales=t.sales-t.refunds;for(const key of Object.keys(t))t[key]=round(t[key]);
  for(const b of cash.values()){b.expected=b.opening+b.received-b.change-b.refunds+b.cashIn-b.cashOut;for(const key of Object.keys(b))if(key!=='currency')b[key]=round(b[key])}
  for(const m of methods.values()){m.net=m.paid-m.refunds;for(const key of ['paid','refunds','net'])m[key]=round(m[key])}
- return {totals:t,methods:[...methods.values()].sort((a,b)=>a.method.localeCompare(b.method)),cash:[...cash.values()]};
+ const split=restaurantReportSummary.consignment([...sales.map(order=>({order})),...refunds.map(order=>({order,refund:true}))]);
+ t.companyNetSales=round(t.netSales-split.partner/100);
+ return {consignment:{partner:split.partner/100,company:split.company/100,partners:split.partners.map(k=>({name:k.name,partner:k.partner/100,company:k.company/100}))},totals:t,methods:[...methods.values()].sort((a,b)=>a.method.localeCompare(b.method)),cash:[...cash.values()]};
 }
 const stamp=v=>new Date(v).toLocaleString('en-GB',{timeZone:'Asia/Vientiane',dateStyle:'short',timeStyle:'short'});
 const symbols={LAK:'₭',USD:'$',THB:'฿'};
@@ -101,9 +103,14 @@ function receipt(report,esc,width,review=false){
   ['Actual count',c=>c.counted==null?'—':posMoney.display(c.counted)],
   ['Difference',c=>c.variance==null?'—':signedCount(c.variance)]
  ],'Cash reconciliation');
- return '<article class="pos-thermal-paper" style="--receipt-width:'+width+'mm"><div class="paper-brand"><img src="assets/brand/oonjai-logo.png" alt="Oon Jai"><strong>Oon Jai Marketplace</strong><b>'+(review?'SHIFT REVIEW · NOT CLOSED':'CLOSE SHIFT RECEIPT')+'</b>'+(report.sample?'<b>SAMPLE · NOT A LIVE SHIFT</b>':'')+'</div><hr>'+row('Shift ID',report.shiftCode||'—')+'<div>Cashier: '+esc(report.cashier)+'</div><div>Opened: '+esc(stamp(report.openedAt))+'</div><div>Closed: '+esc(report.closedAt?stamp(report.closedAt):'Still open')+'</div><hr>'+row('Paid receipts',t.paidCount)+row('Gross sales',amount(t.grossSales))+row('Discounts',amount(t.discounts))+row('Refunds',amount(t.refunds))+row('Net sales',amount(t.netSales))+row('Tips (net)',amount(t.tips))+row('Total collected',amount(t.collected))+'<hr><b>PAYMENT SUMMARY (₭)</b>'+report.methods.map(m=>row(m.method,amount(m.net))+(m.refunds?row('  Refunds',amount(m.refunds)):'')).join('')+'<hr><b>CASH RECONCILIATION</b>'+counts+(movements?'<b>CASH MOVEMENTS</b>'+movements:'')+(report.legacy?'<p>Historical shift. Foreign cash counts were not recorded.</p>':'')+'</article>';
+ return '<article class="pos-thermal-paper" style="--receipt-width:'+width+'mm"><div class="paper-brand"><img src="assets/brand/oonjai-logo.png" alt="Oon Jai"><strong>Oon Jai Marketplace</strong><b>'+(review?'SHIFT REVIEW · NOT CLOSED':'CLOSE SHIFT RECEIPT')+'</b>'+(report.sample?'<b>SAMPLE · NOT A LIVE SHIFT</b>':'')+'</div><hr>'+row('Shift ID',report.shiftCode||'—')+'<div>Cashier: '+esc(report.cashier)+'</div><div>Opened: '+esc(stamp(report.openedAt))+'</div><div>Closed: '+esc(report.closedAt?stamp(report.closedAt):'Still open')+'</div><hr>'+row('Paid receipts',t.paidCount)+row('Gross sales',amount(t.grossSales))+row('Discounts',amount(t.discounts))+row('Refunds',amount(t.refunds))+row('Oon Jai net sales',amount(t.companyNetSales??t.netSales))+partnerSummary(report,esc)+row('Tips (net)',amount(t.tips))+row('Total collected',amount(t.collected))+'<hr><b>PAYMENT SUMMARY (₭)</b>'+report.methods.map(m=>row(m.method,amount(m.net))+(m.refunds?row('  Refunds',amount(m.refunds)):'')).join('')+'<hr><b>CASH RECONCILIATION</b>'+counts+(movements?'<b>CASH MOVEMENTS</b>'+movements:'')+(report.legacy?'<p>Historical shift. Foreign cash counts were not recorded.</p>':'')+'</article>';
 }
-function summary(report,esc){const t=report.totals;return '<div class="pos-shift-meta"><strong>'+esc(report.shiftCode||'Shift')+' · '+esc(report.cashier)+'</strong><span>'+esc(stamp(report.openedAt))+' → '+(report.closedAt?esc(stamp(report.closedAt)):'Current shift')+'</span></div><div class="pos-shift-summary">'+[['Net sales',t.netSales],['Tips (net)',t.tips],['Total collected',t.collected]].map(([label,n])=>'<div>'+label+'<strong>'+amount(n)+'</strong></div>').join('')+'</div><p>'+t.paidCount+' paid receipts · '+t.refundCount+' refunds · Includes this cashier’s whole shift.</p><div class="pos-shift-table"><table><thead><tr><th>Payment</th><th>Paid (₭)</th><th>Refunds (₭)</th><th>Net (₭)</th></tr></thead><tbody>'+report.methods.map(m=>'<tr><th>'+esc(m.method)+'</th><td>'+posMoney.display(m.paid)+'</td><td>'+posMoney.display(m.refunds)+'</td><td>'+posMoney.display(m.net)+'</td></tr>').join('')+'</tbody></table></div>'}
+function partnerSummary(report,esc){
+ const rows=report.consignment?.partners||[];
+ if(!rows.length)return '';
+ return '<h4>Consignment (LAK)</h4><table><thead><tr><th>Partner</th><th>Due to partner</th><th>Oon Jai share</th></tr></thead><tbody>'+rows.map(r=>'<tr><th>'+esc(r.name)+'</th><td>'+amount(r.partner)+'</td><td>'+amount(r.company)+'</td></tr>').join('')+'<tr><th>Total</th><td>'+amount(report.consignment.partner)+'</td><td>'+amount(report.consignment.company)+'</td></tr></tbody></table>';
+}
+function summary(report,esc){const t=report.totals;return '<div class="pos-shift-meta"><strong>'+esc(report.shiftCode||'Shift')+' · '+esc(report.cashier)+'</strong><span>'+esc(stamp(report.openedAt))+' → '+(report.closedAt?esc(stamp(report.closedAt)):'Current shift')+'</span></div><div class="pos-shift-summary">'+[['Oon Jai net sales',t.companyNetSales??t.netSales],['Tips (net)',t.tips],['Total collected',t.collected]].map(([label,n])=>'<div>'+label+'<strong>'+amount(n)+'</strong></div>').join('')+'</div><p>'+t.paidCount+' paid receipts · '+t.refundCount+' refunds · Includes this cashier’s whole shift.</p><div class="pos-shift-table"><table><thead><tr><th>Payment</th><th>Paid (₭)</th><th>Refunds (₭)</th><th>Net (₭)</th></tr></thead><tbody>'+report.methods.map(m=>'<tr><th>'+esc(m.method)+'</th><td>'+posMoney.display(m.paid)+'</td><td>'+posMoney.display(m.refunds)+'</td><td>'+posMoney.display(m.net)+'</td></tr>').join('')+'</tbody></table></div>'+partnerSummary(report,esc)}
 function input(name,value='',signed=false){return '<input type="text" name="'+name+'" data-pos-money="2" inputmode="decimal" autocomplete="off" value="'+value+'" '+(signed?'':'min="0" ')+'max="999999999999.99" required>'}
 function view(report,h,review=false){
  const title=review?'Shift review':'Close shift receipt',paper=()=>receipt(report,h.esc,h.paperWidth(),review);
@@ -789,10 +796,10 @@ var posReports = globalThis.posReports || (() => {
   const fmt=v=>new Intl.NumberFormat('en-US',{maximumFractionDigits:6}).format(v);
   return fx?'FX payment: '+fmt(fx.amount)+' '+fx.currency+' × '+fmt(fx.rate)+' LAK = '+fmt(fx.equivalentLak)+' LAK · Change: '+fmt(fx.changeLak)+' LAK':'';
  }
- const receiptHeader=['Date','Receipt number','Receipt type','Shift ID','Description','Quantity','Gross sales (LAK)','Discount (LAK)','Net sales (LAK)','Payment method','Payment reference','Sale cashier','Customer','Dining option','Note','Refund reason','Status','Original payment date','Refund date','Original tender currency','Foreign amount received','LAK per foreign unit','Original tender equivalent (LAK)','Original change (LAK)','Tip (LAK)','Total collected (LAK)'];
+ const receiptHeader=['Date','Receipt number','Receipt type','Shift ID','Description','Quantity','Gross sales (LAK)','Discount (LAK)','Sale after discount (LAK)','Payment method','Payment reference','Sale cashier','Customer','Dining option','Note','Refund reason','Status','Original payment date','Refund date','Original tender currency','Foreign amount received','LAK per foreign unit','Original tender equivalent (LAK)','Original change (LAK)','Tip (LAK)','Total collected (LAK)'];
  const itemHeader=['Date','Receipt number','Receipt type','Shift ID','Menu item ID','Menu item','Modifiers','Item note','Quantity','Unit price (LAK)','Gross sales (LAK)','Allocated discount (LAK)','Line total (LAK)','Payment method','Ingredients restocked'];
  function salesReport(events,items) {
-  const rows=[items?itemHeader:receiptHeader];
+  const rows=[[...(items?itemHeader:receiptHeader),'Consignment partner','Partner share (LAK)','Oon Jai net sales (LAK)']];
   for(const {order,refund,at} of events) {
    const d=order.data,lines=d.lines||[],sign=refund?-1:1;
    const common=[stamp(at),numberFor(order),refund?'Refund':'Sale',refund?d.refundShiftId:d.shiftId];
@@ -800,8 +807,9 @@ var posReports = globalThis.posReports || (() => {
    const grossSum=gross.reduce((sum,x)=>sum+x,0);
    const paid=cents(d.total), subtotal=d.subtotal==null?grossSum:cents(d.subtotal);
    if(!items) {
+    const split=restaurantReportSummary.consignment([{order,refund}]);
     rows.push([...common,lines.map(l=>l.quantity+' × '+l.name).join(', '),sign*lines.reduce((sum,l)=>sum+Number(l.quantity),0),
-     sign*subtotal/100,sign*(subtotal-paid)/100,sign*paid/100,d.payment,d.paymentReference,d.cashier,d.customer,d.service,d.note,refund?d.reason:'',order.status,stamp(order.paid_at),stamp(order.refunded_at),d.fxTender?.currency??'',d.fxTender?.amount??'',d.fxTender?.rate??'',d.fxTender?.equivalentLak??'',d.fxTender?.changeLak??'',sign*cents(d.tip||0)/100,sign*(paid+cents(d.tip||0))/100]);
+     sign*subtotal/100,sign*(subtotal-paid)/100,sign*paid/100,d.payment,d.paymentReference,d.cashier,d.customer,d.service,d.note,refund?d.reason:'',order.status,stamp(order.paid_at),stamp(order.refunded_at),d.fxTender?.currency??'',d.fxTender?.amount??'',d.fxTender?.rate??'',d.fxTender?.equivalentLak??'',d.fxTender?.changeLak??'',sign*cents(d.tip||0)/100,sign*(paid+cents(d.tip||0))/100,split.partners.map(p=>p.name).join(', '),split.partner/100,(sign*paid-split.partner)/100]);
     continue;
    }
    // Allocate the recorded receipt total across lines. Cumulative rounding keeps the sum exact.
@@ -812,12 +820,12 @@ var posReports = globalThis.posReports || (() => {
     const net=cumulativeNet-previousNet;
     previousNet=cumulativeNet;
     rows.push([...common,line.menuId,line.name,(line.options||[]).join(', '),line.note,sign*Number(line.quantity),
-     Number(line.unitPrice),sign*gross[i]/100,sign*(gross[i]-net)/100,sign*net/100,d.payment,refund&&d.restocked!=null?(d.restocked?'Yes':'No'):'']);
+     Number(line.unitPrice),sign*gross[i]/100,sign*(gross[i]-net)/100,sign*net/100,d.payment,refund&&d.restocked!=null?(d.restocked?'Yes':'No'):'',line.consignment?.partner||'',sign*(line.consignment?.partnerShare||0),sign*(net-cents(line.consignment?.partnerShare||0))/100]);
    });
   }
   return rows;
  }
- const shiftHeader=['Shift ID','Cashier','Opened at','Closed at','Status','Sale receipts','Refunds','Sales collected (LAK)','Refund amount (LAK)','Net collected (LAK)','Opening cash (LAK)','Cash tender received (LAK)','Cash refunds (LAK)','Manual cash in (LAK)','Manual cash out (LAK)','Expected cash (LAK)','Counted cash (LAK)','Difference (LAK)','Change given (LAK)'];
+ const shiftHeader=['Shift ID','Cashier','Opened at','Closed at','Status','Sale receipts','Refunds','Sales collected (LAK)','Refund amount (LAK)','Net collected (LAK)','Opening cash (LAK)','Cash tender received (LAK)','Cash refunds (LAK)','Manual cash in (LAK)','Manual cash out (LAK)','Expected cash (LAK)','Counted cash (LAK)','Difference (LAK)','Change given (LAK)','Oon Jai net sales (LAK)','Partner share (LAK)'];
  function legacyRefundInShift(order,shift){
   return order.status==='refunded'&&!order.data.refundShiftId&&shift.cashier&&order.data.actionBy===shift.cashier&&
    Date.parse(order.refunded_at)>=Date.parse(shift.opened_at)&&(!shift.closed_at||Date.parse(order.refunded_at)<=Date.parse(shift.closed_at));
@@ -855,7 +863,7 @@ var posReports = globalThis.posReports || (() => {
     const t=report.totals,refundAmount=report.methods.reduce((sum,m)=>sum+cents(m.refunds),0)/100;
     const salesAmount=report.methods.reduce((sum,m)=>sum+cents(m.paid),0)/100;
     rows.push([shift.shift_code||report.shiftCode||(s.sample?posShifts.sampleCode(s,shift):shift.id),report.cashier||shift.profile?.full_name||paid[0]?.data.cashier||(s.sample?'Sample cashier':'Name unavailable'),stamp(shift.opened_at),stamp(shift.closed_at),shift.closed_at?'Closed':'Open',
-     t.paidCount,t.refundCount,salesAmount,refundAmount,t.collected,drawer.opening,drawer.received,drawer.refunds,drawer.cashIn,drawer.cashOut,drawer.expected,counted??'',counted==null?'':drawer.variance??(cents(counted)-cents(drawer.expected))/100,drawer.change]);
+     t.paidCount,t.refundCount,salesAmount,refundAmount,t.collected,drawer.opening,drawer.received,drawer.refunds,drawer.cashIn,drawer.cashOut,drawer.expected,counted??'',counted==null?'':drawer.variance??(cents(counted)-cents(drawer.expected))/100,drawer.change,(t.companyNetSales??t.netSales),report.consignment?.partner??0]);
     const foreign=new Map();
     for(const c of report.cash)if(c.currency!=='LAK'&&posShifts.hasDrawerActivity(c)){currencies.add(c.currency);foreign.set(c.currency,c)}
     foreignRows.push(foreign);
@@ -898,7 +906,7 @@ var posReports = globalThis.posReports || (() => {
   return cached.job;
  }
  function summary(rows,type){
-  const data=rows.slice(1),index={items:12,receipts:8,shifts:9}[type];
+  const data=rows.slice(1),index=type==='shifts'?9:rows[0].indexOf('Oon Jai net sales (LAK)');
   const net=data.reduce((sum,row)=>sum+cents(row[index]),0)/100;
   const count=type==='items'?new Set(data.map(row=>row[4]||row[5])).size:data.length;
   const name={items:'menu items',receipts:'receipts',shifts:'shifts'}[type];
@@ -914,7 +922,7 @@ var posReports = globalThis.posReports || (() => {
   }catch(error){if(el.isConnected&&el.dataset.selection===key)el.textContent=error.message}
  }
  function printTable(type,rows,r,sample,summaryRows){
-  const cols=type==='items'?[0,1,2,5,6,8,9,10,11,12]:[0,2,3,1,4,5,6,9,15,16,17,...rows[0].map((label,i)=>i>18&&/^Expected cash/.test(label)?i:null).filter(i=>i!=null)];
+  const cols=type==='items'?[0,1,2,5,6,8,9,10,11,12,15,16,17]:[0,2,3,1,4,5,6,9,15,16,17,...rows[0].map((label,i)=>i>18&&/^Expected cash/.test(label)?i:null).filter(i=>i!=null)];
   printRows('Oon Jai Marketplace · '+types[type],(sample?'SAMPLE · ':'')+r.from+' – '+r.to+' · '+summary(rows,type),summaryRows,rows.map(row=>cols.map(c=>row[c])));
  }
  function printRows(title,subtitle,summaryRows,rows){
@@ -967,7 +975,7 @@ const S={tab:'Overview',sub:'New Order',sample:false,loaded:false,owner:null,bus
 const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Vientiane',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 const date=d=>new Date(d).toLocaleDateString('en-GB',{timeZone:'Asia/Vientiane'}),time=d=>new Date(d).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Vientiane'});
 const admin=()=>typeof liveProfile!=='undefined'&&liveProfile?.role==='admin';
-const catalog=()=>S.menu.filter(r=>r.data.storefrontManaged131===true&&r.data.active!==false&&r.data.currency==='LAK').sort((a,b)=>n(a.data.publicPosition131)-n(b.data.publicPosition131));
+const catalog=()=>S.menu.filter(r=>(r.data.storefrontManaged131===true||r.data.consigned166===true)&&r.data.active!==false&&r.data.currency==='LAK').sort((a,b)=>n(a.data.publicPosition131)-n(b.data.publicPosition131));
 const currentUser=()=>liveProfile?.full_name||'Cashier';
 const categoryName=id=>S.categories.find(x=>x.id===id)?.data.name||id;
 const groupPrice=(g,ids)=>g.options.filter(o=>ids.includes(o.id)).reduce((a,o)=>a+n(o.price),0)+(g.included!=null?n(g.extraPrice||0)*Math.max(0,ids.length-n(g.included)):0);
@@ -1584,7 +1592,7 @@ async function save(action='save',extra={},order=draft,checkout=false){if(order.
   Object.assign(data,{receiptTicket:ticket,receiptIssuedAt:issuedAt,receiptFooter:S.config.receiptFooter,
    offlineNonce:'paid-'+order.id+':'+(ticket.localRef||ticket.token+':'+ticket.ordinal)});
  }
- const offline=async()=>{if(order.data.promotionClaim146)throw Error('Promotion or voucher payment needs a live connection. Nothing was recorded locally; reconnect and retry.');const captureOwner=offlineOwner(),captureEpoch=sessionEpoch121,usage=action==='pay'?recipeUsage124(order.data):{};if(action==='pay')for(const [id,q] of Object.entries(usage))if(q>stock(id))throw Error('Insufficient stock on this device');if(action==='pay'&&!S.shifts.some(x=>x.cashier===liveProfile?.id&&!x.closed_at))throw Error('Open your shift online before accepting offline payments.');result={...structuredClone(order),number:order.number||'LOCAL',status:action==='pay'?'paid':'unpaid',created_at:order.created_at||new Date().toISOString(),paid_at:action==='pay'?issuedAt:null,offlinePending:true,data:{...structuredClone(data),...(action==='pay'?{receiptCode:data.receiptTicket.code}:{}),...storedTotals(order.data),cashier:currentUser()}};await posOffline119.save(captureOwner,result,action,{...data,...(order.data.offlineNonce?.startsWith('checkout-')?{checkoutSaveNonce:order.data.offlineNonce}:{}),offlineUsage124:usage,offlineNonce:data.offlineNonce,...(action==='pay'?{offlineCapturedAt:result.paid_at,offlineTotal:result.data.total}:{})});if(captureOwner!==offlineOwner()||captureEpoch!==sessionEpoch121)throw Error('Account changed during local capture');await pending();S.orders=[result,...S.orders.filter(o=>o.id!==result.id)];S.offline=true};if(S.offline||!navigator.onLine)await offline();else try{result=action==='save'?await writeUnpaidOrder(order,data,startNextOrder,()=>saveOwner===offlineOwner()&&saveEpoch===sessionEpoch121):await rpc('pos_order118',{p_id:order.id,p_version:order.version||0,p_action:action,p_data:data});
+ const offline=async()=>{if(action==='pay'&&order.data.lines.some(l=>S.menu.find(m=>m.id===l.menuId)?.data.consigned166))throw Error('Connect to confirm consigned stock and payment. Retry this same checkout once connected.');if(order.data.promotionClaim146)throw Error('Promotion or voucher payment needs a live connection. Nothing was recorded locally; reconnect and retry.');const captureOwner=offlineOwner(),captureEpoch=sessionEpoch121,usage=action==='pay'?recipeUsage124(order.data):{};if(action==='pay')for(const [id,q] of Object.entries(usage))if(q>stock(id))throw Error('Insufficient stock on this device');if(action==='pay'&&!S.shifts.some(x=>x.cashier===liveProfile?.id&&!x.closed_at))throw Error('Open your shift online before accepting offline payments.');result={...structuredClone(order),number:order.number||'LOCAL',status:action==='pay'?'paid':'unpaid',created_at:order.created_at||new Date().toISOString(),paid_at:action==='pay'?issuedAt:null,offlinePending:true,data:{...structuredClone(data),...(action==='pay'?{receiptCode:data.receiptTicket.code}:{}),...storedTotals(order.data),cashier:currentUser()}};await posOffline119.save(captureOwner,result,action,{...data,...(order.data.offlineNonce?.startsWith('checkout-')?{checkoutSaveNonce:order.data.offlineNonce}:{}),offlineUsage124:usage,offlineNonce:data.offlineNonce,...(action==='pay'?{offlineCapturedAt:result.paid_at,offlineTotal:result.data.total}:{})});if(captureOwner!==offlineOwner()||captureEpoch!==sessionEpoch121)throw Error('Account changed during local capture');await pending();S.orders=[result,...S.orders.filter(o=>o.id!==result.id)];S.offline=true};if(S.offline||!navigator.onLine)await offline();else try{result=action==='save'?await writeUnpaidOrder(order,data,startNextOrder,()=>saveOwner===offlineOwner()&&saveEpoch===sessionEpoch121):await rpc('pos_order118',{p_id:order.id,p_version:order.version||0,p_action:action,p_data:data});
  if(action==='pay'&&!matchesPayment(result?.data,data)||result?.id!==order.id||result.status!==(action==='pay'?'paid':'unpaid')||result.data?.offlineNonce!==data.offlineNonce||!matchesReceipt(result,data.receiptTicket))throw Error('This order changed. Review its saved receipt before continuing.');
  if(saveOwner!==offlineOwner()||saveEpoch!==sessionEpoch121)return;if(window.posPerformance125)await posPerformance125.accepted(S,result,usage125);else await load()}catch(e){if(saveOwner!==offlineOwner()||saveEpoch!==sessionEpoch121)return;if(window.posPerformance125?posPerformance125.network(e):!navigator.onLine||/failed to fetch|networkerror|network request failed|load failed/i.test(e.message))await offline();else throw e}}if(saveOwner!==offlineOwner()||saveEpoch!==sessionEpoch121)return;if(order===draft||draft.id===order.id)draft=editableOrder(result);S.selected=result.id;if(checkout&&!result.offlinePending)showCenterStatus('');else showCenterStatus(S.sample?'Sample order updated. No live records changed.':result.offlinePending?'Saved on this device. Pending sync before shift close.':action==='pay'?'Payment recorded and stock updated.':'Order saved unpaid.');if(action==='pay'){if(!S.sample)prepareReceiptNumbers().catch(()=>{});fresh();rememberDraft();S.sub=window.posPerformance125?'New Order':'Receipts';S.selected=result.id}else if(startNextOrder && draft.id===order.id){
   fresh();

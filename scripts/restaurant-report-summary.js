@@ -1,7 +1,19 @@
 /* Summaries use each payment event once, independently of the number of menu lines. */
 var restaurantReportSummary = (() => {
  const cents=v=>Math.round((Number(v)||0)*100);
+ function consignment(events){
+  const partners=new Map();let partner=0,company=0;
+  for(const {order,refund} of events)for(const line of order.data.lines||[]){
+   const split=line.consignment;if(!split)continue;
+   const sign=refund?-1:1, owed=sign*cents(split.partnerShare),earned=sign*cents(split.companyShare);
+   const row=partners.get(split.partnerId)||{name:split.partner,partner:0,company:0};
+   row.partner+=owed;row.company+=earned;partners.set(split.partnerId,row);
+   partner+=owed;company+=earned;
+  }
+  return {partner,company,partners:[...partners.values()].sort((a,b)=>a.name.localeCompare(b.name))};
+ }
  function rows(events){
+  const split=consignment(events);
   let gross=0,discount=0,refunds=0,tips=0,fxNet=0,drawerChange=0;
   const adjustments=new Map(),methodTips=new Map();
   const methods=new Map(['Cash','BCEL QR','Bank'].map(name=>[name,0])),currencies=new Map();
@@ -25,7 +37,7 @@ var restaurantReportSummary = (() => {
    currencies.set(fx.currency,v);
   }
   return [
-   ['Sales summary','LAK'],['Gross sales',gross/100],['Discounts on sales',discount/100],['Refunds after discounts',refunds/100],['Net sales',(gross-discount-refunds)/100],['Net tips',tips/100],['Total collected after refunds',(gross-discount-refunds+tips)/100],[],
+   ['Sales summary','LAK'],['Gross sales',gross/100],['Discounts on sales',discount/100],['Refunds after discounts',refunds/100],['Oon Jai net sales',(gross-discount-refunds-split.partner)/100],...(split.partners.length?[['Partner share',split.partner/100],['Oon Jai share of consignment',split.company/100],['Consignment partner','Partner share (LAK)','Oon Jai share (LAK)'],...split.partners.map(p=>[p.name,p.partner/100,p.company/100])]:[]),['Net tips',tips/100],['Total collected after refunds',(gross-discount-refunds+tips)/100],[],
    ['Payment method','Net sales (LAK)','Net tips (LAK)','Net received after kip change (LAK)'],
    ...[...methods].map(([method,value])=>[method,value/100,(methodTips.get(method)||0)/100,(value+(methodTips.get(method)||0)+(method==='Cash'?-drawerChange:adjustments.get(method)||0))/100]),[],
    ['Foreign-currency payments','Net sales (LAK), included above'],['Paid in foreign currency',fxNet/100],
@@ -45,5 +57,5 @@ var restaurantReportSummary = (() => {
   if(o.data?.offlineNonce?.startsWith('receipt-'+o.id+':')||(!Number(o.number)&&o.id))return 'R-L'+String(o.id).replaceAll('-','').toUpperCase();
   return o.number==null?'':'R-'+o.number;
  }
- return {rows,table,receiptNumber,localReference};
+ return {consignment,rows,table,receiptNumber,localReference};
 })();

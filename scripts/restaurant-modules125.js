@@ -1,15 +1,16 @@
 /* One site and one repository. Load working code only when its module is opened. */
 (()=>{'use strict';
  const groups={
+  consignment:{css:['pos-operations.css?v=register6'],js:['inventory-consignment.js?v=consign166']},
   promotions:{css:['promotions146.css?v=access26'],js:['promotion-kit146.js','restaurant-promotions146.js?v=register157']},
   readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js?v=access26']},
-  reports:{css:['pos-setup154.css?v=register158','pos-operations.css?v=register6','pos-v118.css?v=count165'],js:['pos-money.js?v=calc155','pos-setup154.js?v=register157','pos-shifts.js?v=count165','pos-reports.js?v=shift159','pos-backoffice-reports.js?v=shift159']},
+  reports:{css:['pos-setup154.css?v=register158','pos-operations.css?v=register6','pos-v118.css?v=count165'],js:['pos-money.js?v=calc155','pos-setup154.js?v=register157','pos-shifts.js?v=consign166','pos-reports.js?v=consign166','pos-backoffice-reports.js?v=consign166']},
   sales:{css:['restaurant-sales143.css?v=access26'],js:['sales-math143.js?v=access26','restaurant-sales143.js?v=access26']},
   settings:{css:['pos-setup154.css?v=register158'],js:['pos-money.js?v=calc155','pos-setup154.js?v=register157','restaurant-settings146.bundle.js?v=register157']},
   inventory:{css:['inventory-menu-v104.css?v=access26','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=register157','inventory-allocated.js?v=register157']},
   menu:{depends:['inventory'],js:['menu-v108.js?v=register157']},
   kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=access26'],js:['preparation-waste124.js?v=register157']},
-  pos:{css:['pos-setup154.css?v=register158','pos-v118.css?v=count165','pos-receipt.css?v=shift159'],js:['pos-setup154.js?v=register157','restaurant-pos150.bundle.js?v=count165']}
+  pos:{css:['pos-setup154.css?v=register158','pos-v118.css?v=count165','pos-receipt.css?v=shift159'],js:['pos-setup154.js?v=register157','restaurant-pos150.bundle.js?v=consign166']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
  const pendingFiles=new Map();
@@ -32,7 +33,7 @@
   const promise=(async()=>{for(const dep of config.depends||[])await ensure(dep);for(const file of config.css||[])await style(file);for(const file of config.js||[])await script(file);ready.add(group)})();
   promises.set(group,promise);try{await promise}catch(e){promises.delete(group);throw e}
  }
- function groupFor(id){return id==='restaurant-pos-reports'?'reports':id==='restaurant-promotions'?'promotions':id==='restaurant-sales143'?'sales':['inv-bulk132','inv-preparation124','inv-waste124'].includes(id)?'kitchen':id.startsWith('inv-')?'inventory':id.startsWith('menu-')?'menu':id==='pos118'?'pos':id==='restaurant-settings'?'settings':null}
+ function groupFor(id){return id==='inv-consignment'?'consignment':id==='restaurant-pos-reports'?'reports':id==='restaurant-promotions'?'promotions':id==='restaurant-sales143'?'sales':['inv-bulk132','inv-preparation124','inv-waste124'].includes(id)?'kitchen':id.startsWith('inv-')?'inventory':id.startsWith('menu-')?'menu':id==='pos118'?'pos':id==='restaurant-settings'?'settings':null}
  // POS uses its own current catalog. It does not load the Inventory ledger.
  window.menuStore108={state:{loaded:false,items:[],ingredients:[],moves:[],menu:[],categories:[]},
   async save(...args){await ensure('inventory');return window.menuStore108.save(...args)},

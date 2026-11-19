@@ -120,10 +120,10 @@ var posReports = globalThis.posReports || (() => {
   const fmt=v=>new Intl.NumberFormat('en-US',{maximumFractionDigits:6}).format(v);
   return fx?'FX payment: '+fmt(fx.amount)+' '+fx.currency+' × '+fmt(fx.rate)+' LAK = '+fmt(fx.equivalentLak)+' LAK · Change: '+fmt(fx.changeLak)+' LAK':'';
  }
- const receiptHeader=['Date','Receipt number','Receipt type','Shift ID','Description','Quantity','Gross sales (LAK)','Discount (LAK)','Net sales (LAK)','Payment method','Payment reference','Sale cashier','Customer','Dining option','Note','Refund reason','Status','Original payment date','Refund date','Original tender currency','Foreign amount received','LAK per foreign unit','Original tender equivalent (LAK)','Original change (LAK)','Tip (LAK)','Total collected (LAK)'];
+ const receiptHeader=['Date','Receipt number','Receipt type','Shift ID','Description','Quantity','Gross sales (LAK)','Discount (LAK)','Sale after discount (LAK)','Payment method','Payment reference','Sale cashier','Customer','Dining option','Note','Refund reason','Status','Original payment date','Refund date','Original tender currency','Foreign amount received','LAK per foreign unit','Original tender equivalent (LAK)','Original change (LAK)','Tip (LAK)','Total collected (LAK)'];
  const itemHeader=['Date','Receipt number','Receipt type','Shift ID','Menu item ID','Menu item','Modifiers','Item note','Quantity','Unit price (LAK)','Gross sales (LAK)','Allocated discount (LAK)','Line total (LAK)','Payment method','Ingredients restocked'];
  function salesReport(events,items) {
-  const rows=[items?itemHeader:receiptHeader];
+  const rows=[[...(items?itemHeader:receiptHeader),'Consignment partner','Partner share (LAK)','Oon Jai net sales (LAK)']];
   for(const {order,refund,at} of events) {
    const d=order.data,lines=d.lines||[],sign=refund?-1:1;
    const common=[stamp(at),numberFor(order),refund?'Refund':'Sale',refund?d.refundShiftId:d.shiftId];
@@ -131,8 +131,9 @@ var posReports = globalThis.posReports || (() => {
    const grossSum=gross.reduce((sum,x)=>sum+x,0);
    const paid=cents(d.total), subtotal=d.subtotal==null?grossSum:cents(d.subtotal);
    if(!items) {
+    const split=restaurantReportSummary.consignment([{order,refund}]);
     rows.push([...common,lines.map(l=>l.quantity+' × '+l.name).join(', '),sign*lines.reduce((sum,l)=>sum+Number(l.quantity),0),
-     sign*subtotal/100,sign*(subtotal-paid)/100,sign*paid/100,d.payment,d.paymentReference,d.cashier,d.customer,d.service,d.note,refund?d.reason:'',order.status,stamp(order.paid_at),stamp(order.refunded_at),d.fxTender?.currency??'',d.fxTender?.amount??'',d.fxTender?.rate??'',d.fxTender?.equivalentLak??'',d.fxTender?.changeLak??'',sign*cents(d.tip||0)/100,sign*(paid+cents(d.tip||0))/100]);
+     sign*subtotal/100,sign*(subtotal-paid)/100,sign*paid/100,d.payment,d.paymentReference,d.cashier,d.customer,d.service,d.note,refund?d.reason:'',order.status,stamp(order.paid_at),stamp(order.refunded_at),d.fxTender?.currency??'',d.fxTender?.amount??'',d.fxTender?.rate??'',d.fxTender?.equivalentLak??'',d.fxTender?.changeLak??'',sign*cents(d.tip||0)/100,sign*(paid+cents(d.tip||0))/100,split.partners.map(p=>p.name).join(', '),split.partner/100,(sign*paid-split.partner)/100]);
     continue;
    }
    // Allocate the recorded receipt total across lines. Cumulative rounding keeps the sum exact.
@@ -143,12 +144,12 @@ var posReports = globalThis.posReports || (() => {
     const net=cumulativeNet-previousNet;
     previousNet=cumulativeNet;
     rows.push([...common,line.menuId,line.name,(line.options||[]).join(', '),line.note,sign*Number(line.quantity),
-     Number(line.unitPrice),sign*gross[i]/100,sign*(gross[i]-net)/100,sign*net/100,d.payment,refund&&d.restocked!=null?(d.restocked?'Yes':'No'):'']);
+     Number(line.unitPrice),sign*gross[i]/100,sign*(gross[i]-net)/100,sign*net/100,d.payment,refund&&d.restocked!=null?(d.restocked?'Yes':'No'):'',line.consignment?.partner||'',sign*(line.consignment?.partnerShare||0),sign*(net-cents(line.consignment?.partnerShare||0))/100]);
    });
   }
   return rows;
  }
- const shiftHeader=['Shift ID','Cashier','Opened at','Closed at','Status','Sale receipts','Refunds','Sales collected (LAK)','Refund amount (LAK)','Net collected (LAK)','Opening cash (LAK)','Cash tender received (LAK)','Cash refunds (LAK)','Manual cash in (LAK)','Manual cash out (LAK)','Expected cash (LAK)','Counted cash (LAK)','Difference (LAK)','Change given (LAK)'];
+ const shiftHeader=['Shift ID','Cashier','Opened at','Closed at','Status','Sale receipts','Refunds','Sales collected (LAK)','Refund amount (LAK)','Net collected (LAK)','Opening cash (LAK)','Cash tender received (LAK)','Cash refunds (LAK)','Manual cash in (LAK)','Manual cash out (LAK)','Expected cash (LAK)','Counted cash (LAK)','Difference (LAK)','Change given (LAK)','Oon Jai net sales (LAK)','Partner share (LAK)'];
  function legacyRefundInShift(order,shift){
   return order.status==='refunded'&&!order.data.refundShiftId&&shift.cashier&&order.data.actionBy===shift.cashier&&
    Date.parse(order.refunded_at)>=Date.parse(shift.opened_at)&&(!shift.closed_at||Date.parse(order.refunded_at)<=Date.parse(shift.closed_at));
@@ -186,7 +187,7 @@ var posReports = globalThis.posReports || (() => {
     const t=report.totals,refundAmount=report.methods.reduce((sum,m)=>sum+cents(m.refunds),0)/100;
     const salesAmount=report.methods.reduce((sum,m)=>sum+cents(m.paid),0)/100;
     rows.push([shift.shift_code||report.shiftCode||(s.sample?posShifts.sampleCode(s,shift):shift.id),report.cashier||shift.profile?.full_name||paid[0]?.data.cashier||(s.sample?'Sample cashier':'Name unavailable'),stamp(shift.opened_at),stamp(shift.closed_at),shift.closed_at?'Closed':'Open',
-     t.paidCount,t.refundCount,salesAmount,refundAmount,t.collected,drawer.opening,drawer.received,drawer.refunds,drawer.cashIn,drawer.cashOut,drawer.expected,counted??'',counted==null?'':drawer.variance??(cents(counted)-cents(drawer.expected))/100,drawer.change]);
+     t.paidCount,t.refundCount,salesAmount,refundAmount,t.collected,drawer.opening,drawer.received,drawer.refunds,drawer.cashIn,drawer.cashOut,drawer.expected,counted??'',counted==null?'':drawer.variance??(cents(counted)-cents(drawer.expected))/100,drawer.change,(t.companyNetSales??t.netSales),report.consignment?.partner??0]);
     const foreign=new Map();
     for(const c of report.cash)if(c.currency!=='LAK'&&posShifts.hasDrawerActivity(c)){currencies.add(c.currency);foreign.set(c.currency,c)}
     foreignRows.push(foreign);
@@ -229,7 +230,7 @@ var posReports = globalThis.posReports || (() => {
   return cached.job;
  }
  function summary(rows,type){
-  const data=rows.slice(1),index={items:12,receipts:8,shifts:9}[type];
+  const data=rows.slice(1),index=type==='shifts'?9:rows[0].indexOf('Oon Jai net sales (LAK)');
   const net=data.reduce((sum,row)=>sum+cents(row[index]),0)/100;
   const count=type==='items'?new Set(data.map(row=>row[4]||row[5])).size:data.length;
   const name={items:'menu items',receipts:'receipts',shifts:'shifts'}[type];
@@ -245,7 +246,7 @@ var posReports = globalThis.posReports || (() => {
   }catch(error){if(el.isConnected&&el.dataset.selection===key)el.textContent=error.message}
  }
  function printTable(type,rows,r,sample,summaryRows){
-  const cols=type==='items'?[0,1,2,5,6,8,9,10,11,12]:[0,2,3,1,4,5,6,9,15,16,17,...rows[0].map((label,i)=>i>18&&/^Expected cash/.test(label)?i:null).filter(i=>i!=null)];
+  const cols=type==='items'?[0,1,2,5,6,8,9,10,11,12,15,16,17]:[0,2,3,1,4,5,6,9,15,16,17,...rows[0].map((label,i)=>i>18&&/^Expected cash/.test(label)?i:null).filter(i=>i!=null)];
   printRows('Oon Jai Marketplace · '+types[type],(sample?'SAMPLE · ':'')+r.from+' – '+r.to+' · '+summary(rows,type),summaryRows,rows.map(row=>cols.map(c=>row[c])));
  }
  function printRows(title,subtitle,summaryRows,rows){

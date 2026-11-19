@@ -339,7 +339,7 @@ function restaurantTabCan125(scope,tab,action='view'){
  return !tabs||tabs[tab]===true;
 }
 window.restaurantTabCan125=restaurantTabCan125;
-window.restaurantTabId125=(id)=>({'inv-allocated':'inv-items','menu-details':'menu-recipe','menu-integration132':'menu-recipe','inv-bulk132':'inv-preparation124'}[id]||id);
+window.restaurantTabId125=(id)=>({'inv-consignment':'inv-items','inv-allocated':'inv-items','menu-details':'menu-recipe','menu-integration132':'menu-recipe','inv-bulk132':'inv-preparation124'}[id]||id);
 window.restaurantPosTab125=(tab,sub)=>tab==='Overview'?'pos-overview':tab==='Management'?'pos-management':({'New Order':'pos-sales-new','Open Orders':'pos-sales-open','Receipts':'pos-sales-receipts','Online Orders':'pos-sales-online'}[sub]||'pos-sales-new');
 window.restaurantFirstTab125=scope=>Object.keys(restaurantTabs125[scope]||{}).find(id=>restaurantTabCan125(scope,id));
 window.restaurantStart125=()=>{
@@ -402,15 +402,16 @@ window.restaurantPosMode128=()=> 'live';
 /* One site and one repository. Load working code only when its module is opened. */
 (()=>{'use strict';
  const groups={
+  consignment:{css:['pos-operations.css?v=register6'],js:['inventory-consignment.js?v=consign166']},
   promotions:{css:['promotions146.css?v=access26'],js:['promotion-kit146.js','restaurant-promotions146.js?v=register157']},
   readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js?v=access26']},
-  reports:{css:['pos-setup154.css?v=register158','pos-operations.css?v=register6','pos-v118.css?v=count165'],js:['pos-money.js?v=calc155','pos-setup154.js?v=register157','pos-shifts.js?v=count165','pos-reports.js?v=shift159','pos-backoffice-reports.js?v=shift159']},
+  reports:{css:['pos-setup154.css?v=register158','pos-operations.css?v=register6','pos-v118.css?v=count165'],js:['pos-money.js?v=calc155','pos-setup154.js?v=register157','pos-shifts.js?v=consign166','pos-reports.js?v=consign166','pos-backoffice-reports.js?v=consign166']},
   sales:{css:['restaurant-sales143.css?v=access26'],js:['sales-math143.js?v=access26','restaurant-sales143.js?v=access26']},
   settings:{css:['pos-setup154.css?v=register158'],js:['pos-money.js?v=calc155','pos-setup154.js?v=register157','restaurant-settings146.bundle.js?v=register157']},
   inventory:{css:['inventory-menu-v104.css?v=access26','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=register157','inventory-allocated.js?v=register157']},
   menu:{depends:['inventory'],js:['menu-v108.js?v=register157']},
   kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=access26'],js:['preparation-waste124.js?v=register157']},
-  pos:{css:['pos-setup154.css?v=register158','pos-v118.css?v=count165','pos-receipt.css?v=shift159'],js:['pos-setup154.js?v=register157','restaurant-pos150.bundle.js?v=count165']}
+  pos:{css:['pos-setup154.css?v=register158','pos-v118.css?v=count165','pos-receipt.css?v=shift159'],js:['pos-setup154.js?v=register157','restaurant-pos150.bundle.js?v=consign166']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
  const pendingFiles=new Map();
@@ -433,7 +434,7 @@ window.restaurantPosMode128=()=> 'live';
   const promise=(async()=>{for(const dep of config.depends||[])await ensure(dep);for(const file of config.css||[])await style(file);for(const file of config.js||[])await script(file);ready.add(group)})();
   promises.set(group,promise);try{await promise}catch(e){promises.delete(group);throw e}
  }
- function groupFor(id){return id==='restaurant-pos-reports'?'reports':id==='restaurant-promotions'?'promotions':id==='restaurant-sales143'?'sales':['inv-bulk132','inv-preparation124','inv-waste124'].includes(id)?'kitchen':id.startsWith('inv-')?'inventory':id.startsWith('menu-')?'menu':id==='pos118'?'pos':id==='restaurant-settings'?'settings':null}
+ function groupFor(id){return id==='inv-consignment'?'consignment':id==='restaurant-pos-reports'?'reports':id==='restaurant-promotions'?'promotions':id==='restaurant-sales143'?'sales':['inv-bulk132','inv-preparation124','inv-waste124'].includes(id)?'kitchen':id.startsWith('inv-')?'inventory':id.startsWith('menu-')?'menu':id==='pos118'?'pos':id==='restaurant-settings'?'settings':null}
  // POS uses its own current catalog. It does not load the Inventory ledger.
  window.menuStore108={state:{loaded:false,items:[],ingredients:[],moves:[],menu:[],categories:[]},
   async save(...args){await ensure('inventory');return window.menuStore108.save(...args)},
@@ -757,7 +758,19 @@ window.restaurantAccounting124={sync,tablet};if(document.readyState==='loading')
 /* Summaries use each payment event once, independently of the number of menu lines. */
 var restaurantReportSummary = (() => {
  const cents=v=>Math.round((Number(v)||0)*100);
+ function consignment(events){
+  const partners=new Map();let partner=0,company=0;
+  for(const {order,refund} of events)for(const line of order.data.lines||[]){
+   const split=line.consignment;if(!split)continue;
+   const sign=refund?-1:1, owed=sign*cents(split.partnerShare),earned=sign*cents(split.companyShare);
+   const row=partners.get(split.partnerId)||{name:split.partner,partner:0,company:0};
+   row.partner+=owed;row.company+=earned;partners.set(split.partnerId,row);
+   partner+=owed;company+=earned;
+  }
+  return {partner,company,partners:[...partners.values()].sort((a,b)=>a.name.localeCompare(b.name))};
+ }
  function rows(events){
+  const split=consignment(events);
   let gross=0,discount=0,refunds=0,tips=0,fxNet=0,drawerChange=0;
   const adjustments=new Map(),methodTips=new Map();
   const methods=new Map(['Cash','BCEL QR','Bank'].map(name=>[name,0])),currencies=new Map();
@@ -781,7 +794,7 @@ var restaurantReportSummary = (() => {
    currencies.set(fx.currency,v);
   }
   return [
-   ['Sales summary','LAK'],['Gross sales',gross/100],['Discounts on sales',discount/100],['Refunds after discounts',refunds/100],['Net sales',(gross-discount-refunds)/100],['Net tips',tips/100],['Total collected after refunds',(gross-discount-refunds+tips)/100],[],
+   ['Sales summary','LAK'],['Gross sales',gross/100],['Discounts on sales',discount/100],['Refunds after discounts',refunds/100],['Oon Jai net sales',(gross-discount-refunds-split.partner)/100],...(split.partners.length?[['Partner share',split.partner/100],['Oon Jai share of consignment',split.company/100],['Consignment partner','Partner share (LAK)','Oon Jai share (LAK)'],...split.partners.map(p=>[p.name,p.partner/100,p.company/100])]:[]),['Net tips',tips/100],['Total collected after refunds',(gross-discount-refunds+tips)/100],[],
    ['Payment method','Net sales (LAK)','Net tips (LAK)','Net received after kip change (LAK)'],
    ...[...methods].map(([method,value])=>[method,value/100,(methodTips.get(method)||0)/100,(value+(methodTips.get(method)||0)+(method==='Cash'?-drawerChange:adjustments.get(method)||0))/100]),[],
    ['Foreign-currency payments','Net sales (LAK), included above'],['Paid in foreign currency',fxNet/100],
@@ -801,7 +814,7 @@ var restaurantReportSummary = (() => {
   if(o.data?.offlineNonce?.startsWith('receipt-'+o.id+':')||(!Number(o.number)&&o.id))return 'R-L'+String(o.id).replaceAll('-','').toUpperCase();
   return o.number==null?'':'R-'+o.number;
  }
- return {rows,table,receiptNumber,localReference};
+ return {consignment,rows,table,receiptNumber,localReference};
 })();
 
 ;
@@ -851,16 +864,18 @@ function eventsFor(rows,from,to){
 function summarize(rows,from,to){
  const days=[];for(let t=Date.parse(from+'T00:00:00Z'),end=Date.parse(to+'T00:00:00Z');t<=end;t+=86400000)days.push({date:new Date(t).toISOString().slice(0,10),sales:0,refunds:0,net:0,count:0});
  const map=new Map(days.map(d=>[d.date,d]));let sales=0,refunds=0,count=0;
+ let partnerCents=0;
  for(const {order,refund,at} of eventsFor(rows,from,to)){
   const total=Number(order.data?.total);if(!Number.isFinite(total)||total<0)throw Error('A receipt has an invalid total. Review the receipt before reporting.');
   const d=map.get(day(at));
   if(refund){refunds+=total;d.refunds+=total;}else{sales+=total;d.sales+=total;count++;d.count++;}
-  d.net=d.sales-d.refunds;
+  const share=restaurantReportSummary.consignment([{order,refund}]).partner;
+  partnerCents+=share;d.partnerCents=(d.partnerCents||0)+share;d.net=d.sales-d.refunds-d.partnerCents/100;
  }
- return {days,sales,refunds,net:sales-refunds,count};
+ return {days,sales,refunds,net:sales-refunds-partnerCents/100,count};
 }
 function eventRow({order,refund,at}){return '<tr><td>'+esc(homeReceipt(order))+'</td><td>'+esc(day(at))+'</td><td>'+esc(order.data?.payment||'')+'</td><td>'+(refund?'Refund':'Sale')+'</td><td>'+money(Number(order.data.total)*(refund?-1:1))+'</td></tr>';}
-function graph(summary){const ds=summary.days,max=Math.max(0,...ds.map(d=>d.net)),min=Math.min(0,...ds.map(d=>d.net)),span=max-min||1,width=720,height=190,pad=48,plotW=width-pad-14,plotH=height-44;const x=i=>pad+(ds.length===1?plotW/2:i*plotW/(ds.length-1)),y=v=>14+plotH*(1-(v-min)/span),points=ds.map((d,i)=>`${x(i)},${y(d.net)}`).join(' ');return `<svg class="home-chart139" viewBox="0 0 ${width} ${height}" role="img" aria-label="Net receipt sales by business date, in LAK"><title>Net receipt sales by business date, in LAK</title>${[0,.5,1].map(v=>`<line x1="${pad}" y1="${y(min+v*span)}" x2="${width-14}" y2="${y(min+v*span)}" stroke="#dce5df"/><text x="${pad-7}" y="${y(min+v*span)+4}" text-anchor="end">${new Intl.NumberFormat('en',{notation:'compact'}).format(min+v*span)}</text>`).join('')}<polyline points="${points}" fill="none" stroke="#087652" stroke-width="3"/>${ds.map((d,i)=>`<circle cx="${x(i)}" cy="${y(d.net)}" r="${ds.length>62?2:3}" fill="#087652"><title>${d.date}: ${money(d.net)}</title></circle>`).join('')}${[...new Set([0,Math.floor((ds.length-1)/2),ds.length-1])].map(i=>`<text x="${x(i)}" y="${height-4}" text-anchor="${i===0?'start':i===ds.length-1?'end':'middle'}">${ds[i].date.slice(5)}</text>`).join('')}</svg>`}
+function graph(summary){const ds=summary.days,max=Math.max(0,...ds.map(d=>d.net)),min=Math.min(0,...ds.map(d=>d.net)),span=max-min||1,width=720,height=190,pad=48,plotW=width-pad-14,plotH=height-44;const x=i=>pad+(ds.length===1?plotW/2:i*plotW/(ds.length-1)),y=v=>14+plotH*(1-(v-min)/span),points=ds.map((d,i)=>`${x(i)},${y(d.net)}`).join(' ');return `<svg class="home-chart139" viewBox="0 0 ${width} ${height}" role="img" aria-label="Oon Jai net sales by business date, in LAK"><title>Oon Jai net sales by business date, in LAK</title>${[0,.5,1].map(v=>`<line x1="${pad}" y1="${y(min+v*span)}" x2="${width-14}" y2="${y(min+v*span)}" stroke="#dce5df"/><text x="${pad-7}" y="${y(min+v*span)+4}" text-anchor="end">${new Intl.NumberFormat('en',{notation:'compact'}).format(min+v*span)}</text>`).join('')}<polyline points="${points}" fill="none" stroke="#087652" stroke-width="3"/>${ds.map((d,i)=>`<circle cx="${x(i)}" cy="${y(d.net)}" r="${ds.length>62?2:3}" fill="#087652"><title>${d.date}: ${money(d.net)}</title></circle>`).join('')}${[...new Set([0,Math.floor((ds.length-1)/2),ds.length-1])].map(i=>`<text x="${x(i)}" y="${height-4}" text-anchor="${i===0?'start':i===ds.length-1?'end':'middle'}">${ds[i].date.slice(5)}</text>`).join('')}</svg>`}
 async function receiptReport144(from,to,valid){const rows=[];let before=null;do{const controller=new AbortController();let timer;try{const r=await Promise.race([ojmDb.rpc('pos_report_page125',{p_from:from,p_to:to,p_before_number:before}).abortSignal(controller.signal),new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('Report timed out. Try again.'))},15000)})]);if(!valid())throw Error('Report superseded');if(r.error)throw Error(r.error.message);if(!Array.isArray(r.data))throw Error('Receipt report is unavailable');rows.push(...r.data);if(r.data.length<250)return rows;const next=r.data.at(-1).number;if(next===before)throw Error('Receipt pagination did not advance');before=next;}finally{clearTimeout(timer)}}while(true)}
 async function loadReport(from,to){
  if(!reportAllowed())return;const span=(Date.parse(to)-Date.parse(from))/86400000;if(!/^\d{4}-\d{2}-\d{2}$/.test(from)||!/^\d{4}-\d{2}-\d{2}$/.test(to)||!Number.isFinite(span)||span<0||span>366){report.error='Choose a valid period of up to one year.';drawReport();return}
@@ -875,7 +890,7 @@ function drawReport(){
  if(report.error){host.innerHTML=`<p role="alert">${esc(report.error)}</p>`;return}
  if(!report.rows){host.innerHTML='<p class="home-empty139">Choose a period and load your sales graph. Only synced receipts are included.</p>';return}
  const s=summarize(report.rows,report.from,report.to),events=eventsFor(report.rows,report.from,report.to),pages=Math.max(1,Math.ceil(events.length/25));report.page=Math.min(report.page,pages-1);
- host.innerHTML=`<div class="home-sales-metrics139">${[['Receipt sales',money(s.sales)],['Refunded receipts',money(s.refunds)],['Net receipt sales',money(s.net)],['Paid receipts',s.count]].map(([label,value])=>`<div><small>${label}</small><strong>${value}</strong></div>`).join('')}</div><h4>Sales by receipt date · LAK</h4>${graph(s)}${s.count?'':'<p>No paid receipts in this period.</p>'}<p class="home-note139">${esc(report.from)} to ${esc(report.to)} · Sales use the payment date. Refunds use the date issued. Offline sales appear after syncing.</p><div class="home-export139"><button type="button" data-report139="csv">Download sales CSV</button><button type="button" data-report139="items">Download items CSV</button><button type="button" data-report139="shifts">Download shifts CSV</button><button type="button" data-report139="print">Print / Save PDF</button></div><div class="home-table139"><table><thead><tr><th>Receipt</th><th>Business date</th><th>Payment</th><th>Event</th><th>Total LAK</th></tr></thead><tbody>${events.slice(report.page*25,(report.page+1)*25).map(eventRow).join('')||'<tr><td colspan="5">No receipts found.</td></tr>'}</tbody></table></div><nav class="home-pager139" aria-label="Receipt pages"><button type="button" data-report139="prev" ${report.page===0?'disabled':''}>Prev</button><span>${report.page+1} of ${pages}</span><button type="button" data-report139="next" ${report.page===pages-1?'disabled':''}>Next</button></nav>`;
+ host.innerHTML=`<div class="home-sales-metrics139">${[['Receipt sales',money(s.sales)],['Refunded receipts',money(s.refunds)],['Oon Jai net sales',money(s.net)],['Paid receipts',s.count]].map(([label,value])=>`<div><small>${label}</small><strong>${value}</strong></div>`).join('')}</div><h4>Sales by receipt date · LAK</h4>${graph(s)}${s.count?'':'<p>No paid receipts in this period.</p>'}<p class="home-note139">${esc(report.from)} to ${esc(report.to)} · Sales use the payment date. Refunds use the date issued. Offline sales appear after syncing.</p><div class="home-export139"><button type="button" data-report139="csv">Download sales CSV</button><button type="button" data-report139="items">Download items CSV</button><button type="button" data-report139="shifts">Download shifts CSV</button><button type="button" data-report139="print">Print / Save PDF</button></div><div class="home-table139"><table><thead><tr><th>Receipt</th><th>Business date</th><th>Payment</th><th>Event</th><th>Total LAK</th></tr></thead><tbody>${events.slice(report.page*25,(report.page+1)*25).map(eventRow).join('')||'<tr><td colspan="5">No receipts found.</td></tr>'}</tbody></table></div><nav class="home-pager139" aria-label="Receipt pages"><button type="button" data-report139="prev" ${report.page===0?'disabled':''}>Prev</button><span>${report.page+1} of ${pages}</span><button type="button" data-report139="next" ${report.page===pages-1?'disabled':''}>Next</button></nav>`;
  host.onclick=e=>{const a=e.target.closest('[data-report139]')?.dataset.report139;if(!a||!reportAllowed())return;if(a==='prev'||a==='next'){report.page+=a==='prev'?-1:1;drawReport()}else if(['csv','items','shifts'].includes(a)){const filter={period:'custom',type:a==='csv'?'receipts':a,from:report.from,to:report.to},owner=liveProfile.id,epoch=sessionEpoch121;restaurantModules125.ensure('reports').then(()=>{if(owner===liveProfile?.id&&epoch===sessionEpoch121&&reportAllowed())return posReports.download(filter,{sample:false},false)}).catch(e=>showCenterStatus(e.message,true))}else if(a==='print')printReport(s);};
 }
 function csv(rows){return '\ufeff'+rows.map(row=>row.map(v=>{let s=String(v??'');if(/^\s*[=+@\-]/.test(s)||/^[\t\r]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"'}).join(',')).join('\r\n')}
@@ -883,7 +898,7 @@ function homeReceipt(order){return restaurantReportSummary.receiptNumber(order)}
 function summaryRows(){
  return restaurantReportSummary.rows(eventsFor(report.rows,report.from,report.to));
 }
-function printReport(s){const frame=document.createElement('iframe');frame.className='home-print139';frame.title='Printable sales report';document.body.append(frame);const d=frame.contentDocument;d.open();d.write(`<!doctype html><html><head><title>Oon Jai Sales Report</title><style>body{font:12px Arial;color:#173c2e;padding:20px}table{width:100%;border-collapse:collapse}th,td{padding:7px;border-bottom:1px solid #ddd;text-align:left}thead{display:table-header-group}tr{break-inside:avoid}svg{width:100%;max-height:190px}svg text{font-size:10px}</style></head><body><h1>Oon Jai · Sales report</h1><p>${esc(report.from)} to ${esc(report.to)} · Business dates in Laos</p><p>Receipt sales: ${money(s.sales)} · Refunded receipts: ${money(s.refunds)} · Net receipt sales: ${money(s.net)}</p>${restaurantReportSummary.table(summaryRows(),esc)}${graph(s)}<p>Refunds use the date issued. Synced receipts only.</p><table><thead><tr><th>Receipt</th><th>Date</th><th>Payment</th><th>Event</th><th>Total LAK</th></tr></thead><tbody>${eventsFor(report.rows,report.from,report.to).map(eventRow).join('')}</tbody></table></body></html>`);d.close();frame.contentWindow.onafterprint=()=>frame.remove();setTimeout(()=>{frame.contentWindow.focus();frame.contentWindow.print()},100);setTimeout(()=>frame.remove(),120000)}
+function printReport(s){const frame=document.createElement('iframe');frame.className='home-print139';frame.title='Printable sales report';document.body.append(frame);const d=frame.contentDocument;d.open();d.write(`<!doctype html><html><head><title>Oon Jai Sales Report</title><style>body{font:12px Arial;color:#173c2e;padding:20px}table{width:100%;border-collapse:collapse}th,td{padding:7px;border-bottom:1px solid #ddd;text-align:left}thead{display:table-header-group}tr{break-inside:avoid}svg{width:100%;max-height:190px}svg text{font-size:10px}</style></head><body><h1>Oon Jai · Sales report</h1><p>${esc(report.from)} to ${esc(report.to)} · Business dates in Laos</p><p>Receipt sales: ${money(s.sales)} · Refunded receipts: ${money(s.refunds)} · Oon Jai net sales: ${money(s.net)}</p>${restaurantReportSummary.table(summaryRows(),esc)}${graph(s)}<p>Refunds use the date issued. Synced receipts only.</p><table><thead><tr><th>Receipt</th><th>Date</th><th>Payment</th><th>Event</th><th>Total LAK</th></tr></thead><tbody>${eventsFor(report.rows,report.from,report.to).map(eventRow).join('')}</tbody></table></body></html>`);d.close();frame.contentWindow.onafterprint=()=>frame.remove();setTimeout(()=>{frame.contentWindow.focus();frame.contentWindow.print()},100);setTimeout(()=>frame.remove(),120000)}
 window.restaurantHome139={render,reset,summarize,csv,invalidate(){report.token++;report.rows=null;report.loading=false;report.error='Records changed. Load the report again for current totals.';}};
 })();
 
