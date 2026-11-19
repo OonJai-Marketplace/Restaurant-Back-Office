@@ -6,7 +6,19 @@ window.shell113={areas:restaurantAreas,esc:v=>String(v??'').replace(/[&<>"']/g,c
 window.access113={renderRecipe:root=>root.innerHTML='<section class="panel113"><h3>Administrator access required</h3></section>',loadRecipe:async()=>{}};
 window.armNewForm108=()=>{};
 function escapeHtml(v){return shell113.esc(v)}
-function showCenterStatus(message,error=false){let n=document.getElementById('restaurantToast');if(!n){n=document.createElement('div');n.id='restaurantToast';n.setAttribute('role','status');document.body.append(n)}n.replaceChildren(document.createTextNode(String(message||'')));n.classList.toggle('error',error);n.hidden=!message;clearTimeout(showCenterStatus.timer);if(message&&String(message).length>85){const close=document.createElement('button');close.textContent='Close';close.onclick=()=>n.hidden=true;n.append(close)}else if(message)showCenterStatus.timer=setTimeout(()=>n.hidden=true,error?8000:4500)}
+function showCenterStatus(message,error=false){
+ let node=document.getElementById('restaurantToast');
+ if(!node){node=document.createElement('div');node.id='restaurantToast';node.setAttribute('aria-atomic','true');document.body.append(node)}
+ clearTimeout(showCenterStatus.timer);
+ const topLayer=typeof node.showPopover==='function';
+ if(topLayer){node.setAttribute('popover','manual');node.hidePopover()}
+ const host=topLayer?document.body:([...document.querySelectorAll('dialog[open]')].at(-1)||document.body);
+ if(node.parentNode!==host)host.append(node);
+ node.hidden=!message;node.setAttribute('role',error?'alert':'status');node.classList.toggle('error',!!error);
+ node.textContent=String(message||'');if(!message)return;
+ if(topLayer)node.showPopover();
+ showCenterStatus.timer=setTimeout(()=>{if(topLayer)node.hidePopover();node.hidden=true},error?6000:3000);
+}
 window.status118={pending:m=>showCenterStatus(m),done:m=>showCenterStatus(m),error:m=>showCenterStatus(m,true)};
 window.ui108={modal:(title,body,buttons=[{label:'Close',value:false}],wide=false,{explicitClose=false}={})=>new Promise(resolve=>{let overlay=document.createElement('div');overlay.className='ui-overlay108 restaurant-modal';overlay.innerHTML=`<section class="ui-dialog108 restaurant-dialog ${wide?'wide':''}" role="dialog" aria-modal="true" aria-label="${escapeHtml(title)}"><header><h3>${escapeHtml(title)}</h3><button type="button" aria-label="Close dialog" data-close>×</button></header><div class="ui-body108 restaurant-dialog-body">${body}</div><footer></footer></section>`;const done=value=>{overlay.remove();resolve(value)};overlay.resolve108=done;overlay.querySelector('[data-close]').onclick=()=>done(false);buttons.filter(b=>b.label!=='Close').forEach(b=>{let button=document.createElement('button');button.type='button';button.textContent=b.label;button.className=b.danger?'danger':'';button.onclick=()=>done(b.value);overlay.querySelector('footer').append(button)});overlay.onclick=e=>{if(!explicitClose&&e.target===overlay)done(false)};document.body.append(overlay)}),esc:escapeHtml};
 ui108.confirm=(title,message)=>ui108.modal(title,`<p>${escapeHtml(message)}</p>`,[{label:'Cancel',value:false},{label:'Delete',value:true,danger:true}]);

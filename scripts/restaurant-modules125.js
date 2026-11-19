@@ -1,15 +1,15 @@
 /* One site and one repository. Load working code only when its module is opened. */
 (()=>{'use strict';
  const groups={
-  promotions:{css:['promotions146.css?v=access26'],js:['promotion-kit146.js','restaurant-promotions146.js?v=access26']},
+  promotions:{css:['promotions146.css?v=access26'],js:['promotion-kit146.js','restaurant-promotions146.js?v=register157']},
   readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js?v=access26']},
-  reports:{css:['pos-setup154.css?v=154','pos-operations.css?v=register6','pos-v118.css?v=setup154'],js:['pos-money.js?v=calc155','pos-setup154.js?v=events156','pos-shifts.js?v=calc155','pos-reports.js?v=calc155','pos-backoffice-reports.js?v=events156']},
+  reports:{css:['pos-setup154.css?v=register157','pos-operations.css?v=register6','pos-v118.css?v=register157'],js:['pos-money.js?v=calc155','pos-setup154.js?v=register157','pos-shifts.js?v=register157','pos-reports.js?v=calc155','pos-backoffice-reports.js?v=events156']},
   sales:{css:['restaurant-sales143.css?v=access26'],js:['sales-math143.js?v=access26','restaurant-sales143.js?v=access26']},
-  settings:{css:['pos-setup154.css?v=154'],js:['pos-money.js?v=calc155','pos-setup154.js?v=events156','restaurant-settings146.bundle.js?v=events156']},
-  inventory:{css:['inventory-menu-v104.css?v=access26','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=events156','inventory-allocated.js?v=access26']},
-  menu:{depends:['inventory'],js:['menu-v108.js?v=access26']},
-  kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=access26'],js:['preparation-waste124.js?v=events156']},
-  pos:{css:['pos-setup154.css?v=154','pos-v118.css?v=setup154','pos-receipt.css?v=setup154'],js:['pos-setup154.js?v=events156','restaurant-pos150.bundle.js?v=events156']}
+  settings:{css:['pos-setup154.css?v=register157'],js:['pos-money.js?v=calc155','pos-setup154.js?v=register157','restaurant-settings146.bundle.js?v=register157']},
+  inventory:{css:['inventory-menu-v104.css?v=access26','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=register157','inventory-allocated.js?v=register157']},
+  menu:{depends:['inventory'],js:['menu-v108.js?v=register157']},
+  kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=access26'],js:['preparation-waste124.js?v=register157']},
+  pos:{css:['pos-setup154.css?v=register157','pos-v118.css?v=register157','pos-receipt.css?v=setup154'],js:['pos-setup154.js?v=register157','restaurant-pos150.bundle.js?v=register157']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
  const pendingFiles=new Map();

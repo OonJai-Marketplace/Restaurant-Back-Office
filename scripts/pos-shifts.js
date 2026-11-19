@@ -56,7 +56,7 @@ async function open(action,h){
     if(s.sample){const latest=sampleReport(s,shift);if(latest.reviewToken!==report.reviewToken)throw Error('Shift activity changed. Refresh totals and review before closing.');const frozen={...report,closedAt:new Date().toISOString(),cash:report.cash.map(c=>({...c,counted:counts[c.currency],variance:round(counts[c.currency]-c.expected)}))};delete frozen.reviewToken;result={...shift,closed_at:frozen.closedAt,counted:counts.LAK,expected:report.cash.find(c=>c.currency==='LAK').expected,closing_report:frozen};}
     else result=await h.rpc('pos_manage118',{p_action:'close',p_data:{shiftId:shift.id,reviewToken:report.reviewToken,countedCash:counts},p_version:0});
     check();if(!result?.closing_report)throw Error('The close-shift receipt was not returned. Refresh shift receipts before retrying.');
-    s.shifts=[result,...s.shifts.filter(x=>x.id!==shift.id)];root.resolve108(true);h.render();view(result.closing_report,h);if(!s.sample)h.load().catch(()=>{});
+    s.shifts=[result,...s.shifts.filter(x=>x.id!==shift.id)];root.resolve108(true);h.render();view(result.closing_report,h);h.status('Shift closed.');if(!s.sample)h.load().catch(()=>{});
    }finally{for(const el of locked)el.disabled=false}
   },{explicitClose:true,keepOpen:true});
   root.querySelector('.pos-dialog118').classList.add('pos-shift-dialog');rootReport();root.querySelector('form').addEventListener('input',refreshVariance);

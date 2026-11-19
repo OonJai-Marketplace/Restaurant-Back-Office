@@ -49,7 +49,19 @@ window.shell113={areas:restaurantAreas,esc:v=>String(v??'').replace(/[&<>"']/g,c
 window.access113={renderRecipe:root=>root.innerHTML='<section class="panel113"><h3>Administrator access required</h3></section>',loadRecipe:async()=>{}};
 window.armNewForm108=()=>{};
 function escapeHtml(v){return shell113.esc(v)}
-function showCenterStatus(message,error=false){let n=document.getElementById('restaurantToast');if(!n){n=document.createElement('div');n.id='restaurantToast';n.setAttribute('role','status');document.body.append(n)}n.replaceChildren(document.createTextNode(String(message||'')));n.classList.toggle('error',error);n.hidden=!message;clearTimeout(showCenterStatus.timer);if(message&&String(message).length>85){const close=document.createElement('button');close.textContent='Close';close.onclick=()=>n.hidden=true;n.append(close)}else if(message)showCenterStatus.timer=setTimeout(()=>n.hidden=true,error?8000:4500)}
+function showCenterStatus(message,error=false){
+ let node=document.getElementById('restaurantToast');
+ if(!node){node=document.createElement('div');node.id='restaurantToast';node.setAttribute('aria-atomic','true');document.body.append(node)}
+ clearTimeout(showCenterStatus.timer);
+ const topLayer=typeof node.showPopover==='function';
+ if(topLayer){node.setAttribute('popover','manual');node.hidePopover()}
+ const host=topLayer?document.body:([...document.querySelectorAll('dialog[open]')].at(-1)||document.body);
+ if(node.parentNode!==host)host.append(node);
+ node.hidden=!message;node.setAttribute('role',error?'alert':'status');node.classList.toggle('error',!!error);
+ node.textContent=String(message||'');if(!message)return;
+ if(topLayer)node.showPopover();
+ showCenterStatus.timer=setTimeout(()=>{if(topLayer)node.hidePopover();node.hidden=true},error?6000:3000);
+}
 window.status118={pending:m=>showCenterStatus(m),done:m=>showCenterStatus(m),error:m=>showCenterStatus(m,true)};
 window.ui108={modal:(title,body,buttons=[{label:'Close',value:false}],wide=false,{explicitClose=false}={})=>new Promise(resolve=>{let overlay=document.createElement('div');overlay.className='ui-overlay108 restaurant-modal';overlay.innerHTML=`<section class="ui-dialog108 restaurant-dialog ${wide?'wide':''}" role="dialog" aria-modal="true" aria-label="${escapeHtml(title)}"><header><h3>${escapeHtml(title)}</h3><button type="button" aria-label="Close dialog" data-close>×</button></header><div class="ui-body108 restaurant-dialog-body">${body}</div><footer></footer></section>`;const done=value=>{overlay.remove();resolve(value)};overlay.resolve108=done;overlay.querySelector('[data-close]').onclick=()=>done(false);buttons.filter(b=>b.label!=='Close').forEach(b=>{let button=document.createElement('button');button.type='button';button.textContent=b.label;button.className=b.danger?'danger':'';button.onclick=()=>done(b.value);overlay.querySelector('footer').append(button)});overlay.onclick=e=>{if(!explicitClose&&e.target===overlay)done(false)};document.body.append(overlay)}),esc:escapeHtml};
 ui108.confirm=(title,message)=>ui108.modal(title,`<p>${escapeHtml(message)}</p>`,[{label:'Cancel',value:false},{label:'Delete',value:true,danger:true}]);
@@ -372,15 +384,15 @@ window.restaurantPosMode128=()=> 'live';
 /* One site and one repository. Load working code only when its module is opened. */
 (()=>{'use strict';
  const groups={
-  promotions:{css:['promotions146.css?v=access26'],js:['promotion-kit146.js','restaurant-promotions146.js?v=access26']},
+  promotions:{css:['promotions146.css?v=access26'],js:['promotion-kit146.js','restaurant-promotions146.js?v=register157']},
   readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js?v=access26']},
-  reports:{css:['pos-setup154.css?v=154','pos-operations.css?v=register6','pos-v118.css?v=setup154'],js:['pos-money.js?v=calc155','pos-setup154.js?v=events156','pos-shifts.js?v=calc155','pos-reports.js?v=calc155','pos-backoffice-reports.js?v=events156']},
+  reports:{css:['pos-setup154.css?v=register157','pos-operations.css?v=register6','pos-v118.css?v=register157'],js:['pos-money.js?v=calc155','pos-setup154.js?v=register157','pos-shifts.js?v=register157','pos-reports.js?v=calc155','pos-backoffice-reports.js?v=events156']},
   sales:{css:['restaurant-sales143.css?v=access26'],js:['sales-math143.js?v=access26','restaurant-sales143.js?v=access26']},
-  settings:{css:['pos-setup154.css?v=154'],js:['pos-money.js?v=calc155','pos-setup154.js?v=events156','restaurant-settings146.bundle.js?v=events156']},
-  inventory:{css:['inventory-menu-v104.css?v=access26','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=events156','inventory-allocated.js?v=access26']},
-  menu:{depends:['inventory'],js:['menu-v108.js?v=access26']},
-  kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=access26'],js:['preparation-waste124.js?v=events156']},
-  pos:{css:['pos-setup154.css?v=154','pos-v118.css?v=setup154','pos-receipt.css?v=setup154'],js:['pos-setup154.js?v=events156','restaurant-pos150.bundle.js?v=events156']}
+  settings:{css:['pos-setup154.css?v=register157'],js:['pos-money.js?v=calc155','pos-setup154.js?v=register157','restaurant-settings146.bundle.js?v=register157']},
+  inventory:{css:['inventory-menu-v104.css?v=access26','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=register157','inventory-allocated.js?v=register157']},
+  menu:{depends:['inventory'],js:['menu-v108.js?v=register157']},
+  kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=access26'],js:['preparation-waste124.js?v=register157']},
+  pos:{css:['pos-setup154.css?v=register157','pos-v118.css?v=register157','pos-receipt.css?v=setup154'],js:['pos-setup154.js?v=register157','restaurant-pos150.bundle.js?v=register157']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
  const pendingFiles=new Map();

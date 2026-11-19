@@ -517,7 +517,21 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
     }
-  </style>
+  .gallery-modal-box .gallery-actions157{display:flex;align-items:center;gap:8px;flex:none}
+.gallery-actions157 .gallery-close-btn{position:static;flex:none}
+.gallery-actions157 #galleryActionContainer{margin-left:auto}
+#customModal .modal-box{display:flex;flex-direction:column;overflow:hidden;max-height:88dvh}
+#customModal .modal-header{display:flex;align-items:center;gap:8px;flex:none}
+#customModal .modal-title{min-width:0;flex:1}
+#customModal .close-modal{position:static;order:-1;flex:none}
+#customModalSubmitBtn{width:auto;flex:none;margin:0;padding:9px 12px;background:#22c55e}
+#publicBuilderTabs{display:flex;flex:none;gap:5px;overflow-x:auto;margin:0 0 8px}
+#publicBuilderTabs button{white-space:nowrap;color:inherit;background:transparent;border:1px solid var(--border-color);border-radius:7px;padding:8px}
+#publicBuilderTabs button[aria-pressed=true]{color:var(--accent-green);border-color:var(--accent-green)}
+#standardBuilderBox{overflow-y:auto;min-height:0;overscroll-behavior:contain}
+#standardBuilderBox .builder-section[hidden]{display:none!important}
+#standardBuilderBox .option-label{display:flex;flex-direction:row;align-items:center;text-align:left}
+</style>
 <link rel="stylesheet" href="../styles/promotions146.css?v=147"><link rel="stylesheet" href="promotions146.css?v=147">
 <link rel="icon" href="../assets/app-icons/restaurant-48-v1.png"><link rel="apple-touch-icon" sizes="180x180" href="../assets/app-icons/restaurant-180-v1.png"></head>
 <body>
@@ -893,9 +907,12 @@
       <div class="modal-header">
         <h3 class="modal-title" id="modalTitle">Build Your Own</h3>
         <button class="close-modal" onclick="App.closeCustomModal()" aria-label="Close modal">✕</button>
+        <button class="btn-wa" id="customModalSubmitBtn" onclick="App.addCustomItemToCart(this)">Add to Order</button>
       </div>
+      <nav id="publicBuilderTabs" aria-label="Ingredient categories"></nav>
       <div id="standardBuilderBox">
         <div class="modal-subtitle" id="modalRulesInfo"></div>
+        <div class="builder-section" hidden><h4>Grain</h4><div class="builder-options" id="grainContainer"></div></div>
         <div id="wellnessChoiceBox" class="builder-section" style="display: none;">
           <h4>Choose Wellness Drink</h4>
           <div class="builder-options" id="wellnessContainer"></div>
@@ -913,7 +930,7 @@
           <div class="builder-options" id="proteinsContainer"></div>
         </div>
       </div>
-      <button class="btn-wa" id="customModalSubmitBtn" style="width:100%; margin-top: 10px; background: #22c55e;" onclick="App.addCustomItemToCart(this)">Add to Order</button>
+
     </div>
   </div>
 
@@ -938,7 +955,7 @@
   <!-- ELEGANT IMAGE GALLERY & DIRECT ORDER MODAL -->
   <div class="modal-overlay" id="galleryModal" role="dialog" aria-modal="true" aria-label="Image Gallery" onclick="if(event.target === this) App.closeGallery()">
     <div class="gallery-modal-box">
-      <button class="gallery-close-btn" onclick="App.closeGallery()" aria-label="Close Gallery">✕</button>
+      <div class="gallery-order-bar gallery-actions157"><button class="gallery-close-btn" onclick="App.closeGallery()" aria-label="Close Gallery">✕</button><span class="gallery-price-tag" id="galleryPriceTag">0 Kip</span><div id="galleryActionContainer"></div></div>
       <div class="gallery-header-section">
         <div class="gallery-badge">✦ Oon Jai Specialty ✦</div>
         <h3 class="gallery-title" id="galleryTitle"></h3>
@@ -950,15 +967,12 @@
       </div>
       <div class="carousel-dots gallery-dots" id="galleryCarouselDots" aria-label="Gallery images"></div>
 
-      <div class="gallery-order-bar">
-        <span class="gallery-price-tag" id="galleryPriceTag">0 Kip</span>
-        <div id="galleryActionContainer"></div>
-      </div>
+
     </div>
   </div>
 
 <script src="../scripts/supabase-config.js?v=127"></script>
-<script src="storefront127.js?v=cost20"></script>
+<script src="storefront127.js?v=register157"></script>
 <script src="../scripts/public-menu-rules131.js?v=135"></script>
 <script src="hope183.js?v=148"></script>
 <script>
@@ -1045,14 +1059,16 @@ const App = (function() {
   }
 
   function customDetails(item, choices) {
+    const grain=(item.grains154||[]).find(g=>g.id===choices.grains154?.[0]);
     const extra = Math.max(0, choices.veggies.length - item.maxVeggies) + Math.max(0, choices.proteins.length - item.maxProteins);
     const parts = [];
+    if(grain)parts.push('Grain: '+grain.name+(grain.price?' (+'+formatKip(grain.price)+')':''));
     if (item.needsWellnessChoice) parts.push(`Drink: ${choices.drink}`);
     if (choices.sauces.length) parts.push(`Sauces: ${choices.sauces.join(', ')}`);
     if (choices.veggies.length) parts.push(`Veggies: ${choices.veggies.join(', ')}`);
     if (choices.proteins.length) parts.push(`Proteins: ${choices.proteins.join(', ')}`);
     if (extra) parts.push(`Add-ons: +${extra} item(s) (+${formatKip(extra * EXTRA_ADDON_PRICE)})`);
-    return { price: item.price + extra * EXTRA_ADDON_PRICE, subtext: parts.join(' | ') };
+    return { price: item.price + (grain?.price||0) + extra * EXTRA_ADDON_PRICE, subtext: parts.join(' | ') };
   }
 
   function saveCart() {
@@ -1076,6 +1092,7 @@ const App = (function() {
         if (item.isCustom) {
           const choices = entry.choices;
           if (!choices) return [];
+          if(choices.grains154?.length&&(!Array.isArray(choices.grains154)||choices.grains154.length!==1||!item.grains154?.some(g=>g.id===choices.grains154[0])))return [];
           const lists = { sauces: commonChoices.sauces, veggies: commonChoices.veggies, proteins: commonChoices[item.specificProteins || 'proteins'] };
           for (const [key, allowed] of Object.entries(lists)) {
             if (!Array.isArray(choices[key]) || choices[key].some(value => !allowed.includes(value)) || new Set(choices[key]).size !== choices[key].length) return [];
@@ -1675,6 +1692,8 @@ const App = (function() {
         submitBtnEl.innerText = "Add to Order";
       }
 
+      const grains=item.grains154||[];
+      document.getElementById('grainContainer').innerHTML=grains.map(g=>'<label class="option-label"><input type="radio" name="custGrain" value="'+escapeHtml(g.id)+'"> <span>'+escapeHtml(g.name)+(g.price?' +'+formatKip(g.price):'')+'</span></label>').join('');
       const bldBox = document.getElementById('standardBuilderBox'), welBox = document.getElementById('wellnessChoiceBox');
 
       bldBox.style.display = 'block';
@@ -1693,14 +1712,24 @@ const App = (function() {
       if (editingCartIndex !== null) {
         const existingItem = cart[editingCartIndex];
         if (existingItem?.choices) {
-          const groups = { custSauce: 'sauces', custVeggie: 'veggies', custProtein: 'proteins' };
+          const groups = { custSauce: 'sauces', custVeggie: 'veggies', custProtein: 'proteins', custGrain: 'grains154' };
           Object.entries(groups).forEach(([name, key]) => document.querySelectorAll(`input[name="${name}"]`).forEach(input => {
-            input.checked = existingItem.choices[key].includes(input.value);
+            input.checked = (existingItem.choices[key]||[]).includes(input.value);
           }));
           document.querySelectorAll('[name="custWellness"]').forEach(input => input.checked = input.value === existingItem.choices.drink);
         }
       }
 
+      const tabBar=document.getElementById('publicBuilderTabs');
+      const sections=[['saucesContainer','Sauces'],['veggiesContainer','Vegetables'],['proteinsContainer','Proteins'],...(grains.length?[['grainContainer','Grain']]:[]),...(item.needsWellnessChoice?[['wellnessContainer','Wellness drink']]:[])];
+      tabBar.replaceChildren();
+      function chooseGroup(id){
+        for(const box of bldBox.querySelectorAll('.builder-section'))box.hidden=box.querySelector('.builder-options')?.id!==id;
+        for(const tab of tabBar.querySelectorAll('button'))tab.setAttribute('aria-pressed',String(tab.dataset.group===id));
+        bldBox.scrollTop=0;
+      }
+      for(const [id,name] of sections){const tab=document.createElement('button');tab.type='button';tab.textContent=name;tab.dataset.group=id;tab.onclick=()=>chooseGroup(id);tabBar.append(tab)}
+      chooseGroup(sections[0][0]);
       const modal = document.getElementById('customModal');
       modal.classList.add('active');
       trapFocus(modal);
@@ -1760,7 +1789,7 @@ const App = (function() {
       const sauces = getVals('custSauce'), veggies = getVals('custVeggie'), proteins = getVals('custProtein');
       const maxS = currentActiveCustomItem.maxSauces, maxV = currentActiveCustomItem.maxVeggies, maxP = currentActiveCustomItem.maxProteins;
 
-      if (!sauces.length && !veggies.length && !proteins.length) return this.triggerAlert("Please select at least one item to build your option.", "Selection Required");
+      if (!sauces.length && !veggies.length && !proteins.length && !getVals('custGrain').length) return this.triggerAlert("Please select at least one item to build your option.", "Selection Required");
 
       const extV = Math.max(0, veggies.length - maxV), extP = Math.max(0, proteins.length - maxP);
       const totExt = extV + extP, totExtCost = totExt * EXTRA_ADDON_PRICE;
@@ -1787,7 +1816,7 @@ const App = (function() {
         if (!proceed || currentActiveCustomItem !== activeItem || editingCartIndex !== editIndex) return;
       }
 
-      const choices = { sauces, veggies, proteins, drink: activeItem.needsWellnessChoice ? document.querySelector('[name="custWellness"]:checked')?.value : null };
+      const choices = { sauces, veggies, proteins, ...(activeItem.grains154?.length?{grains154:getVals('custGrain')}:{}), drink: activeItem.needsWellnessChoice ? document.querySelector('[name="custWellness"]:checked')?.value : null };
       if (sauces.length > maxS) return this.triggerAlert(`Please select no more than ${maxS} sauces.`, 'Sauce Limit');
       const { subtext: finalSubtext, price: finalPrice } = customDetails(activeItem, choices);
 

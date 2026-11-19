@@ -8,7 +8,9 @@ window.RestaurantPublic127=(()=>{'use strict';
   for(const r of rows){
    if(!r||!categories.includes(r.category)||!/^[-a-zA-Z0-9_]{1,60}$/.test(r.id)||ids.has(r.id)||typeof r.name!=='string'||!r.name.trim()||!Number.isFinite(Number(r.price))||Number(r.price)<0||Number(r.price)>1e9)throw Error('Invalid public menu item');
    const o=r.options||{},custom={};
-   if(o.isCustom===true){custom.isCustom=true;for(const k of ['maxSauces','maxVeggies','maxProteins']){if(!Number.isSafeInteger(o[k])||o[k]<0||o[k]>20)throw Error('Invalid custom menu choices');custom[k]=o[k];}if(o.specificProteins==='sandwichProteins')custom.specificProteins=o.specificProteins;if(o.needsWellnessChoice===true)custom.needsWellnessChoice=true;}
+   if(o.isCustom===true){custom.isCustom=true;for(const k of ['maxSauces','maxVeggies','maxProteins']){if(!Number.isSafeInteger(o[k])||o[k]<0||o[k]>20)throw Error('Invalid custom menu choices');custom[k]=o[k];}if(o.specificProteins==='sandwichProteins')custom.specificProteins=o.specificProteins;if(o.needsWellnessChoice===true)custom.needsWellnessChoice=true;
+    const grains=o.grains154??(r.category==='bowl'&&['bw1','bw2','bw3','bw4'].includes(r.id)?[{id:'brown-rice',name:'Brown rice',price:0},{id:'quinoa',name:'Quinoa',price:0}]:undefined);
+    if(Array.isArray(grains))custom.grains154=grains.filter(g=>typeof g?.id==='string'&&typeof g.name==='string'&&Number.isFinite(Number(g.price))&&Number(g.price)>=0&&g.available!==false).map(g=>({id:g.id,name:g.name,price:Number(g.price)}));}
    ids.add(r.id);result[r.category].push({id:r.id,name:r.name.slice(0,150),desc:String(r.description||'').slice(0,3000),price:Number(r.price),images:(Array.isArray(r.images)?r.images:[]).filter(safeImage).slice(0,6),...custom});
   }
   return result;

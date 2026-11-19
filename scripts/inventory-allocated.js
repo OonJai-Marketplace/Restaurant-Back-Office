@@ -84,7 +84,7 @@ window.inventoryAllocated = (() => {
     const choice=f.choice?.value?choices[Number(f.choice.value)]:null,rule={...base,menuId:m.id,kind:f.kind.value,quantity:qty,stockMode:f.mode.value,...(choice?{groupId:choice.g.id,optionId:choice.o.id}:f.choice?.value==='original'?{groupId,optionId}:{})};
     const rules=i.data.posMenuUse||[];
     if(rules.some((r,j)=>j!==index&&r.menuId===m.id&&r.kind===rule.kind&&(r.optionId||'')===(rule.optionId||'')&&(r.groupId||'')===(rule.groupId||''))){out.textContent='This stock already has that link type and menu choice.';return}
-    b.disabled=true;try{await store.save('items',{...i.data,posMenuUse:existing?rules.map((r,j)=>j===index?rule:r):[...rules,rule]},i)}catch(err){out.textContent=err.message;b.disabled=false}
+    b.disabled=true;try{await store.save('items',{...i.data,posMenuUse:existing?rules.map((r,j)=>j===index?rule:r):[...rules,rule]},i)}catch(err){out.textContent=err.message;showCenterStatus(err.message,true);b.disabled=false}
    };
   }
   body.onclick=async e=>{
@@ -96,7 +96,7 @@ window.inventoryAllocated = (() => {
    const i=stockById.get(b.dataset.stock),data={...i.data};
    if(a==='remove')data.posMenuUse=(data.posMenuUse||[]).filter((_,j)=>j!==Number(b.dataset.index));
    else{const ids=new Set(data.posMenuExclude||[]);if(a==='exclude')ids.add(m.id);else ids.delete(m.id);data.posMenuExclude=[...ids]}
-   b.disabled=true;try{await store.save('items',data,i)}catch(err){status.textContent=err.message;b.disabled=false}
+   b.disabled=true;try{await store.save('items',data,i)}catch(err){status.textContent=err.message;showCenterStatus(err.message,true);b.disabled=false}
   };
   paint();
  }
