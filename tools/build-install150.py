@@ -23,7 +23,7 @@ bundle('scripts/restaurant-inventory144.bundle.js', ['scripts/inventory-menu-v10
 bundle('scripts/restaurant-settings146.bundle.js', ['scripts/public-content127.js', 'scripts/restaurant-settings125.js'])
 # Cache exact lazy-module URLs, including their version query, for offline navigation.
 module_assets = re.findall(r"'([^']+\.(?:js|css)(?:\?[^']*)?)'", read('scripts/restaurant-modules125.js').split(' const promises=')[0])
-assets = ['./','back-office/','pos/','kitchen/','scripts/restaurant-core150.bundle.js?v=shift159','assets/brand/oonjai-logo.png','vendor/html2canvas-1.4.1.min.js']
+assets = ['./','back-office/','pos/','kitchen/','scripts/restaurant-core150.bundle.js?v=orders160','assets/brand/oonjai-logo.png','vendor/html2canvas-1.4.1.min.js']
 for name in module_assets:
     kind = 'scripts/' if '.js' in name else 'styles/'
     query = '' if '?' in name or re.search(r'(?:14[467]|150)\.bundle', name) else '?v=147'
@@ -43,7 +43,7 @@ if '<style id="restaurantTabletNavigation">' in office:
 else:
     office = office.replace('</head>', tablet_style + '</head>', 1)
 office = re.sub(r'<script id="restaurantBoot\d+">.*?</script>', lambda _: '<script id="restaurantBoot150">' + read('scripts/restaurant-bootstrap150.js') + '</script>', office, flags=re.S)
-office = re.sub(r'<meta name="restaurant-release" content="[^"]+">', '<meta name="restaurant-release" content="2026-11-19-shift159">', office)
+office = re.sub(r'<meta name="restaurant-release" content="[^"]+">', '<meta name="restaurant-release" content="2026-11-19-orders160">', office)
 office = office.replace('manifest.webmanifest?v=icons149', 'manifest.webmanifest?v=150')
 if 'apple-mobile-web-app-title' not in office:
     office = office.replace('</head>', '<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Restaurant"></head>')
