@@ -157,8 +157,8 @@ async function syncPending(){if(S.sample||!navigator.onLine||!offlineOwner())ret
  if(!valid())return;
  if(entry.action==='pay'&&!matchesPayment(acknowledged?.data,entry.data)||acknowledged?.id!==entry.order.id||acknowledged.status!==(entry.action==='pay'?'paid':'unpaid')||acknowledged.data?.offlineNonce!==entry.data.offlineNonce||!matchesReceipt(acknowledged,entry.data.receiptTicket))throw Error('Receipt differs from this device. The local copy is retained for review.');
  await posOffline119.acknowledge(entry,acknowledged);
- if(valid()&&entry.action==='pay')S.orders=[acknowledged,...S.orders.filter(o=>o.id!==acknowledged.id)];
- if(valid()&&draft?.id===entry.order.id&&acknowledged.status==='unpaid'){draft.version=acknowledged.version;draft.number=acknowledged.number}
+ if(valid())S.orders=[acknowledged,...S.orders.filter(o=>o.id!==acknowledged.id)];
+ if(valid()&&draft?.id===entry.order.id&&acknowledged.status==='unpaid'){draft.version=acknowledged.version;draft.number=acknowledged.number;draft.data.offlineNonce=acknowledged.data.offlineNonce;rememberDraft()}
  }catch(e){if(valid())S.syncError='Sync pending · '+(entry.order.data.receiptCode||entry.order.number||entry.order.id)+': '+e.message;if(!navigator.onLine||window.posPerformance125?.network(e))break}}const left=await posOffline119.queue(owner);if(valid())S.offlineQueue=left}
 let loadJob132=null;
 function load(options={}){const owner=liveProfile?.id,epoch=sessionEpoch121;if(loadJob132?.owner===owner&&loadJob132.epoch===epoch)return loadJob132.promise;const job={owner,epoch,promise:null};loadJob132=job;job.promise=loadCore132(options).finally(()=>{if(loadJob132===job)loadJob132=null});return job.promise}
@@ -561,10 +561,43 @@ function add(){if(draft.data.promotionClaim146)throw Error('Cancel the promotion
   $('#pos118 .order-pane').scrollTop=scroll;
  }else render();
  showCenterStatus(editing?d.name+' updated.':d.name+' added to the order.')}
+function unpaidSaveNonce(order){
+ const fingerprint=JSON.stringify([order.version,order.data],(key,value)=>key==='photoData'?undefined:value);
+ if(order.unpaidAttempt?.fingerprint!==fingerprint){
+  order.unpaidAttempt={fingerprint,nonce:uuid()};
+ }
+ return order.unpaidAttempt.nonce;
+}
+async function writeUnpaidOrder(order,data,canSeparate,valid){
+ const write=(id,version)=>rpc('pos_order118',{p_id:id,p_version:version,p_action:'save',p_data:data});
+ try{return await write(order.id,order.version||0)}catch(error){
+  if(!/Order changed on another device/i.test(error.message)||!valid())throw error;
+ }
+ const {data:latest,error}=await ojmDb.from('pos_orders118').select('id,status,version,number,data->>offlineNonce').eq('id',order.id).maybeSingle();
+ if(error)throw Error(error.message);
+ if(!valid())throw Error('The cashier account changed.');
+ // A queued save from this draft may have reached the server before the editor learned its version.
+ if(latest?.status==='unpaid' && latest.offlineNonce && latest.offlineNonce===order.data.offlineNonce){
+  return write(order.id,latest.version);
+ }
+ if(!canSeparate||order.data.promotionClaim146||draft!==order)throw Error('This order has a newer saved version. Open Orders and resume its latest version.');
+ const number=latest?.number?' #OJ-'+latest.number:'';
+ const separate=await ui117.confirm('Order'+number+' has changed since this cart was opened. Save the items on this screen as a separate unpaid order? The existing order will be kept. Choose Cancel to keep your cart for review.');
+ if(!separate||!valid()||draft!==order)throw Error('Cart kept on this device. Open Orders to review the saved order.');
+ const replacement={id:uuid(),version:0,data:{...order.data}};
+ delete replacement.data.offlineNonce;
+ // Keep the replacement ID for a retry, even when this connection drops.
+ for(const key of Object.keys(order))delete order[key];
+ Object.assign(order,replacement);
+ data.offlineNonce=unpaidSaveNonce(order);
+ rememberDraft();
+ return write(order.id,0);
+}
 async function save(action='save',extra={},order=draft,checkout=false){if(order.data.promotionClaim146&&(!navigator.onLine||S.offline))throw Error('Connect before redeeming a promotion or voucher.');const saveOwner=offlineOwner(),saveEpoch=sessionEpoch121;
  if(order===draft&&!checkout&&action==='save')validateDiscountEditor(document.querySelector('#pos118 .order-pane'));
  const startNextOrder=action==='save' && !checkout && order===draft;
- const nonce=extra.offlineNonce||uuid();extra={...extra,offlineNonce:nonce};
+ const nonce=extra.offlineNonce||(startNextOrder?unpaidSaveNonce(order):uuid());
+ if(startNextOrder)rememberDraft();extra={...extra,offlineNonce:nonce};
  const data={...order.data,...extra};
  // A receipt can carry a stored empty or old FX field. Only this checkout's explicit choice is tender.
  if(action==='pay')data.shiftId=S.shifts.find(x=>!x.closed_at&&(S.sample||x.cashier===liveProfile?.id))?.id;
@@ -583,7 +616,7 @@ async function save(action='save',extra={},order=draft,checkout=false){if(order.
   Object.assign(data,{receiptTicket:ticket,receiptIssuedAt:issuedAt,receiptFooter:S.config.receiptFooter,
    offlineNonce:'paid-'+order.id+':'+(ticket.localRef||ticket.token+':'+ticket.ordinal)});
  }
- const offline=async()=>{if(order.data.promotionClaim146)throw Error('Promotion or voucher payment needs a live connection. Nothing was recorded locally; reconnect and retry.');const captureOwner=offlineOwner(),captureEpoch=sessionEpoch121,usage=action==='pay'?recipeUsage124(order.data):{};if(action==='pay')for(const [id,q] of Object.entries(usage))if(q>stock(id))throw Error('Insufficient stock on this device');if(action==='pay'&&!S.shifts.some(x=>x.cashier===liveProfile?.id&&!x.closed_at))throw Error('Open your shift online before accepting offline payments.');result={...structuredClone(order),number:order.number||'LOCAL',status:action==='pay'?'paid':'unpaid',created_at:order.created_at||new Date().toISOString(),paid_at:action==='pay'?issuedAt:null,offlinePending:true,data:{...structuredClone(data),...(action==='pay'?{receiptCode:data.receiptTicket.code}:{}),...storedTotals(order.data),cashier:currentUser()}};await posOffline119.save(captureOwner,result,action,{...data,...(order.data.offlineNonce?.startsWith('checkout-')?{checkoutSaveNonce:order.data.offlineNonce}:{}),offlineUsage124:usage,offlineNonce:data.offlineNonce,...(action==='pay'?{offlineCapturedAt:result.paid_at,offlineTotal:result.data.total}:{})});if(captureOwner!==offlineOwner()||captureEpoch!==sessionEpoch121)throw Error('Account changed during local capture');await pending();S.orders=[result,...S.orders.filter(o=>o.id!==result.id)];S.offline=true};if(S.offline||!navigator.onLine)await offline();else try{result=await rpc('pos_order118',{p_id:order.id,p_version:order.version||0,p_action:action,p_data:data});
+ const offline=async()=>{if(order.data.promotionClaim146)throw Error('Promotion or voucher payment needs a live connection. Nothing was recorded locally; reconnect and retry.');const captureOwner=offlineOwner(),captureEpoch=sessionEpoch121,usage=action==='pay'?recipeUsage124(order.data):{};if(action==='pay')for(const [id,q] of Object.entries(usage))if(q>stock(id))throw Error('Insufficient stock on this device');if(action==='pay'&&!S.shifts.some(x=>x.cashier===liveProfile?.id&&!x.closed_at))throw Error('Open your shift online before accepting offline payments.');result={...structuredClone(order),number:order.number||'LOCAL',status:action==='pay'?'paid':'unpaid',created_at:order.created_at||new Date().toISOString(),paid_at:action==='pay'?issuedAt:null,offlinePending:true,data:{...structuredClone(data),...(action==='pay'?{receiptCode:data.receiptTicket.code}:{}),...storedTotals(order.data),cashier:currentUser()}};await posOffline119.save(captureOwner,result,action,{...data,...(order.data.offlineNonce?.startsWith('checkout-')?{checkoutSaveNonce:order.data.offlineNonce}:{}),offlineUsage124:usage,offlineNonce:data.offlineNonce,...(action==='pay'?{offlineCapturedAt:result.paid_at,offlineTotal:result.data.total}:{})});if(captureOwner!==offlineOwner()||captureEpoch!==sessionEpoch121)throw Error('Account changed during local capture');await pending();S.orders=[result,...S.orders.filter(o=>o.id!==result.id)];S.offline=true};if(S.offline||!navigator.onLine)await offline();else try{result=action==='save'?await writeUnpaidOrder(order,data,startNextOrder,()=>saveOwner===offlineOwner()&&saveEpoch===sessionEpoch121):await rpc('pos_order118',{p_id:order.id,p_version:order.version||0,p_action:action,p_data:data});
  if(action==='pay'&&!matchesPayment(result?.data,data)||result?.id!==order.id||result.status!==(action==='pay'?'paid':'unpaid')||result.data?.offlineNonce!==data.offlineNonce||!matchesReceipt(result,data.receiptTicket))throw Error('This order changed. Review its saved receipt before continuing.');
  if(saveOwner!==offlineOwner()||saveEpoch!==sessionEpoch121)return;if(window.posPerformance125)await posPerformance125.accepted(S,result,usage125);else await load()}catch(e){if(saveOwner!==offlineOwner()||saveEpoch!==sessionEpoch121)return;if(window.posPerformance125?posPerformance125.network(e):!navigator.onLine||/failed to fetch|networkerror|network request failed|load failed/i.test(e.message))await offline();else throw e}}if(saveOwner!==offlineOwner()||saveEpoch!==sessionEpoch121)return;if(order===draft||draft.id===order.id)draft=editableOrder(result);S.selected=result.id;if(checkout&&!result.offlinePending)showCenterStatus('');else showCenterStatus(S.sample?'Sample order updated. No live records changed.':result.offlinePending?'Saved on this device. Pending sync before shift close.':action==='pay'?'Payment recorded and stock updated.':'Order saved unpaid.');if(action==='pay'){if(!S.sample)prepareReceiptNumbers().catch(()=>{});fresh();rememberDraft();S.sub=window.posPerformance125?'New Order':'Receipts';S.selected=result.id}else if(startNextOrder && draft.id===order.id){
   fresh();

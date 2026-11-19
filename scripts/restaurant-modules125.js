@@ -9,7 +9,7 @@
   inventory:{css:['inventory-menu-v104.css?v=access26','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=register157','inventory-allocated.js?v=register157']},
   menu:{depends:['inventory'],js:['menu-v108.js?v=register157']},
   kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=access26'],js:['preparation-waste124.js?v=register157']},
-  pos:{css:['pos-setup154.css?v=register158','pos-v118.css?v=shift159','pos-receipt.css?v=shift159'],js:['pos-setup154.js?v=register157','restaurant-pos150.bundle.js?v=orders160']}
+  pos:{css:['pos-setup154.css?v=register158','pos-v118.css?v=shift159','pos-receipt.css?v=shift159'],js:['pos-setup154.js?v=register157','restaurant-pos150.bundle.js?v=orders161']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
  const pendingFiles=new Map();
