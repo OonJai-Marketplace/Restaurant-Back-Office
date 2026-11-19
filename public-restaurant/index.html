@@ -1360,7 +1360,11 @@ const App = (function() {
 
     cartHome = document.createComment('Cart position in the menu');
     document.getElementById('cartModalWrapper').before(cartHome);
-    const publicRequest144 = window.RestaurantPublic127.load();
+    let publicRequest144,menuNeedsRetry=true;
+    function checkMenu(){
+      if(publicRequest144||!menuNeedsRetry||document.hidden)return;
+      publicRequest144=window.RestaurantPublic127.load().then(finishMenu).catch(()=>finishMenu({stale:true})).finally(()=>{publicRequest144=null});
+    }
     applyPublicContent144({});
     const hashTab = window.location.hash.slice(1);
     const savedTab = mainTabs.includes(hashTab) ? hashTab : readStorage('sessionStorage', 'oonjai_active_tab');
@@ -1389,12 +1393,15 @@ const App = (function() {
       e.preventDefault(); tabs[next].click(); tabs[next].focus();
     }));
     function finishMenu(content){
-      publicMenuLoading144=false;
-      applyPublicContent144(content);
-      if(hasPublicMenu)restoreCart();
+      const previous=hasPublicMenu?{savedAt:Date.now(),items:cart.slice(),orderType:document.querySelector('[name=orderType]:checked')?.value||''}:null;
+      publicMenuLoading144=false;menuNeedsRetry=!!content.stale;
+      if(content.menu||!hasPublicMenu){applyPublicContent144(content);if(hasPublicMenu)restoreCart(previous)}
+
       App._reRenderStore();
     }
-    publicRequest144.then(finishMenu).catch(()=>finishMenu({stale:true}));
+    checkMenu();
+    window.addEventListener('online',checkMenu);
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden&&navigator.onLine)checkMenu()});
   });
 
   document.addEventListener('visibilitychange', syncAnimations);
@@ -1999,6 +2006,6 @@ const App = (function() {
 window.App=App;
 </script>
 <script src="../scripts/promotion-kit146.js?v=147"></script>
-<script src="promotions146.js?v=147"></script>
+<script src="promotions146.js?v=events156"></script>
 </body>
 </html>

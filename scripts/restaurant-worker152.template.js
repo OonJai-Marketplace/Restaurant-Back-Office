@@ -1,5 +1,5 @@
 /* Static assets only. Private records stay in account-scoped device storage. */
-const CACHE='oonjai-pos-shell155-restaurant';
+const CACHE='oonjai-pos-shell156-restaurant';
 const ROOT=new URL('./',self.registration.scope),PREFIX=ROOT.pathname;
 const ASSETS=__OFFLINE_ASSETS__;
 self.addEventListener('install',event=>event.waitUntil(self.skipWaiting()));
@@ -8,7 +8,13 @@ let warming;
 self.addEventListener('message',event=>{
  if(event.data?.type!=='CACHE_SHELL150')return;
  if(!warming)warming=(async()=>{const cache=await caches.open(CACHE),pending=ASSETS.slice();
-  async function next(){while(pending.length){const url=new URL(pending.shift(),ROOT);if(await cache.match(url))continue;const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);try{const response=await fetch(url,{cache:'no-cache',signal:controller.signal});if(response.ok)await cache.put(url,response)}catch{}finally{clearTimeout(timer)}}}
+  const previous=(await caches.keys()).filter(key=>key!==CACHE&&key.startsWith('oonjai-pos-shell')&&key.endsWith('-restaurant')).reverse();
+  async function reuseVersioned(url){
+   if(!url.searchParams.has('v')||!url.pathname.match(/\.(js|css)$/))return false;
+   for(const key of previous){const saved=await (await caches.open(key)).match(url);if(saved){await cache.put(url,saved);return true}}
+   return false;
+  }
+  async function next(){while(pending.length){const url=new URL(pending.shift(),ROOT);if(await cache.match(url)||await reuseVersioned(url))continue;const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);try{const response=await fetch(url,{cache:'no-cache',signal:controller.signal});if(response.ok)await cache.put(url,response)}catch{}finally{clearTimeout(timer)}}}
   await Promise.all([next(),next()]);
  })().finally(()=>{warming=null});
  event.waitUntil(warming);

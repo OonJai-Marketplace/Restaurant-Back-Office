@@ -454,30 +454,45 @@ window.posOffline119={acknowledge,getSnapshot:async owner=>{const r=await get('s
   const controller=new AbortController();let timeout;
   try{let request=ojmDb.rpc(name,args);if(request.abortSignal)request=request.abortSignal(controller.signal);
    const out=await Promise.race([Promise.resolve(request),new Promise((_,reject)=>{timeout=setTimeout(()=>{controller.abort();reject(Error('Network request timed out'))},name==='pos_order118'?8000:6000)})]);
-   if(out.error)throw Error(out.error.message);if(['pos_order118','pos_manage118'].includes(name))window.restaurantData144?.changed(name==='pos_order118'?['sales','stock']:['catalog','stock']);return out.data;
+   if(out.error)throw Error(out.error.message);
+   if(name==='pos_order118'){
+    const scopes=['orders'],action=args.p_action;
+    if(action==='pay'||action==='refund')scopes.push('sales');
+    if(action==='pay'||action==='refund'&&args.p_data?.restock)scopes.push('stock');
+    window.restaurantData144?.changed(scopes,'pos');
+   }else if(name==='pos_manage118')window.restaurantData144?.changed([args.p_action==='config'?'config':'shifts'],'pos');
+   return out.data;
   }catch(e){if(controller.signal.aborted)throw Error('Network request timed out');throw e}
   finally{clearTimeout(timeout)}
  }
  function schedule(delay){clearTimeout(timer);timer=setTimeout(()=>{const s=window.pos118?.state;
   const older=s?.tab==='Sales'&&s.sub==='Receipts'&&s.orders.filter(o=>['paid','refunded'].includes(o.status)).length>100;
-  if(active()&&s&&!s.sample&&s.loaded&&!s.working&&!older)pos118.load({background:true})},delay||8000)}
+  if(active()&&s&&!s.sample&&s.loaded&&!s.working&&(!older||(s.revision156||0)!==(s.applied156||0)))pos118.load({background:true})},delay||8000)}
+ // A changed register snapshot is read once, on-screen or on the next visit.
+ function invalidate(catalog){
+  const s=window.pos118?.state;if(!s||s.sample)return;
+  s.revision156=(s.revision156||0)+1;
+  if(catalog){s.catalogVersion125=null;s.catalogRevision156=s.revision156}
+  if(active()&&s.loaded&&!s.busy)schedule(200);
+ }
+ const stale=s=>(s.revision156||0)!==(s.applied156||0)||s.offline||Date.now()-(s.lastRead156||0)>60000;
  function cacheKey(owner){return owner+':priority125'}
  async function load(s,hooks,{background=false}={}){
   if(s.busy||!liveProfile?.id||s.sample)return;
   const owner=liveProfile.id,epoch=sessionEpoch121,write=s.writeGeneration125||0,generation=++readGeneration;
   const valid=()=>owner===liveProfile?.id&&epoch===sessionEpoch121&&generation===readGeneration;
-  let catalogChanged=false;s.busy=true;if(!background||!s.loaded){s.error='';pos118.render()}
+  const before=s.applied156||0;let catalogChanged=false,revision=s.revision156||0;s.busy=true;if(!background||!s.loaded){s.error='';pos118.render()}
   try{
    if(!navigator.onLine)throw Error('Network request failed');
    // Replay only when there are captured entries, not on every healthy poll.
    const pending=await posOffline119.queue(owner);if(!valid())return;
    if(pending.length)await pos118.syncPending();if(!valid())return;
-   let data;
+   let data;revision=s.revision156||0;
    try{data=await rpc('pos_cashier_snapshot125',{p_catalog_version:s.loaded&&s.owner===owner?s.catalogVersion125||null:null,p_receipt_date:s.receiptDate||day(),p_pending_ids:s.offlineQueue.map(e=>e.order.id).slice(0,1000)})}
    catch(e){if(/pos_cashier_snapshot125/.test(e.message)&&/schema cache|could not find|does not exist/i.test(e.message)){fallback=true;data=await rpc('pos_snapshot118',{})}else throw e}
    if(!valid()||write!==(s.writeGeneration125||0))return;
    if(!Array.isArray(data?.orders))throw Error('POS records are unavailable. Ask your administrator to check setup.');
-   catalogChanged=Array.isArray(data.menu)&&data.catalogVersion125!==s.catalogVersion125;if(!data.schema125){s.balances125=null;s.schema125=false;s.catalogVersion125=null;s.summary125=null}Object.assign(s,data,{owner,loaded:true,offline:false});s.receiptDate||=day();
+   catalogChanged=Array.isArray(data.menu)&&data.catalogVersion125!==s.catalogVersion125;if(!data.schema125){s.balances125=null;s.schema125=false;s.catalogVersion125=null;s.summary125=null}Object.assign(s,data,{owner,loaded:true,offline:false,applied156:revision,lastRead156:Date.now()});if((s.catalogRevision156||0)>revision)s.catalogVersion125=null;s.receiptDate||=day();
    s.offlineQueue=await posOffline119.queue(owner);if(!valid())return;hooks.overlayPending();
    s.error=fallback?'The fast POS database update is pending. Ask your administrator to apply migration 10.':'';
    if(!s.picked||!hooks.catalog().some(m=>m.id===s.picked))hooks.pick(hooks.catalog()[0]?.id,false);
@@ -494,7 +509,10 @@ window.posOffline119={acknowledge,getSnapshot:async owner=>{const r=await get('s
     if(!s.loaded&&cached){Object.assign(s,cached.data,{loaded:true,owner});s.offlineQueue=await posOffline119.queue(owner);if(!valid())return;hooks.overlayPending();hooks.pick(hooks.catalog()[0]?.id,false)}
     s.offline=true;s.error=s.loaded?'Offline: sales remain on this device until synced.':'Connect once to prepare the POS on this device.';
    }else{s.loaded=false;s.offline=false;s.error=e.message;showCenterStatus(e.message,true)}
-  }finally{if(valid()){s.busy=false;if(background&&s.loaded&&s.tab==='Management'&&document.activeElement?.closest('.pos-report-controls'))updateStatus(s);else if(!background||catalogChanged||!s.loaded||s.tab!=='Sales'||s.sub!=='New Order')pos118.render();else updateStatus(s)}}
+  }finally{if(valid()){s.busy=false;if(background&&s.loaded&&document.activeElement?.matches('input,textarea,select')&&document.activeElement?.closest('#pos118')){
+    updateStatus(s);
+    if(catalogChanged||before!==s.applied156)s.deferRender156=true;
+   }else if(!background||catalogChanged||before!==(s.applied156||0)||!s.loaded||s.tab!=='Sales'||s.sub!=='New Order')pos118.render();else updateStatus(s);if((s.revision156||0)>revision&&active()&&!s.offline&&s.loaded)schedule(200)}}
  }
  function updateStatus(s){const sync=document.querySelector('.pos-tab-actions132 [data-pos118=sync]');if(sync){sync.textContent='Sync'+(s.offlineQueue.length?' · '+s.offlineQueue.length:s.offline?' · Offline':'');sync.title=s.offlineQueue.length+' pending orders';}const node=document.querySelector('.pos-sync118');if(node)node.textContent=s.offlineQueue.length?s.offlineQueue.length+' pending sync':s.offline?'Offline':'Synced';
   // Never replace focused input nodes, scroll positions or a current draft during polling.
@@ -554,16 +572,17 @@ window.posOffline119={acknowledge,getSnapshot:async owner=>{const r=await get('s
   if(!cached||liveProfile?.id!==owner||epoch!==sessionEpoch121)return;
   await posOffline119.saveSnapshot(key,{...cached.data,config,configVersion});
  }
- window.posPerformance125={cacheConfig,rpc,load,accepted,allowed,clamp,overview,report,moreReceipts,schedule,network};
+ window.posPerformance125={invalidate,stale,cacheConfig,rpc,load,accepted,allowed,clamp,overview,report,moreReceipts,schedule,network};
  // Refresh on explicit navigation, a completed write, or the Sync button; no idle polling.
 
+ document.addEventListener('focusout',()=>{const s=window.pos118?.state;if(!s?.deferRender156)return;setTimeout(()=>{if(s.deferRender156&&active()&&!document.activeElement?.matches('input,textarea,select')){s.deferRender156=false;pos118.render()}},0)});
  addEventListener('offline',()=>{const s=window.pos118?.state;if(s&&!s.sample&&s.loaded){s.offline=true;updateStatus(s)}});
 })();
 
 ;
 /* scripts/pos-promotions146.js */
 window.PosPromotions146=(()=>{'use strict';const E=v=>escapeHtml(String(v??'')),money=n=>Number(n||0).toLocaleString()+' LAK';
- async function rpc(name,args){const r=await ojmDb.rpc(name,args);if(r.error)throw Error(r.error.message);return r.data;}
+ async function rpc(name,args){const r=await ojmDb.rpc(name,args);if(r.error)throw Error(r.error.message);if(name==='import_promotion_order146')window.restaurantData144?.changed(['orders']);return r.data;}
  function modal(title){const node=document.createElement('div');node.className='restaurant-modal';node.innerHTML=`<section class="restaurant-dialog wide" role="dialog" aria-modal="true" aria-label="${E(title)}"><header><h3>${E(title)}</h3><button data-close type="button">×</button></header><div class="restaurant-dialog-body"></div><p role="alert"></p></section>`;document.body.append(node);node.querySelector('[data-close]').onclick=()=>node.remove();return{node,body:node.querySelector('.restaurant-dialog-body'),error:e=>node.querySelector('[role=alert]').textContent=e.message||e};}
  function inputLines(){return pos118.draft.data.lines.map(l=>{const record=pos118.state.menu.find(m=>m.id===l.menuId);return{id:record?.data.sourceMenu118,qty:l.quantity,choices:l.choices||{}}})}
  async function apply(){if(!navigator.onLine||pos118.state.offline)throw Error('Connect to check a promotion or voucher.');if(pos118.state.sub!=='New Order')throw Error('Open New Order before applying an offer.');if(pos118.draft.version>0)throw Error('Apply an offer before saving the order. For an existing unpaid order, cancel it and start a new order with the offer.');if(!pos118.draft.data.lines.length)throw Error('Add the customer’s food first.');if(pos118.draft.data.promotionClaim146)throw Error('This order already has an offer. Cancel the unpaid order before replacing it.');const m=modal('Apply promotion or voucher');m.body.textContent='Loading offers…';try{const r=await ojmDb.from('storefront_promotions146').select('id,data').eq('enabled',true);if(r.error)throw r.error;m.body.innerHTML=`<form class="form121"><label class="wide121">Voucher ID (optional)<input name="voucher" maxlength="40" placeholder="Enter a registered voucher ID"></label><label class="wide121">Or choose an offer<select name="promotion"><option value="">Choose a promotion</option>${r.data.filter(p=>p.data.rules?.kind!=='none'&&!p.data.rules?.voucherOnly).map(p=>`<option value="${p.id}">${E(p.data.name)}</option>`).join('')}</select></label><label>Customer name<input name="customer" required maxlength="100" value="${E(pos118.draft.data.customer)}"></label><label>Phone including country code<input name="phone" type="tel" required minlength="8" maxlength="20"></label><p class="wide121">One offer per order. All eligibility rules apply. Offers needing proof must be requested on the customer website; administrators review them in Promotion studio.</p><button type="button" id="posQuote146">Check offer</button><div class="wide121" id="posQuoteResult146"></div><button type="submit" disabled>Apply verified offer</button></form>`;const f=m.body.querySelector('form');let quoted=null,signature='',token=crypto.randomUUID();const args=()=>({p_id:f.elements.promotion.value||null,p_lines:inputLines(),p_channel:'pos',p_voucher:f.elements.voucher.value.trim().toUpperCase()});f.addEventListener('input',()=>{quoted=null;f.querySelector('[type=submit]').disabled=true});f.querySelector('#posQuote146').onclick=async()=>{try{quoted=await rpc('promotion_quote146',args());signature=JSON.stringify(args());f.querySelector('#posQuoteResult146').textContent=`${quoted.title} · Subtotal ${money(quoted.subtotal)} · Discount ${money(quoted.discount)} · Total ${money(quoted.total)}${quoted.approval?' · Approval required':''}`;f.querySelector('[type=submit]').disabled=quoted.proofRequired;if(quoted.proofRequired)throw Error('This offer requires a private proof upload. Ask the customer to apply on the website.')}catch(e){m.error(e)}};f.onsubmit=async e=>{e.preventDefault();if(!f.reportValidity()||!quoted)return;const b=f.querySelector('[type=submit]');b.disabled=true;try{if(signature!==JSON.stringify(args()))throw Error('Order changed. Check the offer again.');const result=await rpc('request_promotion146',{...args(),p_token:token,p_customer:f.elements.customer.value,p_phone:f.elements.phone.value,p_note:pos118.draft.data.note||'',p_proof:null});if(result.status==='pending'){m.node.remove();showCenterStatus('Request '+result.code+' is waiting for administrator approval. Open Offer orders after approval.');return}const inbox=await rpc('promotion_inbox146',{}),request=inbox.find(c=>c.code===result.code);if(!request)throw Error('Reservation created. Open Offer orders to retrieve it.');const service=pos118.draft.data.service;const order=await rpc('import_promotion_order146',{p_id:request.id});order.data.service=service;m.node.remove();pos118.setDraft146(order)}catch(e){m.error(e);b.disabled=false}}}catch(e){m.error(e)}}
@@ -1344,7 +1363,7 @@ function patchOpenOrder(host,html){
  host.querySelector('.menu-pane').replaceWith(template.content.querySelector('.menu-pane'));
  for(const nav of ['.pos-main-tabs118','.pos-subtabs118'])host.querySelector(nav)?.replaceWith(template.content.querySelector(nav));
 }
-function render(){window.posPerformance125?.clamp(S);const host=$('#pos118');if(!host||!host.classList.contains('active'))return;host.classList.add('pos118');$('#categoryTabShell')?.setAttribute('hidden','');const sameView=host.dataset.posView===S.tab+'-'+S.sub;
+function render(){S.deferRender156=false;window.posPerformance125?.clamp(S);const host=$('#pos118');if(!host||!host.classList.contains('active'))return;host.classList.add('pos118');$('#categoryTabShell')?.setAttribute('hidden','');const sameView=host.dataset.posView===S.tab+'-'+S.sub;
  const scroll=sameView?[...host.querySelectorAll('.menu-pane,.order-pane')].map(n=>n.scrollTop):[];
  host.dataset.posView=S.tab+'-'+S.sub;
  const count=S.orders.filter(o=>o.status==='unpaid').length;const html=`<nav class="pos-main-tabs118" aria-label="POS sections">${['Overview','Sales','Management'].filter(t=>!window.posPerformance125||(t==='Sales'?['New Order','Open Orders','Receipts','Online Orders'].some(sub=>posPerformance125.allowed(t,sub)):posPerformance125.allowed(t,'New Order'))).map(t=>button(t,'tab',S.tab===t?'active':'','data-value118="'+t+'"')).join('')}${restaurantRouteAllowed128('restaurant-pos-reports')?button('Back Office','backoffice-sales'):''}<span class="pos-tab-actions132">${button('Printer','printer-setup','','aria-label="Configure Printing"')}${restaurantTabCan125('pos','pos-overview')?button('Shift receipts','shift-receipts'):''}${restaurantTabCan125('pos','pos-overview','sell')?button(S.shifts.some(x=>(S.sample||x.cashier===liveProfile?.id)&&!x.closed_at)?'Close shift':'Open shift',S.shifts.some(x=>(S.sample||x.cashier===liveProfile?.id)&&!x.closed_at)?'close-shift':'open-shift'):''}${!S.sample?button('Sync'+(S.offlineQueue.length?' · '+S.offlineQueue.length:''),'sync','','aria-label="Sync pending POS orders"'):''}</span></nav>${S.tab!=='Sales'?`<div class="pos-mode118"><span>Live operation</span><span class="pos-sync118" role="status">${S.offlineQueue.length?S.offlineQueue.length+' pending sync':S.offline?'Offline':'Synced'}</span></div>`:''}${S.sample?'<div class="pos-alert118 pos-sample118">Reference samples · isolated from live sales, stock and bookkeeping. Switch to Live operation when ready.</div>':''}${S.error?'<div class="pos-alert118" role="alert">'+esc(S.error)+'</div>':''}${S.syncError?'<div class="pos-alert118" role="alert">'+esc(S.syncError)+'</div>':''}${S.busy&&!S.loaded?'<p role="status">Loading POS…</p>':!S.sample&&!S.loaded?'<p>Connect the POS database to use live operation.</p>'+button('Retry','reload','primary'):S.tab==='Sales'?`<nav class="pos-subtabs118" aria-label="Sales views">${['New Order','Open Orders','Receipts','Online Orders'].filter(t=>!window.posPerformance125||posPerformance125.allowed('Sales',t)).map(t=>button(t+(t==='Open Orders'?` <span class="count118">${count}</span>`:''),'sub',S.sub===t?'active':'','data-value118="'+t+'"')).join('')}</nav>${S.sub==='New Order'?newOrder():S.sub==='Receipts'?receipts():openOrders(S.sub==='Online Orders')}`:S.tab==='Overview'?overview():management()}`;
@@ -1741,9 +1760,14 @@ function mount(){if($('#pos118'))return;const host=document.createElement('div')
   }
   posReports.populate(host,S.reportFilter,S);return;
  }if(t.matches('[data-choice118]')){const key=t.dataset.choice118,value=t.value;S.choices[key]=t.type==='checkbox'?[...host.querySelectorAll('[data-choice118="'+CSS.escape(key)+'"]:checked')].map(n=>n.value):t.value?[t.value]:[];render();host.querySelector('[data-choice118="'+CSS.escape(key)+'"][value="'+CSS.escape(value)+'"]')?.focus({preventScroll:true})}else if(t.matches('[data-draft118]'))render();else if(t.matches('[data-receipt-date118]')){S.receiptDate=t.value;if(window.posPerformance125&&!S.sample)await load({background:true});render()}}catch(e){showCenterStatus(e.message,true)}})}
-const previous=switchTab;window.switchTab=function(id,...args){mount();const result=previous.call(this,id,...args);if(result!==false&&id==='pos118'){if(!S.modeChosen&&liveProfile?.id){S.modeChosen=true;if(restaurantPosMode128()==='live'){S.sample=false;S.loaded=false;S.orders=[];S.shifts=[];S.cash=[];S.picked=null;fresh();restoreDraft();S.tab='Sales';S.sub='New Order'}}if(S.owner&&S.owner!==liveProfile?.id){S.sample=false;S.loaded=false;S.owner=null;S.modeChosen=false;S.orders=[];S.shifts=[];S.cash=[];fresh()}if(!S.sample&&!S.loaded)load();render();document.body.dataset.area113='pos'}return result};
+const previous=switchTab;window.switchTab=function(id,...args){mount();const result=previous.call(this,id,...args);if(result!==false&&id==='pos118'){if(!S.modeChosen&&liveProfile?.id){S.modeChosen=true;if(restaurantPosMode128()==='live'){S.sample=false;S.loaded=false;S.orders=[];S.shifts=[];S.cash=[];S.picked=null;fresh();restoreDraft();S.tab='Sales';S.sub='New Order'}}if(S.owner&&S.owner!==liveProfile?.id){S.sample=false;S.loaded=false;S.owner=null;S.modeChosen=false;S.orders=[];S.shifts=[];S.cash=[];fresh()}if(!S.sample&&(!S.loaded||window.posPerformance125?.stale(S)))load({background:S.loaded});render();document.body.dataset.area113='pos'}return result};
 const logout=logoutDemoUser;window.logoutDemoUser=async function(...args){posReports.clear();S.loaded=false;S.owner=null;S.modeChosen=false;S.sample=false;S.menu=[];S.ingredients=[];S.items=[];S.stock=[];S.balances125=null;S.schema125=false;S.catalogVersion125=null;S.summary125=null;S.offlineQueue=[];S.orders=[];S.shifts=[];S.cash=[];fresh();return logout.apply(this,args)};
-window.pos118={openPaymentSettings154:settings,searchMenu154(query){S.query=query;S.category='All';S.classification='All';S.tab='Sales';S.sub='New Order';render()},printerSetup,prepareReceiptNumbers,clearReport(){posReports.clear()},setDraft146(order){draft=structuredClone(order);rememberDraft();S.selected=order.id;S.tab='Sales';S.sub='New Order';render()},openOptions132:options,state:S,catalog,render,load,syncPending,total,stock,get draft(){return draft},fresh,save,receipt,virtualMoves,pendingStock};window.addEventListener('online',()=>{if(!S.sample&&S.loaded)load()});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
+window.pos118={openPaymentSettings154:settings,searchMenu154(query){S.query=query;S.category='All';S.classification='All';S.tab='Sales';S.sub='New Order';render()},printerSetup,prepareReceiptNumbers,clearReport(){posReports.clear()},setDraft146(order){draft=structuredClone(order);rememberDraft();S.selected=order.id;S.tab='Sales';S.sub='New Order';render()},openOptions132:options,state:S,catalog,render,load,syncPending,total,stock,get draft(){return draft},fresh,save,receipt,virtualMoves,pendingStock};function resumeRegister156(reconnected){
+ if(S.sample||!liveProfile||!S.modeChosen)return;
+ const active=!document.hidden&&document.getElementById('pos118')?.classList.contains('active');
+ if(reconnected&&S.offlineQueue.length||active&&(!S.loaded||reconnected||window.posPerformance125?.stale(S)))load({background:S.loaded});
+}
+window.addEventListener('online',()=>resumeRegister156(true));document.addEventListener('visibilitychange',()=>{if(!document.hidden)resumeRegister156(false)});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
 })();
 
 ;

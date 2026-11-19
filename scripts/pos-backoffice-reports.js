@@ -35,14 +35,25 @@
   return {summary,items,days,shifts,receipts};
  }
  const fresh=()=>({dates:posReports.defaults(),view:'summary',metric:'net',service:'',payment:'',item:'',shift:'',find:'',page:0,events:[],shifts:new Map(),items:new Map(),loading:false,error:''});
- let state=fresh(),generation=0,owner=null,epoch=null;
+ let state=fresh(),generation=0,owner=null,epoch=null,revision=0,readRevision=-1,loadedAt=0,rangeKey='';
+ const currentRange=()=>state.dates.period==='today'?posReports.day(Date.now()):JSON.stringify(state.dates);
+ window.restaurantPosReports156={invalidate(){
+  revision++;
+  if(active()&&!state.loading&&!state.error){
+   state.error='Sales or shift records changed. Select Refresh for current totals.';
+   const panel=root().querySelector('.ops-panel');if(!panel)return;
+   const note=document.createElement('p');note.setAttribute('role','status');note.textContent=state.error;panel.querySelector('header')?.after(note);
+   panel.querySelectorAll('[data-op="download"],[data-op="print"]').forEach(button=>button.disabled=true);
+  }
+ }};
  const active=()=>root()?.classList.contains('active')&&restaurantRouteAllowed128(route);
  const shiftName=id=>{const s=state.shifts.get(id);if(!s)return id==='unassigned'?'Unassigned shift':'Shift '+id;return [posReports.stamp(s.opened_at).slice(0,16),s.profile?.full_name||state.events.find(e=>!e.refund&&e.shift===id)?.order.data.cashier||'Name unavailable'].join(' · ')};
  const option=(value,name,selected)=>'<option value="'+esc(value)+'"'+(value===selected?' selected':'')+'>'+esc(name)+'</option>';
  const select=(label,key,choices,current)=>'<label>'+label+'<select aria-label="'+esc(label)+'" data-key="'+key+'">'+choices.map(([v,name])=>option(v,name,current)).join('')+'</select></label>';
  const btn=(label,key,value='',extra='')=>'<button type="button" data-op="'+key+'" data-value="'+esc(value)+'" '+extra+'>'+esc(label)+'</button>';
  async function load(){
-  const g=++generation,id=liveProfile.id,session=sessionEpoch121;
+  if(state.dates.period==='today')state.dates.from=state.dates.to=posReports.day(Date.now());
+  const g=++generation,id=liveProfile.id,session=sessionEpoch121,atRevision=revision,atRange=currentRange();
   const check=()=>{if(g!==generation||liveProfile?.id!==id||session!==sessionEpoch121||!active())throw Error('Report changed')};
   state.loading=true;state.error='';state.events=[];state.shifts=new Map();state.items=new Map();state.page=0;render();
   try{
@@ -52,7 +63,8 @@
    const unknown=[...new Set(rows.map(e=>e.shift).filter(v=>v!=='unassigned'&&!map.has(v)))];
    for(let i=0;i<unknown.length;i+=50){const result=await ojmDb.from('pos_shifts118').select(cols).in('id',unknown.slice(i,i+50));check();if(result.error)throw Error(result.error.message);for(const s of result.data)map.set(String(s.id),s)}
    const names=new Map();for(const e of rows)for(const l of e.lines)if(!names.has(itemKey(l)))names.set(itemKey(l),l[5]||'Unknown item');
-   state.events=rows;state.shifts=map;state.items=names;
+   state.events=rows;state.shifts=map;state.items=names;readRevision=atRevision;rangeKey=atRange;loadedAt=Date.now();
+   if(revision!==atRevision)state.error='Sales or shift records changed. Select Refresh for current totals.';
   }catch(err){if(g!==generation||!active()||liveProfile?.id!==id||sessionEpoch121!==session)return;state.error=err.message||'Could not load sales.'}
   if(g===generation&&active()){state.loading=false;render()}
  }
@@ -154,7 +166,10 @@
   };
  }
  const before=switchTab;window.switchTab=function(id,...args){const result=before.call(this,id,...args);if(result===false)return result;
-  if(id===route&&active()){if(owner!==liveProfile.id||epoch!==sessionEpoch121){state=fresh();owner=liveProfile.id;epoch=sessionEpoch121}load()}else if(!active()){generation++;root()?.querySelector('dialog')?.close();if(root())root().replaceChildren()}
+  if(id===route&&active()){if(owner!==liveProfile.id||epoch!==sessionEpoch121){state=fresh();owner=liveProfile.id;epoch=sessionEpoch121;loadedAt=0}
+   if(state.loading)return result;
+   if(state.error||readRevision!==revision||rangeKey!==currentRange()||Date.now()-loadedAt>=60000)load();else render()
+  }else if(!active()){generation++;state.loading=false;root()?.querySelector('dialog')?.close();if(root())root().replaceChildren()}
   return result;
  };
  const logout=window.logoutDemoUser;if(logout)window.logoutDemoUser=function(...args){generation++;state=fresh();owner=null;epoch=null;root()?.replaceChildren();return logout.apply(this,args)};

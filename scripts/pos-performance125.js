@@ -11,30 +11,45 @@
   const controller=new AbortController();let timeout;
   try{let request=ojmDb.rpc(name,args);if(request.abortSignal)request=request.abortSignal(controller.signal);
    const out=await Promise.race([Promise.resolve(request),new Promise((_,reject)=>{timeout=setTimeout(()=>{controller.abort();reject(Error('Network request timed out'))},name==='pos_order118'?8000:6000)})]);
-   if(out.error)throw Error(out.error.message);if(['pos_order118','pos_manage118'].includes(name))window.restaurantData144?.changed(name==='pos_order118'?['sales','stock']:['catalog','stock']);return out.data;
+   if(out.error)throw Error(out.error.message);
+   if(name==='pos_order118'){
+    const scopes=['orders'],action=args.p_action;
+    if(action==='pay'||action==='refund')scopes.push('sales');
+    if(action==='pay'||action==='refund'&&args.p_data?.restock)scopes.push('stock');
+    window.restaurantData144?.changed(scopes,'pos');
+   }else if(name==='pos_manage118')window.restaurantData144?.changed([args.p_action==='config'?'config':'shifts'],'pos');
+   return out.data;
   }catch(e){if(controller.signal.aborted)throw Error('Network request timed out');throw e}
   finally{clearTimeout(timeout)}
  }
  function schedule(delay){clearTimeout(timer);timer=setTimeout(()=>{const s=window.pos118?.state;
   const older=s?.tab==='Sales'&&s.sub==='Receipts'&&s.orders.filter(o=>['paid','refunded'].includes(o.status)).length>100;
-  if(active()&&s&&!s.sample&&s.loaded&&!s.working&&!older)pos118.load({background:true})},delay||8000)}
+  if(active()&&s&&!s.sample&&s.loaded&&!s.working&&(!older||(s.revision156||0)!==(s.applied156||0)))pos118.load({background:true})},delay||8000)}
+ // A changed register snapshot is read once, on-screen or on the next visit.
+ function invalidate(catalog){
+  const s=window.pos118?.state;if(!s||s.sample)return;
+  s.revision156=(s.revision156||0)+1;
+  if(catalog){s.catalogVersion125=null;s.catalogRevision156=s.revision156}
+  if(active()&&s.loaded&&!s.busy)schedule(200);
+ }
+ const stale=s=>(s.revision156||0)!==(s.applied156||0)||s.offline||Date.now()-(s.lastRead156||0)>60000;
  function cacheKey(owner){return owner+':priority125'}
  async function load(s,hooks,{background=false}={}){
   if(s.busy||!liveProfile?.id||s.sample)return;
   const owner=liveProfile.id,epoch=sessionEpoch121,write=s.writeGeneration125||0,generation=++readGeneration;
   const valid=()=>owner===liveProfile?.id&&epoch===sessionEpoch121&&generation===readGeneration;
-  let catalogChanged=false;s.busy=true;if(!background||!s.loaded){s.error='';pos118.render()}
+  const before=s.applied156||0;let catalogChanged=false,revision=s.revision156||0;s.busy=true;if(!background||!s.loaded){s.error='';pos118.render()}
   try{
    if(!navigator.onLine)throw Error('Network request failed');
    // Replay only when there are captured entries, not on every healthy poll.
    const pending=await posOffline119.queue(owner);if(!valid())return;
    if(pending.length)await pos118.syncPending();if(!valid())return;
-   let data;
+   let data;revision=s.revision156||0;
    try{data=await rpc('pos_cashier_snapshot125',{p_catalog_version:s.loaded&&s.owner===owner?s.catalogVersion125||null:null,p_receipt_date:s.receiptDate||day(),p_pending_ids:s.offlineQueue.map(e=>e.order.id).slice(0,1000)})}
    catch(e){if(/pos_cashier_snapshot125/.test(e.message)&&/schema cache|could not find|does not exist/i.test(e.message)){fallback=true;data=await rpc('pos_snapshot118',{})}else throw e}
    if(!valid()||write!==(s.writeGeneration125||0))return;
    if(!Array.isArray(data?.orders))throw Error('POS records are unavailable. Ask your administrator to check setup.');
-   catalogChanged=Array.isArray(data.menu)&&data.catalogVersion125!==s.catalogVersion125;if(!data.schema125){s.balances125=null;s.schema125=false;s.catalogVersion125=null;s.summary125=null}Object.assign(s,data,{owner,loaded:true,offline:false});s.receiptDate||=day();
+   catalogChanged=Array.isArray(data.menu)&&data.catalogVersion125!==s.catalogVersion125;if(!data.schema125){s.balances125=null;s.schema125=false;s.catalogVersion125=null;s.summary125=null}Object.assign(s,data,{owner,loaded:true,offline:false,applied156:revision,lastRead156:Date.now()});if((s.catalogRevision156||0)>revision)s.catalogVersion125=null;s.receiptDate||=day();
    s.offlineQueue=await posOffline119.queue(owner);if(!valid())return;hooks.overlayPending();
    s.error=fallback?'The fast POS database update is pending. Ask your administrator to apply migration 10.':'';
    if(!s.picked||!hooks.catalog().some(m=>m.id===s.picked))hooks.pick(hooks.catalog()[0]?.id,false);
@@ -51,7 +66,10 @@
     if(!s.loaded&&cached){Object.assign(s,cached.data,{loaded:true,owner});s.offlineQueue=await posOffline119.queue(owner);if(!valid())return;hooks.overlayPending();hooks.pick(hooks.catalog()[0]?.id,false)}
     s.offline=true;s.error=s.loaded?'Offline: sales remain on this device until synced.':'Connect once to prepare the POS on this device.';
    }else{s.loaded=false;s.offline=false;s.error=e.message;showCenterStatus(e.message,true)}
-  }finally{if(valid()){s.busy=false;if(background&&s.loaded&&s.tab==='Management'&&document.activeElement?.closest('.pos-report-controls'))updateStatus(s);else if(!background||catalogChanged||!s.loaded||s.tab!=='Sales'||s.sub!=='New Order')pos118.render();else updateStatus(s)}}
+  }finally{if(valid()){s.busy=false;if(background&&s.loaded&&document.activeElement?.matches('input,textarea,select')&&document.activeElement?.closest('#pos118')){
+    updateStatus(s);
+    if(catalogChanged||before!==s.applied156)s.deferRender156=true;
+   }else if(!background||catalogChanged||before!==(s.applied156||0)||!s.loaded||s.tab!=='Sales'||s.sub!=='New Order')pos118.render();else updateStatus(s);if((s.revision156||0)>revision&&active()&&!s.offline&&s.loaded)schedule(200)}}
  }
  function updateStatus(s){const sync=document.querySelector('.pos-tab-actions132 [data-pos118=sync]');if(sync){sync.textContent='Sync'+(s.offlineQueue.length?' · '+s.offlineQueue.length:s.offline?' · Offline':'');sync.title=s.offlineQueue.length+' pending orders';}const node=document.querySelector('.pos-sync118');if(node)node.textContent=s.offlineQueue.length?s.offlineQueue.length+' pending sync':s.offline?'Offline':'Synced';
   // Never replace focused input nodes, scroll positions or a current draft during polling.
@@ -111,8 +129,9 @@
   if(!cached||liveProfile?.id!==owner||epoch!==sessionEpoch121)return;
   await posOffline119.saveSnapshot(key,{...cached.data,config,configVersion});
  }
- window.posPerformance125={cacheConfig,rpc,load,accepted,allowed,clamp,overview,report,moreReceipts,schedule,network};
+ window.posPerformance125={invalidate,stale,cacheConfig,rpc,load,accepted,allowed,clamp,overview,report,moreReceipts,schedule,network};
  // Refresh on explicit navigation, a completed write, or the Sync button; no idle polling.
 
+ document.addEventListener('focusout',()=>{const s=window.pos118?.state;if(!s?.deferRender156)return;setTimeout(()=>{if(s.deferRender156&&active()&&!document.activeElement?.matches('input,textarea,select')){s.deferRender156=false;pos118.render()}},0)});
  addEventListener('offline',()=>{const s=window.pos118?.state;if(s&&!s.sample&&s.loaded){s.offline=true;updateStatus(s)}});
 })();
