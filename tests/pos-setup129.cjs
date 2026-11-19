@@ -10,6 +10,18 @@ function context(){const c={console,setTimeout,clearTimeout,structuredClone,sess
   const c=context(),ranges=[];c.ojmDb=database(async(a,b)=>{ranges.push([a,b]);return {data:a===0?Array.from({length:1000},(_,i)=>({id:'stock-'+i,data:{name:'Item '+i,unit:'kg'}})):[{id:'last-stock',data:{name:'Last item',unit:'kg'}}]}});
   await c.links();assert.deepEqual(ranges,[[0,999],[1000,1999]]);assert(c.html.includes('value="stock-0"'));assert(c.html.includes('value="last-stock"'));assert.equal(c.S.items.length,0);
  });
+ await check('POS stock links use the menu costing conversion and reject mixed currencies before any save',async()=>{
+  const c=context(),writes=[];
+  const stock={id:'prepared',data:{name:'Dough',unit:'kg',currency:'LAK',prepared124:true,cost:100000,fullPreparedCost124:140000}};
+  c.S.ingredients[0].data={name:'Dough',unit:'g',currency:'LAK',purchaseQuantity:1000};
+  c.ojmDb=database(async()=>({data:[stock]}));c.dialog=(title,body,submit)=>{c.submit=submit};
+  c.restaurantModules125={ensure:async()=>{c.restaurantIntegrationMath132=math}};
+  const calc={window:{}};vm.createContext(calc);vm.runInContext(fs.readFileSync(root+'/scripts/restaurant-integration132.js','utf8'),calc);
+  const math=calc.window.restaurantIntegrationMath132;
+  c.menuStore108={save:async(kind,data)=>writes.push(data)};c.load=async()=>{};c.showCenterStatus=()=>{};
+  await c.links();await c.submit({item0:stock.id,factor0:'0.001'});assert.equal(writes[0].cost,100);assert.equal(writes[0].purchasePrice,100000);assert.equal(writes[0].fullPreparedCost124,140);
+  stock.data.currency='USD';await assert.rejects(c.submit({item0:stock.id,factor0:'0.001'}),/currencies must match/);assert.equal(writes.length,1);
+ });
  await check('Ingredient editor discards a response after account changes and rejects staff access',async()=>{
   const c=context();c.ojmDb=database(async()=>{c.liveProfile={id:'other'};return {data:[]}});await c.links();assert.equal(c.html,undefined);c.admin=()=>false;await assert.rejects(c.links(),/Administrator access/);
  });

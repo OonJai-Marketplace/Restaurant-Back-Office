@@ -148,35 +148,53 @@ var posReports = globalThis.posReports || (() => {
   }
   return rows;
  }
- const shiftHeader=['Shift ID','Cashier','Opened at','Closed at','Status','Sale receipts','Refunds','Sales collected (LAK)','Refund amount (LAK)','Net collected (LAK)','Opening cash (LAK)','Cash sales (LAK)','Cash refunds (LAK)','Paid in (LAK)','Paid out (LAK)','Expected cash (LAK)','Counted cash (LAK)','Difference (LAK)'];
+ const shiftHeader=['Shift ID','Cashier','Opened at','Closed at','Status','Sale receipts','Refunds','Sales collected (LAK)','Refund amount (LAK)','Net collected (LAK)','Opening cash (LAK)','Cash tender received (LAK)','Cash refunds (LAK)','Manual cash in (LAK)','Manual cash out (LAK)','Expected cash (LAK)','Counted cash (LAK)','Difference (LAK)','Change given (LAK)'];
+ function legacyRefundInShift(order,shift){
+  return order.status==='refunded'&&!order.data.refundShiftId&&shift.cashier&&order.data.actionBy===shift.cashier&&
+   Date.parse(order.refunded_at)>=Date.parse(shift.opened_at)&&(!shift.closed_at||Date.parse(order.refunded_at)<=Date.parse(shift.closed_at));
+ }
  async function shiftsReport(s,r,check,events=[]) {
   const shifts=s.sample?s.shifts.filter(v=>inRange(v.opened_at,r)):await pages(()=>ojmDb.from('pos_shifts118')
-   .select('id,cashier,opened_at,closed_at,opening,expected,counted,profile:profiles(full_name)').gte('opened_at',r.start).lt('opened_at',r.end),check);
+   .select('id,cashier,opened_at,closed_at,opening,opening_cash,counted,closing_report,profile:profiles(full_name)').gte('opened_at',r.start).lt('opened_at',r.end),check);
   shifts.sort((a,b)=>Date.parse(b.opened_at)-Date.parse(a.opened_at));
-  const rows=[shiftHeader];
+  const rows=[[...shiftHeader]],foreignRows=[],currencies=new Set(),seenRefunds=new Set();
   for(let i=0;i<shifts.length;i+=25) {
    const batch=shifts.slice(i,i+25),ids=batch.map(v=>v.id);
    const payments=(key,refund)=>{
     if(s.sample) return s.orders.filter(o=>ids.includes(o.data[key]) && (refund?o.status==='refunded':['paid','refunded'].includes(o.status)));
-    return pages(()=>ojmDb.from('pos_orders118').select('id,number,data,paid_at,refunded_at')
+    return pages(()=>ojmDb.from('pos_orders118').select('id,number,status,data,paid_at,refunded_at')
      .in('data->>'+key,ids).in('status',refund?['refunded']:['paid','refunded']),check);
    };
-   const [sold,refunded,moves]=await Promise.all([payments('shiftId',false),payments('refundShiftId',true),
-    s.sample?s.cash:pages(()=>ojmDb.from('pos_cash118').select('id,shift_id,amount').in('shift_id',ids),check)]);
+   const oldRefunds=()=>s.sample?s.orders.filter(o=>batch.some(shift=>legacyRefundInShift(o,shift))):pages(()=>{
+    let query=ojmDb.from('pos_orders118').select('id,number,status,data,paid_at,refunded_at').eq('status','refunded')
+     .is('data->>refundShiftId',null).in('data->>actionBy',[...new Set(batch.map(shift=>shift.cashier))])
+     .gte('refunded_at',batch.at(-1).opened_at);
+    if(batch.every(shift=>shift.closed_at))query=query.lte('refunded_at',batch.map(shift=>shift.closed_at).sort().at(-1));
+    return query;
+   },check);
+   const [sold,refunded,legacy,moves]=await Promise.all([payments('shiftId',false),payments('refundShiftId',true),oldRefunds(),
+    s.sample?s.cash:pages(()=>ojmDb.from('pos_cash118').select('id,shift_id,amount,currency,kind').in('shift_id',ids),check)]);
    for(const order of sold)events.push({order,refund:false,at:order.paid_at});
-   for(const order of refunded)events.push({order,refund:true,at:order.refunded_at});
-   const paymentsFor=(orders,key)=>orders.map(o=>({shift:o.data[key],amount:o.data.collectedTotal??o.data.total,method:o.data.payment,cashier:o.data.cashier}));
-   const sales=paymentsFor(sold,'shiftId'),refunds=paymentsFor(refunded,'refundShiftId');
-   const sum=values=>values.reduce((a,b)=>a+cents(b.amount),0)/100;
    for(const shift of batch) {
-    const paid=sales.filter(v=>v.shift===shift.id),returned=refunds.filter(v=>v.shift===shift.id),cash=moves.filter(v=>v.shift_id===shift.id);
-    const cashSales=sum(paid.filter(v=>v.method==='Cash')),cashRefunds=sum(returned.filter(v=>v.method==='Cash'));
-    const added=sum(cash.filter(v=>v.amount>0)),removed=-sum(cash.filter(v=>v.amount<0));
-    const expected=shift.expected??(Number(shift.opening)+cashSales-cashRefunds+added-removed);
-    rows.push([shift.id,shift.profile?.full_name||paid.find(o=>o.cashier)?.cashier||(s.sample?'Sample cashier':'Name unavailable'),stamp(shift.opened_at),stamp(shift.closed_at),shift.closed_at?'Closed':'Open',
-     paid.length,returned.length,sum(paid),sum(returned),cents(sum(paid)-sum(returned))/100,Number(shift.opening),cashSales,cashRefunds,added,removed,
-     cents(expected)/100,shift.counted??'',shift.counted==null?'':cents(Number(shift.counted)-expected)/100]);
+    const paid=sold.filter(o=>o.data.shiftId===shift.id);
+    const returned=[...refunded.filter(o=>o.data.refundShiftId===shift.id),...legacy.filter(o=>legacyRefundInShift(o,shift))];
+    for(const order of returned)if(!seenRefunds.has(order.id)){
+     seenRefunds.add(order.id);events.push({order,refund:true,at:order.refunded_at});
+    }
+    const report=shift.closing_report||posShifts.totals(shift.opening_cash||{LAK:shift.opening},paid,returned,moves.filter(m=>m.shift_id===shift.id));
+    const drawer=report.cash.find(c=>c.currency==='LAK'),counted=drawer.counted??shift.counted;
+    const t=report.totals,refundAmount=report.methods.reduce((sum,m)=>sum+cents(m.refunds),0)/100;
+    const salesAmount=report.methods.reduce((sum,m)=>sum+cents(m.paid),0)/100;
+    rows.push([shift.id,report.cashier||shift.profile?.full_name||paid[0]?.data.cashier||(s.sample?'Sample cashier':'Name unavailable'),stamp(shift.opened_at),stamp(shift.closed_at),shift.closed_at?'Closed':'Open',
+     t.paidCount,t.refundCount,salesAmount,refundAmount,t.collected,drawer.opening,drawer.received,drawer.refunds,drawer.cashIn,drawer.cashOut,drawer.expected,counted??'',counted==null?'':drawer.variance??(cents(counted)-cents(drawer.expected))/100,drawer.change]);
+    const foreign=new Map();
+    for(const c of report.cash)if(c.currency!=='LAK'){currencies.add(c.currency);foreign.set(c.currency,c)}
+    foreignRows.push(foreign);
    }
+  }
+  for(const code of [...currencies].sort()){
+   rows[0].push('Expected cash ('+code+')','Counted cash ('+code+')','Difference ('+code+')');
+   foreignRows.forEach((balances,index)=>{const c=balances.get(code);rows[index+1].push(c?.expected??0,c?.counted??'',c?.variance??'')});
   }
   return rows;
  }
@@ -227,7 +245,7 @@ var posReports = globalThis.posReports || (() => {
   }catch(error){if(el.isConnected&&el.dataset.selection===key)el.textContent=error.message}
  }
  function printTable(type,rows,r,sample,summaryRows){
-  const cols=type==='items'?[0,1,2,5,6,8,9,10,11,12]:[2,3,1,4,5,6,9,15,16,17];
+  const cols=type==='items'?[0,1,2,5,6,8,9,10,11,12]:[2,3,1,4,5,6,9,15,16,17,...rows[0].map((label,i)=>i>18&&/^Expected cash/.test(label)?i:null).filter(i=>i!=null)];
   printRows('Oon Jai Marketplace · '+types[type],(sample?'SAMPLE · ':'')+r.from+' – '+r.to+' · '+summary(rows,type),summaryRows,rows.map(row=>cols.map(c=>row[c])));
  }
  function printRows(title,subtitle,summaryRows,rows){

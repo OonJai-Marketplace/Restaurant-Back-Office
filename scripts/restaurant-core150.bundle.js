@@ -374,13 +374,13 @@ window.restaurantPosMode128=()=> 'live';
  const groups={
   promotions:{css:['promotions146.css?v=access26'],js:['promotion-kit146.js','restaurant-promotions146.js?v=access26']},
   readiness:{css:['restaurant-readiness144.css'],js:['restaurant-readiness144.js?v=access26']},
-  reports:{css:['pos-setup154.css?v=154','pos-operations.css?v=register6','pos-v118.css?v=setup154'],js:['pos-money.js?v=setup154','pos-setup154.js?v=154','pos-reports.js?v=setup154','pos-backoffice-reports.js?v=setup154']},
+  reports:{css:['pos-setup154.css?v=154','pos-operations.css?v=register6','pos-v118.css?v=setup154'],js:['pos-money.js?v=calc155','pos-setup154.js?v=154','pos-shifts.js?v=calc155','pos-reports.js?v=calc155','pos-backoffice-reports.js?v=setup154']},
   sales:{css:['restaurant-sales143.css?v=access26'],js:['sales-math143.js?v=access26','restaurant-sales143.js?v=access26']},
-  settings:{css:['pos-setup154.css?v=154'],js:['pos-money.js?v=setup154','pos-setup154.js?v=154','restaurant-settings146.bundle.js?v=setup154']},
+  settings:{css:['pos-setup154.css?v=154'],js:['pos-money.js?v=calc155','pos-setup154.js?v=154','restaurant-settings146.bundle.js?v=setup154']},
   inventory:{css:['inventory-menu-v104.css?v=access26','pos-operations.css?v=register6'],js:['restaurant-inventory144.bundle.js?v=access26','inventory-allocated.js?v=access26']},
   menu:{depends:['inventory'],js:['menu-v108.js?v=access26']},
   kitchen:{depends:['inventory'],css:['preparation-waste124.css?v=access26'],js:['preparation-waste124.js?v=access26']},
-  pos:{css:['pos-setup154.css?v=154','pos-v118.css?v=setup154','pos-receipt.css?v=setup154'],js:['pos-setup154.js?v=154','restaurant-pos150.bundle.js?v=setup154']}
+  pos:{css:['pos-setup154.css?v=154','pos-v118.css?v=setup154','pos-receipt.css?v=setup154'],js:['pos-setup154.js?v=154','restaurant-pos150.bundle.js?v=calc155']}
  };
  const promises=new Map(),ready=new Set(),files=new Set();let navigation=0;
  const pendingFiles=new Map();

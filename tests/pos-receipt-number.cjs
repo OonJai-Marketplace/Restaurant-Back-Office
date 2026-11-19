@@ -122,6 +122,22 @@ const {PGlite}=require('@electric-sql/pglite');
   const fxPaid=await run(fxId,0,'pay',{...tipped,payment:'Bank',fxTender:fx});
   assert.equal(fxPaid.data.fxTender.changeLak,500);
   await assert.rejects(()=>run(randomUUID(),0,'pay',{...tipped,tip:-1}),/valid tip/);
+  const stock=randomUUID(),ingredient=randomUUID(),queued=randomUUID(),trackedMenu=randomUUID();
+  await query('insert into inventory_items104(id,data) values($1,$2)',[stock,{code:'STOCK',name:'Stock',currency:'LAK',unit:'kg',active:true}]);
+  await query('insert into menu_ingredients105(id,data) values($1,$2)',[ingredient,{code:'ING',name:'Portion',unit:'g',currency:'LAK',cost:1,inventoryItemId118:stock,inventoryFactor118:0.001}]);
+  await query('insert into inventory_movements104(data) values($1)',[{itemId:stock,kind:'in',quantity:2}]);
+  await query('insert into menu_items104(id,data) values($1,$2)',[trackedMenu,{code:'TRACK',name:'Soup',price:1000,currency:'LAK',recipe:[{itemId:ingredient,quantity:150}]}]);
+  const offlinePacket={...data,lines:[{...data.lines[0],menuId:trackedMenu}],offlineCapturedAt:new Date().toISOString(),offlineTotal:2000,offlineUsage124:{[stock]:0.30000000000000004}};
+  for(const mismatch of [{},{[stock]:0.15},{[randomUUID()]:0.3}]){
+   await assert.rejects(()=>run(queued,0,'pay',{...offlinePacket,offlineUsage124:mismatch}),/Inventory links or quantities changed/);
+  }
+  assert.equal((await query('select count(*)::int n from pos_orders118 where id=$1',[queued])).n,0);
+  const synced=await run(queued,0,'pay',offlinePacket);await run(queued,0,'pay',offlinePacket);
+  let deductions=await query('select count(*)::int n,sum(quantity)::text qty from pos_stock118 where order_id=$1',[queued]);
+  assert.equal(deductions.n,1);assert.equal(Number(deductions.qty),0.3);
+  await run(queued,synced.version,'refund',{restock:true,reason:'Return stock'});
+  assert.equal(Number((await query('select sum(quantity) qty from pos_stock118 where order_id=$1',[queued])).qty),0);
+  console.log('PASS captured offline allocations, changed links, atomic retry, fractional deductions and exact restock');
   // A reservation at Z999 cannot expose A001 while other registers still hold unused numbers.
   await query('update restaurant_private.receipt_counters set last_issued=25970 where sale_year=$1',[newYear]);
   const tail=await newBook(randomUUID(),newYear);

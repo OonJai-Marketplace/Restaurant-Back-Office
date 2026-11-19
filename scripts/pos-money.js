@@ -19,7 +19,14 @@ function bind(root){
   if(input.dataset.moneyBound)continue;input.dataset.moneyBound='1';
   const precision=Number(input.dataset.posMoney)||2;
   function validate(){const v=raw(input.value),number=Number(v);const valid=!v||new RegExp('^-?\\d+(?:\\.\\d{0,'+precision+'})?$').test(v)&&Number.isFinite(number)&&(!input.hasAttribute('min')||number>=Number(input.min))&&(!input.hasAttribute('max')||number<=Number(input.max));input.setCustomValidity(valid?'':'Enter a valid amount with up to '+precision+' decimal places.');}
-  input.addEventListener('beforeinput',e=>{if(e.data==='.'&&input.selectionStart===input.selectionEnd&&input.value.includes('.')){e.preventDefault();const at=input.value.indexOf('.')+1;input.setSelectionRange(at,at)}});
+  input.addEventListener('beforeinput',e=>{
+   const start=input.selectionStart,point=input.value.indexOf('.');
+   if(start!==input.selectionEnd||point<0||e.isComposing)return;
+   if(e.data==='.'){e.preventDefault();input.setSelectionRange(point+1,point+1);return}
+   // Formatted amounts already contain fractional digits. Replace them as the cashier types.
+   if(e.inputType==='insertText'&&/^\d$/.test(e.data)&&start>point&&start<input.value.length)
+    input.setSelectionRange(start,start+1);
+  });
   input.addEventListener('input',()=>{const result=edit(input.value,input.selectionStart??input.value.length,precision);input.value=result.text;input.setSelectionRange(result.caret,result.caret);validate()});
   input.addEventListener('focus',()=>{if(input.value&&value(input)===0)input.select()});
   input.addEventListener('blur',()=>{if(input.value&&input.validity.valid)input.value=display(value(input),precision);validate()});

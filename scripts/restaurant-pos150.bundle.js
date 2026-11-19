@@ -22,7 +22,14 @@ function bind(root){
   if(input.dataset.moneyBound)continue;input.dataset.moneyBound='1';
   const precision=Number(input.dataset.posMoney)||2;
   function validate(){const v=raw(input.value),number=Number(v);const valid=!v||new RegExp('^-?\\d+(?:\\.\\d{0,'+precision+'})?$').test(v)&&Number.isFinite(number)&&(!input.hasAttribute('min')||number>=Number(input.min))&&(!input.hasAttribute('max')||number<=Number(input.max));input.setCustomValidity(valid?'':'Enter a valid amount with up to '+precision+' decimal places.');}
-  input.addEventListener('beforeinput',e=>{if(e.data==='.'&&input.selectionStart===input.selectionEnd&&input.value.includes('.')){e.preventDefault();const at=input.value.indexOf('.')+1;input.setSelectionRange(at,at)}});
+  input.addEventListener('beforeinput',e=>{
+   const start=input.selectionStart,point=input.value.indexOf('.');
+   if(start!==input.selectionEnd||point<0||e.isComposing)return;
+   if(e.data==='.'){e.preventDefault();input.setSelectionRange(point+1,point+1);return}
+   // Formatted amounts already contain fractional digits. Replace them as the cashier types.
+   if(e.inputType==='insertText'&&/^\d$/.test(e.data)&&start>point&&start<input.value.length)
+    input.setSelectionRange(start,start+1);
+  });
   input.addEventListener('input',()=>{const result=edit(input.value,input.selectionStart??input.value.length,precision);input.value=result.text;input.setSelectionRange(result.caret,result.caret);validate()});
   input.addEventListener('focus',()=>{if(input.value&&value(input)===0)input.select()});
   input.addEventListener('blur',()=>{if(input.value&&input.validity.valid)input.value=display(value(input),precision);validate()});
@@ -717,35 +724,53 @@ var posReports = globalThis.posReports || (() => {
   }
   return rows;
  }
- const shiftHeader=['Shift ID','Cashier','Opened at','Closed at','Status','Sale receipts','Refunds','Sales collected (LAK)','Refund amount (LAK)','Net collected (LAK)','Opening cash (LAK)','Cash sales (LAK)','Cash refunds (LAK)','Paid in (LAK)','Paid out (LAK)','Expected cash (LAK)','Counted cash (LAK)','Difference (LAK)'];
+ const shiftHeader=['Shift ID','Cashier','Opened at','Closed at','Status','Sale receipts','Refunds','Sales collected (LAK)','Refund amount (LAK)','Net collected (LAK)','Opening cash (LAK)','Cash tender received (LAK)','Cash refunds (LAK)','Manual cash in (LAK)','Manual cash out (LAK)','Expected cash (LAK)','Counted cash (LAK)','Difference (LAK)','Change given (LAK)'];
+ function legacyRefundInShift(order,shift){
+  return order.status==='refunded'&&!order.data.refundShiftId&&shift.cashier&&order.data.actionBy===shift.cashier&&
+   Date.parse(order.refunded_at)>=Date.parse(shift.opened_at)&&(!shift.closed_at||Date.parse(order.refunded_at)<=Date.parse(shift.closed_at));
+ }
  async function shiftsReport(s,r,check,events=[]) {
   const shifts=s.sample?s.shifts.filter(v=>inRange(v.opened_at,r)):await pages(()=>ojmDb.from('pos_shifts118')
-   .select('id,cashier,opened_at,closed_at,opening,expected,counted,profile:profiles(full_name)').gte('opened_at',r.start).lt('opened_at',r.end),check);
+   .select('id,cashier,opened_at,closed_at,opening,opening_cash,counted,closing_report,profile:profiles(full_name)').gte('opened_at',r.start).lt('opened_at',r.end),check);
   shifts.sort((a,b)=>Date.parse(b.opened_at)-Date.parse(a.opened_at));
-  const rows=[shiftHeader];
+  const rows=[[...shiftHeader]],foreignRows=[],currencies=new Set(),seenRefunds=new Set();
   for(let i=0;i<shifts.length;i+=25) {
    const batch=shifts.slice(i,i+25),ids=batch.map(v=>v.id);
    const payments=(key,refund)=>{
     if(s.sample) return s.orders.filter(o=>ids.includes(o.data[key]) && (refund?o.status==='refunded':['paid','refunded'].includes(o.status)));
-    return pages(()=>ojmDb.from('pos_orders118').select('id,number,data,paid_at,refunded_at')
+    return pages(()=>ojmDb.from('pos_orders118').select('id,number,status,data,paid_at,refunded_at')
      .in('data->>'+key,ids).in('status',refund?['refunded']:['paid','refunded']),check);
    };
-   const [sold,refunded,moves]=await Promise.all([payments('shiftId',false),payments('refundShiftId',true),
-    s.sample?s.cash:pages(()=>ojmDb.from('pos_cash118').select('id,shift_id,amount').in('shift_id',ids),check)]);
+   const oldRefunds=()=>s.sample?s.orders.filter(o=>batch.some(shift=>legacyRefundInShift(o,shift))):pages(()=>{
+    let query=ojmDb.from('pos_orders118').select('id,number,status,data,paid_at,refunded_at').eq('status','refunded')
+     .is('data->>refundShiftId',null).in('data->>actionBy',[...new Set(batch.map(shift=>shift.cashier))])
+     .gte('refunded_at',batch.at(-1).opened_at);
+    if(batch.every(shift=>shift.closed_at))query=query.lte('refunded_at',batch.map(shift=>shift.closed_at).sort().at(-1));
+    return query;
+   },check);
+   const [sold,refunded,legacy,moves]=await Promise.all([payments('shiftId',false),payments('refundShiftId',true),oldRefunds(),
+    s.sample?s.cash:pages(()=>ojmDb.from('pos_cash118').select('id,shift_id,amount,currency,kind').in('shift_id',ids),check)]);
    for(const order of sold)events.push({order,refund:false,at:order.paid_at});
-   for(const order of refunded)events.push({order,refund:true,at:order.refunded_at});
-   const paymentsFor=(orders,key)=>orders.map(o=>({shift:o.data[key],amount:o.data.collectedTotal??o.data.total,method:o.data.payment,cashier:o.data.cashier}));
-   const sales=paymentsFor(sold,'shiftId'),refunds=paymentsFor(refunded,'refundShiftId');
-   const sum=values=>values.reduce((a,b)=>a+cents(b.amount),0)/100;
    for(const shift of batch) {
-    const paid=sales.filter(v=>v.shift===shift.id),returned=refunds.filter(v=>v.shift===shift.id),cash=moves.filter(v=>v.shift_id===shift.id);
-    const cashSales=sum(paid.filter(v=>v.method==='Cash')),cashRefunds=sum(returned.filter(v=>v.method==='Cash'));
-    const added=sum(cash.filter(v=>v.amount>0)),removed=-sum(cash.filter(v=>v.amount<0));
-    const expected=shift.expected??(Number(shift.opening)+cashSales-cashRefunds+added-removed);
-    rows.push([shift.id,shift.profile?.full_name||paid.find(o=>o.cashier)?.cashier||(s.sample?'Sample cashier':'Name unavailable'),stamp(shift.opened_at),stamp(shift.closed_at),shift.closed_at?'Closed':'Open',
-     paid.length,returned.length,sum(paid),sum(returned),cents(sum(paid)-sum(returned))/100,Number(shift.opening),cashSales,cashRefunds,added,removed,
-     cents(expected)/100,shift.counted??'',shift.counted==null?'':cents(Number(shift.counted)-expected)/100]);
+    const paid=sold.filter(o=>o.data.shiftId===shift.id);
+    const returned=[...refunded.filter(o=>o.data.refundShiftId===shift.id),...legacy.filter(o=>legacyRefundInShift(o,shift))];
+    for(const order of returned)if(!seenRefunds.has(order.id)){
+     seenRefunds.add(order.id);events.push({order,refund:true,at:order.refunded_at});
+    }
+    const report=shift.closing_report||posShifts.totals(shift.opening_cash||{LAK:shift.opening},paid,returned,moves.filter(m=>m.shift_id===shift.id));
+    const drawer=report.cash.find(c=>c.currency==='LAK'),counted=drawer.counted??shift.counted;
+    const t=report.totals,refundAmount=report.methods.reduce((sum,m)=>sum+cents(m.refunds),0)/100;
+    const salesAmount=report.methods.reduce((sum,m)=>sum+cents(m.paid),0)/100;
+    rows.push([shift.id,report.cashier||shift.profile?.full_name||paid[0]?.data.cashier||(s.sample?'Sample cashier':'Name unavailable'),stamp(shift.opened_at),stamp(shift.closed_at),shift.closed_at?'Closed':'Open',
+     t.paidCount,t.refundCount,salesAmount,refundAmount,t.collected,drawer.opening,drawer.received,drawer.refunds,drawer.cashIn,drawer.cashOut,drawer.expected,counted??'',counted==null?'':drawer.variance??(cents(counted)-cents(drawer.expected))/100,drawer.change]);
+    const foreign=new Map();
+    for(const c of report.cash)if(c.currency!=='LAK'){currencies.add(c.currency);foreign.set(c.currency,c)}
+    foreignRows.push(foreign);
    }
+  }
+  for(const code of [...currencies].sort()){
+   rows[0].push('Expected cash ('+code+')','Counted cash ('+code+')','Difference ('+code+')');
+   foreignRows.forEach((balances,index)=>{const c=balances.get(code);rows[index+1].push(c?.expected??0,c?.counted??'',c?.variance??'')});
   }
   return rows;
  }
@@ -796,7 +821,7 @@ var posReports = globalThis.posReports || (() => {
   }catch(error){if(el.isConnected&&el.dataset.selection===key)el.textContent=error.message}
  }
  function printTable(type,rows,r,sample,summaryRows){
-  const cols=type==='items'?[0,1,2,5,6,8,9,10,11,12]:[2,3,1,4,5,6,9,15,16,17];
+  const cols=type==='items'?[0,1,2,5,6,8,9,10,11,12]:[2,3,1,4,5,6,9,15,16,17,...rows[0].map((label,i)=>i>18&&/^Expected cash/.test(label)?i:null).filter(i=>i!=null)];
   printRows('Oon Jai Marketplace · '+types[type],(sample?'SAMPLE · ':'')+r.from+' – '+r.to+' · '+summary(rows,type),summaryRows,rows.map(row=>cols.map(c=>row[c])));
  }
  function printRows(title,subtitle,summaryRows,rows){
@@ -970,7 +995,10 @@ function overlayPending(){
  for(const entry of S.offlineQueue){const order={...entry.order,offlinePending:true};S.orders=[order,...S.orders.filter(o=>o.id!==order.id)]}}
 function matchesPayment(saved,sent){
  if(sent.tip==null)return true;
- return ['tip','tendered','collectedTotal'].every(key=>saved?.[key]!=null&&Number(saved[key])===Number(sent[key]));
+ if(saved?.payment!==sent.payment||!['tip','tendered','collectedTotal'].every(key=>saved[key]!=null&&Number(saved[key])===Number(sent[key])))return false;
+ const expected=sent.fxTender,actual=saved.fxTender;
+ if(!expected||!actual)return !expected&&!actual;
+ return actual.currency===expected.currency&&['amount','rate','equivalentLak','changeLak'].every(key=>actual[key]!=null&&Number(actual[key])===Number(expected[key]));
 }
 function matchesReceipt(order,ticket){
  if(!ticket)return true;
@@ -991,7 +1019,7 @@ async function syncPending(){if(S.sample||!navigator.onLine||!offlineOwner())ret
  await posOffline119.acknowledge(entry,acknowledged);
  if(valid()&&entry.action==='pay')S.orders=[acknowledged,...S.orders.filter(o=>o.id!==acknowledged.id)];
  if(valid()&&draft?.id===entry.order.id&&acknowledged.status==='unpaid'){draft.version=acknowledged.version;draft.number=acknowledged.number}
- }catch(e){if(valid())S.syncError='Sync pending: '+e.message;if(!navigator.onLine||window.posPerformance125?.network(e))break}}const left=await posOffline119.queue(owner);if(valid())S.offlineQueue=left}
+ }catch(e){if(valid())S.syncError='Sync pending · '+(entry.order.data.receiptCode||entry.order.number||entry.order.id)+': '+e.message;if(!navigator.onLine||window.posPerformance125?.network(e))break}}const left=await posOffline119.queue(owner);if(valid())S.offlineQueue=left}
 let loadJob132=null;
 function load(options={}){const owner=liveProfile?.id,epoch=sessionEpoch121;if(loadJob132?.owner===owner&&loadJob132.epoch===epoch)return loadJob132.promise;const job={owner,epoch,promise:null};loadJob132=job;job.promise=loadCore132(options).finally(()=>{if(loadJob132===job)loadJob132=null});return job.promise}
 async function loadCore132(options={}){if(window.posPerformance125)return posPerformance125.load(S,{catalog,pick,overlayPending},options);if(S.busy||!offlineOwner())return;const owner=offlineOwner(),epoch=sessionEpoch121,valid=()=>owner===offlineOwner()&&epoch===sessionEpoch121;S.busy=true;S.error='';render();try{if(navigator.onLine)await syncPending();if(!valid())return;const data=await rpc('pos_snapshot118',{});if(!valid())return;if(!data||!Array.isArray(data.orders))throw Error('POS database setup is required. Apply the separate v118 POS SQL.');Object.assign(S,data,{loaded:true,owner,offline:false});await posOffline119.saveSnapshot(owner,data);if(!valid())return;navigator.storage?.persist?.().catch(()=>{});const entries=await posOffline119.queue(owner);if(!valid())return;S.offlineQueue=entries;overlayPending();const m=menuStore108.state;Object.assign(m,{menu:S.menu,ingredients:S.ingredients,items:S.items,categories:S.categories,moves:[...S.moves,...virtualMoves()],owner,loaded:true});if(!S.picked||!catalog().some(x=>x.id===S.picked))pick(catalog()[0]?.id,false)}catch(e){if(!valid())return;const connectionFailure=(!navigator.onLine||/failed to fetch|networkerror|network request failed|load failed/i.test(e.message))&&!/permission|access required|unauthorized|inactive/i.test(e.message);const cached=connectionFailure?await posOffline119.getSnapshot(owner).catch(()=>null):null;if(!valid())return;if(cached){Object.assign(S,cached.data,{loaded:true,owner,offline:true});const entries=await posOffline119.queue(owner);if(!valid())return;S.offlineQueue=entries;overlayPending();if(!S.picked||!catalog().some(x=>x.id===S.picked))pick(catalog()[0]?.id,false);Object.assign(menuStore108.state,{menu:S.menu,ingredients:S.ingredients,items:S.items,categories:S.categories,moves:[...S.moves,...virtualMoves()],owner,loaded:true});S.error='Offline: using the last saved Menu and shift. Sales remain on this device until synced.'}else{S.loaded=false;S.error=connectionFailure?'No offline copy is ready on this device. Connect once while signed in to prepare POS.':e.message;showCenterStatus(S.error,true)}}finally{if(valid()){S.busy=false;render()}}}
@@ -1644,12 +1672,43 @@ function shiftHooks(){return {state:S,dialog,esc,render,load,rpc,currentUser,own
 async function shift(action){return posShifts.open(action,shiftHooks())}
 
 function refund(cancel=false){const o=selectedOrder();if(!o)return;if(!restaurantCan('pos',cancel?'void':'refund'))throw Error('Administrator approval required');dialog(cancel?'Cancel unpaid order':'Refund paid order',`<form><p>${cancel?'Cancel':'Record a full refund for'} ${esc(cancel?'OJ-'+o.number:posReports.numberFor(o))} · ${money(o.data.collectedTotal??o.data.total)}</p>${field('Reason','reason','','text','required minlength="3"')}${cancel?'':'<label class="check"><input type="checkbox" name="restock">Return all consumed ingredients to usable stock</label><p>Leave unchecked for prepared food that cannot be reused. Confirm the actual refund in your payment system separately.</p>'}<button type="submit">${cancel?'Cancel order':'Confirm refund'}</button></form>`,async(d,f)=>{if(S.sample){o.status=cancel?'cancelled':'refunded';o.refunded_at=new Date().toISOString();if(!cancel)o.data.refundShiftId=S.shifts.find(s=>!s.closed_at)?.id}else await rpc('pos_order118',{p_id:o.id,p_version:o.version,p_action:cancel?'cancel':'refund',p_data:{reason:d.reason,restock:!!f.elements.restock?.checked}});if(!S.sample)await load();showCenterStatus(cancel?'Order cancelled.':'Refund recorded.');render()})}
-function options(){if(!admin()&&!S.sample)throw Error('Administrator access required');let selected=S.picked||catalog()[0]?.id;if(!selected)throw Error('Add a menu item first');const root=dialog('Customization options','<div id="posOptionsEditor118"></div>');const host=root.querySelector('#posOptionsEditor118');let groups,nonstock;
-function draw(){const record=catalog().find(r=>r.id===selected);groups=structuredClone(record.data.posOptions118||[]);nonstock=record.data.posNoStock118===true;paint()}
-function paint(){host.innerHTML=`<form><label>Menu item<select name="menu">${catalog().map(r=>`<option value="${r.id}" ${r.id===selected?'selected':''}>${esc(r.data.name)}</option>`).join('')}</select></label><label class="check"><input name="nonstock" type="checkbox" ${nonstock?'checked':''}>Non-stock item (no recipe or inventory consumption)</label><p>Required groups set a minimum above zero. Substitutions replace the specified base-recipe ingredient when a choice is selected. Quantities use the ingredient’s recipe unit.</p>${groups.map((g,i)=>`<section class="choice-edit118" data-group-edit118="${i}"><div class="fields118">${field('Group name','gname'+i,g.name)}${field('Minimum choices','gmin'+i,g.min,'number','min="0" max="20" required')}${field('Maximum choices','gmax'+i,g.max,'number','min="1" max="20" required')}${g.included!=null?field('Included choices','gincluded'+i,g.included,'number','min="0" max="20" required')+field('Each extra choice (LAK)','gextra'+i,g.extraPrice||0,'number','min="0" step="any" required'):''}<label>Replaces base ingredient<select name="replace${i}"><option value="">Add-on only</option>${S.ingredients.map(r=>`<option value="${r.id}" ${g.replaces?.includes(r.id)?'selected':''}>${esc(r.data.name)}</option>`).join('')}</select></label></div>${g.options.map((o,j)=>`<div class="option-grid118">${field('Choice','oname'+i+'_'+j,o.name,'text','required')}${field('Extra LAK','oprice'+i+'_'+j,o.price||0,'number','min="0" step="any" required')}<label>Ingredient<select name="oing${i}_${j}"><option value="">No additional ingredient</option>${S.ingredients.map(r=>`<option value="${r.id}" ${o.recipe?.[0]?.itemId===r.id?'selected':''}>${esc(r.data.name)}</option>`).join('')}</select></label>${field('Quantity','oqty'+i+'_'+j,o.recipe?.[0]?.quantity||0,'number','min="0" step="any"')}<button type="button" data-remove-option118="${i},${j}" aria-label="Remove option">×</button></div><label class="check"><input type="checkbox" name="available${i}_${j}" ${o.available!==false?'checked':''}>Available</label>`).join('')}<button type="button" data-add-option118="${i}">Add choice</button> <button type="button" data-remove-group118="${i}">Remove group</button></section>`).join('')}<div class="pos-actions118"><button type="button" data-add-group118>Add option group</button><button type="submit">Save customizations</button></div></form>`;
-const f=host.querySelector('form');if(catalog().find(r=>r.id===selected)?.data.storefrontManaged131){const note=document.createElement('p');note.textContent='Shared choice names, allowances and prices are managed in Menu Display. Set recipe quantities and Inventory ingredients here.';f.prepend(note);f.querySelectorAll('[name^=gname],[name^=gmin],[name^=gmax],[name^=gincluded],[name^=gextra],[name^=oname],[name^=oprice],[data-add-group118],[data-add-option118],[data-remove-group118],[data-remove-option118]').forEach(el=>el.disabled=true);}f.elements.menu.onchange=()=>{selected=f.elements.menu.value;draw()};function capture(){nonstock=f.elements.nonstock.checked;groups.forEach((g,i)=>{g.name=f.elements['gname'+i].value;g.min=n(f.elements['gmin'+i].value);g.max=n(f.elements['gmax'+i].value);if(g.included!=null){g.included=n(f.elements['gincluded'+i].value);g.extraPrice=n(f.elements['gextra'+i].value)}g.replaces=f.elements['replace'+i].value?[f.elements['replace'+i].value]:[];g.options.forEach((o,j)=>{o.name=f.elements['oname'+i+'_'+j].value;o.price=n(f.elements['oprice'+i+'_'+j].value);o.available=f.elements['available'+i+'_'+j].checked;const ingredient=f.elements['oing'+i+'_'+j].value,quantity=n(f.elements['oqty'+i+'_'+j].value);o.recipe=ingredient?[{itemId:ingredient,quantity}]:[]})})}
-host.querySelector('[data-add-group118]').onclick=()=>{capture();groups.push({id:uuid(),name:'New group',min:0,max:1,replaces:[],options:[]});paint()};host.querySelectorAll('[data-add-option118]').forEach(b=>b.onclick=()=>{capture();groups[n(b.dataset.addOption118)].options.push({id:uuid(),name:'New option',price:0,recipe:[]});paint()});host.querySelectorAll('[data-remove-option118]').forEach(b=>b.onclick=()=>{capture();const [i,j]=b.dataset.removeOption118.split(',').map(Number);groups[i].options.splice(j,1);paint()});host.querySelectorAll('[data-remove-group118]').forEach(b=>b.onclick=()=>{capture();groups.splice(n(b.dataset.removeGroup118),1);paint()});f.onsubmit=async e=>{e.preventDefault();capture();try{for(const g of groups){if(!g.name.trim()||g.min>g.max||g.max>g.options.length||g.min<0||(g.included!=null&&(g.included>g.max||g.extraPrice<0))||g.options.some(o=>!o.name.trim()||o.recipe.some(r=>r.quantity<=0)))throw Error('Review group limits, option names and ingredient quantities')}const record=catalog().find(r=>r.id===selected),data={...record.data,posOptions118:groups,posNoStock118:nonstock};if(S.sample)record.data=data;else{await menuStore108.save('menu',data,record);await load()}pick(selected,false);root.resolve108(true);showCenterStatus(S.sample?'Sample customizations updated.':'Customizations saved to Menu.');render()}catch(e){showCenterStatus(e.message,true)}}}draw()}
-async function links(){if(!admin()&&!S.sample)throw Error('Administrator access required');if(S.sample){dialog('Ingredient links','<p>In Live operation, each Menu ingredient is linked to an Inventory item, with an explicit unit conversion. The selected base, protein, toppings and extras determine the stock used.</p><p>Switch to Live operation to configure your actual ingredients.</p>');return}const owner=liveProfile?.id,epoch=sessionEpoch121,valid=()=>owner===liveProfile?.id&&epoch===sessionEpoch121&&admin();const inventory=[];for(let offset=0;;offset+=1000){const result=await ojmDb.from('inventory_items104').select('id,data,version').order('id').range(offset,offset+999);if(!valid())return;if(result.error)throw Error(result.error.message);inventory.push(...result.data);if(result.data.length<1000)break}inventory.sort((a,b)=>String(a.data.name||'').localeCompare(String(b.data.name||'')));const ingredients=structuredClone(S.ingredients);dialog('Menu ingredient → Inventory',`<form><p>Enter the Inventory quantity consumed by one recipe unit. Example: ingredient unit g and Inventory unit kg → factor 0.001.</p><table><thead><tr><th>Menu ingredient</th><th>Inventory item</th><th>Factor</th></tr></thead><tbody>${ingredients.map((r,i)=>`<tr><td>${esc(r.data.name)} (${esc(r.data.unit)})</td><td><select name="item${i}"><option value="">Not linked</option>${inventory.map(t=>`<option value="${t.id}" ${r.data.inventoryItemId118===t.id?'selected':''}>${esc(t.data.name)} (${esc(t.data.unit)})</option>`).join('')}</select></td><td><input aria-label="Conversion factor for ${esc(r.data.name)}" name="factor${i}" type="number" min="0.000001" step="any" value="${n(r.data.inventoryFactor118||1)}" required></td></tr>`).join('')}</tbody></table><button type="submit">Save ingredient links</button></form>`,async d=>{if(!valid())throw Error('Account changed. Reopen ingredient links.');let saved=0;try{for(const [i,r] of ingredients.entries()){const id=d['item'+i],factor=n(d['factor'+i]);if(id===(r.data.inventoryItemId118||'')&&factor===n(r.data.inventoryFactor118||1))continue;if(!valid())throw Error('Account changed. Reopen ingredient links.');await menuStore108.save('ingredients',{...r.data,inventoryItemId118:id,inventoryFactor118:factor},r);saved++}await load();showCenterStatus('Ingredient links saved.')}catch(e){throw Error(e.message+' '+saved+' links were saved; reload before retrying.')}})}
+function options(){if(!admin()&&!S.sample)throw Error('Administrator access required');let selected=S.picked||catalog()[0]?.id;if(!selected)throw Error('Add a menu item first');const root=dialog('Customization options','<div id="posOptionsEditor118"></div>');const host=root.querySelector('#posOptionsEditor118');let groups,nonstock,record;
+function draw(){record=catalog().find(r=>r.id===selected);groups=structuredClone(record.data.posOptions118||[]);nonstock=record.data.posNoStock118===true;paint()}
+function ingredientsFor(selected){
+ const ids=new Set(selected);
+ const choices=S.ingredients.map(r=>[r.id,r.data.name]);
+ for(const id of ids)if(!choices.some(([value])=>value===id))choices.push([id,'Unavailable ingredient · '+id]);
+ return choices.map(([id,name])=>'<option value="'+esc(id)+'" '+(ids.has(id)?'selected':'')+'>'+esc(name)+'</option>').join('');
+}
+function recipeFields(option,i,j){
+ const rows=option.recipe?.length?option.recipe:[{}];
+ return '<div data-option-recipe="'+i+'_'+j+'">'+rows.map((part,k)=>'<div data-recipe-part><label>Ingredient<select data-part-item><option value="">No ingredient</option>'+ingredientsFor(part.itemId?[part.itemId]:[])+'</select></label><label>Quantity<input data-part-quantity type="number" min="0" step="any" value="'+esc(part.quantity??'')+'"></label><button type="button" data-remove-part="'+i+','+j+','+k+'">Remove ingredient</button></div>').join('')+'<button type="button" data-add-part="'+i+','+j+'">Add ingredient</button></div>';
+}
+function paint(){host.innerHTML=`<form><label>Menu item<select name="menu">${catalog().map(r=>`<option value="${r.id}" ${r.id===selected?'selected':''}>${esc(r.data.name)}</option>`).join('')}</select></label><label class="check"><input name="nonstock" type="checkbox" ${nonstock?'checked':''}>Non-stock item (no recipe or inventory consumption)</label><p>Required groups set a minimum above zero. Substitutions replace the specified base-recipe ingredient when a choice is selected. Quantities use the ingredient’s recipe unit.</p>${groups.map((g,i)=>`<section class="choice-edit118" data-group-edit118="${i}"><div class="fields118">${field('Group name','gname'+i,g.name)}${field('Minimum choices','gmin'+i,g.min,'number','min="0" max="20" required')}${field('Maximum choices','gmax'+i,g.max,'number','min="1" max="20" required')}${g.included!=null?field('Included choices','gincluded'+i,g.included,'number','min="0" max="20" required')+field('Each extra choice (LAK)','gextra'+i,g.extraPrice||0,'number','min="0" step="any" required'):''}<label>Base ingredients replaced (optional)<select multiple name="replace${i}">${ingredientsFor(g.replaces||[])}</select></label></div>${g.options.map((o,j)=>`<div class="option-grid118">${field('Choice','oname'+i+'_'+j,o.name,'text','required')}${field('Extra LAK','oprice'+i+'_'+j,o.price||0,'number','min="0" step="any" required')}${recipeFields(o,i,j)}<button type="button" data-remove-option118="${i},${j}" aria-label="Remove option">×</button></div><label class="check"><input type="checkbox" name="available${i}_${j}" ${o.available!==false?'checked':''}>Available</label>`).join('')}<button type="button" data-add-option118="${i}">Add choice</button> <button type="button" data-remove-group118="${i}">Remove group</button></section>`).join('')}<div class="pos-actions118"><button type="button" data-add-group118>Add option group</button><button type="submit">Save customizations</button></div></form>`;
+const f=host.querySelector('form');if(catalog().find(r=>r.id===selected)?.data.storefrontManaged131){const note=document.createElement('p');note.textContent='Shared choice names, allowances and prices are managed in Menu Display. Set recipe quantities and Inventory ingredients here.';f.prepend(note);f.querySelectorAll('[name^=gname],[name^=gmin],[name^=gmax],[name^=gincluded],[name^=gextra],[name^=oname],[name^=oprice],[data-add-group118],[data-add-option118],[data-remove-group118],[data-remove-option118]').forEach(el=>el.disabled=true);}f.elements.menu.onchange=()=>{selected=f.elements.menu.value;draw()};function capture(){nonstock=f.elements.nonstock.checked;groups.forEach((g,i)=>{g.name=f.elements['gname'+i].value;g.min=n(f.elements['gmin'+i].value);g.max=n(f.elements['gmax'+i].value);if(g.included!=null){g.included=n(f.elements['gincluded'+i].value);g.extraPrice=posMoney.value(f.elements['gextra'+i])}g.replaces=Array.from(f.elements['replace'+i].selectedOptions,el=>el.value);g.options.forEach((o,j)=>{o.name=f.elements['oname'+i+'_'+j].value;o.price=posMoney.value(f.elements['oprice'+i+'_'+j]);o.available=f.elements['available'+i+'_'+j].checked;const rows=f.querySelector('[data-option-recipe="'+i+'_'+j+'"]').querySelectorAll('[data-recipe-part]');
+ const prior=o.recipe||[];
+ o.recipe=Array.from(rows,(row,k)=>({...prior[k],itemId:row.querySelector('[data-part-item]').value,quantity:n(row.querySelector('[data-part-quantity]').value)}))})})}
+host.querySelectorAll('[data-remove-part]').forEach(b=>b.onclick=()=>{capture();const [i,j,k]=b.dataset.removePart.split(',').map(Number);groups[i].options[j].recipe.splice(k,1);paint()});
+host.querySelectorAll('[data-part-item]').forEach(select=>select.onchange=()=>{if(!select.value)select.closest('[data-recipe-part]').querySelector('[data-part-quantity]').value=''});
+host.querySelectorAll('[data-add-part]').forEach(b=>b.onclick=()=>{capture();const [i,j]=b.dataset.addPart.split(',').map(Number);groups[i].options[j].recipe.push({itemId:'',quantity:0});paint()});
+host.querySelector('[data-add-group118]').onclick=()=>{capture();groups.push({id:uuid(),name:'New group',min:0,max:1,replaces:[],options:[]});paint()};host.querySelectorAll('[data-add-option118]').forEach(b=>b.onclick=()=>{capture();groups[n(b.dataset.addOption118)].options.push({id:uuid(),name:'New option',price:0,recipe:[]});paint()});host.querySelectorAll('[data-remove-option118]').forEach(b=>b.onclick=()=>{capture();const [i,j]=b.dataset.removeOption118.split(',').map(Number);groups[i].options.splice(j,1);paint()});host.querySelectorAll('[data-remove-group118]').forEach(b=>b.onclick=()=>{capture();groups.splice(n(b.dataset.removeGroup118),1);paint()});f.onsubmit=async e=>{e.preventDefault();capture();try{for(const g of groups){for(const o of g.options)o.recipe=o.recipe.filter(r=>r.itemId||r.quantity);if(!g.name.trim()||g.min>g.max||g.max>g.options.length||g.min<0||(g.included!=null&&(g.included>g.max||g.extraPrice<0))||g.options.some(o=>!o.name.trim()||o.recipe.some(r=>!r.itemId||r.quantity<=0)))throw Error('Review group limits, option names and ingredient quantities')}const data={...record.data,posOptions118:groups,posNoStock118:nonstock};if(S.sample)record.data=data;else{await menuStore108.save('menu',data,record);await load()}pick(selected,false);root.resolve108(true);showCenterStatus(S.sample?'Sample customizations updated.':'Customizations saved to Menu.');render()}catch(e){showCenterStatus(e.message,true)}}}draw()}
+async function links(){if(!admin()&&!S.sample)throw Error('Administrator access required');if(S.sample){dialog('Ingredient links','<p>In Live operation, each Menu ingredient is linked to an Inventory item, with an explicit unit conversion. The selected base, protein, toppings and extras determine the stock used.</p><p>Switch to Live operation to configure your actual ingredients.</p>');return}const owner=liveProfile?.id,epoch=sessionEpoch121,valid=()=>owner===liveProfile?.id&&epoch===sessionEpoch121&&admin();const inventory=[];for(let offset=0;;offset+=1000){const result=await ojmDb.from('inventory_items104').select('id,data,version').order('id').range(offset,offset+999);if(!valid())return;if(result.error)throw Error(result.error.message);inventory.push(...result.data);if(result.data.length<1000)break}inventory.sort((a,b)=>String(a.data.name||'').localeCompare(String(b.data.name||'')));const ingredients=structuredClone(S.ingredients);dialog('Menu ingredient → Inventory',`<form><p>Enter the Inventory quantity consumed by one recipe unit. Example: ingredient unit g and Inventory unit kg → factor 0.001.</p><table><thead><tr><th>Menu ingredient</th><th>Inventory item</th><th>Factor</th></tr></thead><tbody>${ingredients.map((r,i)=>`<tr><td>${esc(r.data.name)} (${esc(r.data.unit)})</td><td><select name="item${i}"><option value="">Not linked</option>${inventory.map(t=>`<option value="${t.id}" ${r.data.inventoryItemId118===t.id?'selected':''}>${esc(t.data.name)} (${esc(t.data.unit)})</option>`).join('')}</select></td><td><input aria-label="Conversion factor for ${esc(r.data.name)}" name="factor${i}" type="number" min="0.000001" step="any" value="${n(r.data.inventoryFactor118||1)}" required></td></tr>`).join('')}</tbody></table><button type="submit">Save ingredient links</button></form>`,async d=>{if(!valid())throw Error('Account changed. Reopen ingredient links.');await restaurantModules125.ensure('inventory');
+ if(!valid())throw Error('Account changed. Reopen ingredient links.');
+ const edits=[];
+ for(const [i,r] of ingredients.entries()){
+  const id=d['item'+i],factor=n(d['factor'+i]);
+  if(id===(r.data.inventoryItemId118||'')&&factor===n(r.data.inventoryFactor118||1))continue;
+  const item=inventory.find(stock=>stock.id===id);
+  if(id&&!item)throw Error('Inventory item unavailable for '+r.data.name);
+  if(item&&item.data.currency!==r.data.currency)throw Error('Ingredient and inventory currencies must match for '+r.data.name);
+  const updated=item?restaurantIntegrationMath132.stockLinkData137(r.data,item,factor):{...r.data,inventoryItemId118:'',inventoryFactor118:factor};
+  if(!item)delete updated.fullPreparedCost124;
+  edits.push({record:r,data:updated});
+ }
+ let saved=0;try{for(const edit of edits){
+  if(!valid())throw Error('Account changed. Reopen ingredient links.');
+  await menuStore108.save('ingredients',edit.data,edit.record);saved++;
+ }await load();showCenterStatus('Ingredient links saved.')}catch(e){throw Error(e.message+' '+saved+' links were saved; reload before retrying.')}})}
 async function exportRows(pdf=false){
  if(S.exporting)return;
  S.exporting=true;
