@@ -1,4 +1,13 @@
 /* Restaurant workspace with independent authentication and data. */
+function restaurantSearchMatch(query){
+ const words=value=>String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase().match(/[\p{L}\p{N}]+/gu)||[];
+ const terms=words(query);
+ return value=>{
+  if(!terms.length)return !String(query??'').trim();
+  const parts=words(value);
+  return terms.every(term=>parts.some(part=>part.startsWith(term)));
+ };
+}
 let liveProfile=null,liveProfiles=[],ojmDb=null;
 const APP_PERMISSION_TREE=[];
 const restaurantAreas={sales:['Sales & Profitability','Connected sales, costs and promotions.','assets/banners/menu.png'],kitchen:['Kitchen','Preparation, shared recipes and wastage.','assets/banners/inventory.png'],restaurant:['Restaurant Overview','Good food. Greater purpose.','assets/banners/menu.png'],inventory:['Inventory','Know what is on hand. Plan what comes next.','assets/banners/inventory.png'],menu:['Menu','Thoughtful recipes. Consistent quality.','assets/banners/menu.png'],pos:['Point of Sale','Good food, made your way.','assets/banners/menu.png'],online:['Online Orders','Every order, clearly recorded.','assets/banners/menu.png'],website:['Public Website','',''],settings:['Settings','A thoughtful setup makes everyday work easier.','assets/banners/settings.png']};
@@ -230,11 +239,20 @@ async function startRestaurantLogin140(){
 }
 async function restaurantReady(){document.addEventListener('click',e=>{const b=e.target.closest('[data-im-action],[data-m108],[data-pos118]');if(b&&!actionPermission121(b)){e.preventDefault();e.stopImmediatePropagation();showCenterStatus('This action is not included in your access.',true)}},true);let pending=false;new MutationObserver(rs=>{if(pending||!rs.some(r=>[...r.addedNodes].some(n=>n.nodeType===1&&!n.classList.contains('area-banner113'))))return;pending=true;requestAnimationFrame(()=>{pending=false;decorate121()})}).observe(document.querySelector('.workspace-scroll'),{childList:true,subtree:true});document.getElementById('restaurantSearch121').oninput=e=>{
  let box=document.getElementById('searchResults121');if(!box){box=document.createElement('div');box.id='searchResults121';box.setAttribute('role','region');box.setAttribute('aria-label','Search results');e.target.parentElement.append(box)}
- const q=e.target.value.trim().toLocaleLowerCase();box.replaceChildren();if(!q)return;
+ const q=e.target.value.trim();box.replaceChildren();if(!q)return;
+ const matches=restaurantSearchMatch(q);
  const add=(label,fn)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=()=>{Promise.resolve(fn()).catch(err=>showCenterStatus(err.message,true));box.replaceChildren();e.target.value=''};box.append(b)};
- if(restaurantTabCan125('pos','pos-sales-new'))add('Search menu for “'+e.target.value.trim()+'”',async()=>{const query=e.target.value.trim();await switchTab('pos118');if(!pos118.state.loaded)await pos118.load();pos118.searchMenu154(query)});
- const seen=new Set();document.querySelectorAll('#appSidebar button[onclick]').forEach(b=>{const id=b.getAttribute('onclick').match(/switchTab\(['"]([^'"]+)['"]/)?.[1];if(!id)return;if(seen.has(id)||!restaurantRouteAllowed128(id))return;if(b.textContent.toLocaleLowerCase().includes(q)){seen.add(id);add(b.textContent.trim(),()=>switchTab(id))}});
- if(!box.children.length){const p=document.createElement('p');p.textContent='No matching sections. Use the menu search in POS to find food.';p.style.padding='12px';box.append(p)}
+ if(restaurantTabCan125('pos','pos-sales-new')){
+  const openMenu=async query=>{await switchTab('pos118');if(!pos118.state.loaded)await pos118.load();pos118.searchMenu154(query)};
+  const register=window.pos118;
+  if(register?.state.loaded && register.state.owner===liveProfile?.id && !register.state.sample){
+   const items=register.catalog().filter(r=>matches(r.data.name));
+   for(const item of items.slice(0,12))add(item.data.name,()=>openMenu(item.data.name));
+   if(items.length>12)add('See all '+items.length+' matching products',()=>openMenu(q));
+  }else add('Search menu for “'+q+'”',()=>openMenu(q));
+ }
+ const seen=new Set();document.querySelectorAll('#appSidebar button[onclick]').forEach(b=>{const id=b.getAttribute('onclick').match(/switchTab\(['"]([^'"]+)['"]/)?.[1];if(!id)return;if(seen.has(id)||!restaurantRouteAllowed128(id))return;if(matches(b.textContent)){seen.add(id);add(b.textContent.trim(),()=>switchTab(id))}});
+ if(!box.children.length){const p=document.createElement('p');p.textContent='No matching products or sections.';p.style.padding='12px';box.append(p)}
  };
  window.addEventListener('online',async()=>{
   if(!offlineAccess||!liveProfile)return;

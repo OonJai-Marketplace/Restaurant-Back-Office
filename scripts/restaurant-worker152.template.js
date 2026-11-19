@@ -1,5 +1,5 @@
 /* Static assets only. Private records stay in account-scoped device storage. */
-const CACHE='oonjai-pos-shell163-restaurant';
+const CACHE='oonjai-pos-shell164-restaurant';
 const ROOT=new URL('./',self.registration.scope),PREFIX=ROOT.pathname;
 const ASSETS=__OFFLINE_ASSETS__;
 self.addEventListener('install',event=>event.waitUntil(self.skipWaiting()));
