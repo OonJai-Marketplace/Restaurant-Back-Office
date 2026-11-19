@@ -21,6 +21,24 @@ const {PGlite}=require('@electric-sql/pglite'),{readFileSync}=require('node:fs')
   for(const name of ['pos_order118','pos_cashier_snapshot125'])await db.exec(readFileSync(process.env.POS_CURRENT_SQL+'/'+name+'.sql','utf8'));
   await db.exec(migration);
  }else await db.exec(migration.replace(/do \$patch\$[\s\S]*?end\$patch\$;/,''));
+ const owner='11111111-1111-4111-8111-111111111111';
+ const frozenLegacy={cash:[],totals:{netSales:12},methods:[]};
+ await db.query('insert into pos_shifts118(cashier,opened_at,closed_at,opening,closing_report) values($1,$2,$2,0,$3)',[owner,'2026-12-31T16:59:00Z',JSON.stringify(frozenLegacy)]);
+ const migrationName=require('node:fs').readdirSync('supabase/migrations').find(f=>f.endsWith('_number_restaurant_shifts.sql'));
+ await db.exec(readFileSync('supabase/migrations/'+migrationName,'utf8'));
+ const legacy=(await db.query('select * from pos_shifts118')).rows[0];assert.equal(legacy.shift_code,'OJM26-S001');assert.deepEqual(legacy.closing_report,frozenLegacy);
+ const archived=(await db.query('select pos_shift_report152($1) r',[legacy.id])).rows[0].r;assert.equal(archived.shiftCode,legacy.shift_code);
+ const nextYear=(await db.query('insert into pos_shifts118(cashier,opened_at,closed_at,opening) values($1,$2,$2,0) returning shift_code',[owner,'2026-12-31T17:00:00Z'])).rows[0];assert.equal(nextYear.shift_code,'OJM27-S001');
+ assert.equal((await db.query('select restaurant_private.shift_code159(2026,1000) c')).rows[0].c,'OJM26-S1000');
+ await assert.rejects(db.query("update pos_shifts118 set shift_code='changed'"),/cannot be changed/);
+ const seriesMigration=require('node:fs').readdirSync('supabase/migrations').find(f=>f.endsWith('_extend_restaurant_shift_number_series.sql'));
+ await db.exec(readFileSync('supabase/migrations/'+seriesMigration,'utf8'));
+ assert.equal((await db.query('select pos_shift_report152($1) r',[legacy.id])).rows[0].r.shiftCode,'OJM26-SA001');
+ assert.equal((await db.query("select shift_code from pos_shifts118 where opened_at='2026-12-31 17:00Z'")).rows[0].shift_code,'OJM27-SA002');
+ for(const [n,code] of [[1,'A001'],[999,'A999'],[1000,'B001'],[25974,'Z999'],[25975,'AA001'],[26974,'AB001']]){
+  assert.equal((await db.query('select restaurant_private.shift_code159(2026,$1) c',[n])).rows[0].c,'OJM26-S'+code);
+ }
+ await db.exec('update restaurant_private.shift_series159 set last_number=998');
  const manage=async(action,data)=> (await db.query('select pos_manage118($1,$2::jsonb,0) r',[action,JSON.stringify(data)])).rows[0].r;
  const open={openingCash:{LAK:100000,USD:20,THB:300},openingNonce:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'};
  const shift=await manage('open',open);assert.equal((await manage('open',open)).id,shift.id);await assert.rejects(()=>manage('open',{openingCash:{LAK:0}}),/already open/);
@@ -38,10 +56,12 @@ const {PGlite}=require('@electric-sql/pglite'),{readFileSync}=require('node:fs')
  await manage('cash',{shiftId:shift.id,amount:500,currency:'LAK',reason:'New cash'});
  await assert.rejects(()=>manage('close',{shiftId:shift.id,reviewToken:report.reviewToken,countedCash:{LAK:215000,USD:65,THB:400}}),/activity changed/);
  const current=await read();const closed=await manage('close',{shiftId:shift.id,reviewToken:current.reviewToken,countedCash:{LAK:215000,USD:64,THB:400}});
- const final=closed.closing_report;assert.equal(final.cash.find(x=>x.currency==='LAK').variance,-500);assert.equal(final.cash.find(x=>x.currency==='USD').variance,-1);
+ assert.match(shift.shift_code,/^OJM\d{2}-SA999$/);assert.equal(report.shiftCode,shift.shift_code);assert.equal((await db.query('select pos_shift_history152() r')).rows[0].r.find(row=>row.id===shift.id).shift_code,shift.shift_code);
+ const final=closed.closing_report;assert.equal(final.shiftCode,report.shiftCode);assert.equal(final.cash.find(x=>x.currency==='LAK').variance,-500);assert.equal(final.cash.find(x=>x.currency==='USD').variance,-1);
  assert.deepEqual(await read(),final);assert.equal((await manage('close',{shiftId:shift.id,countedCash:{LAK:0}})).id,shift.id,'Retry returns the original closed shift');
  await db.query("update pos_orders118 set data=data||'{\"total\":999999}'::jsonb where status='paid'");assert.deepEqual(await read(),final,'Closed receipt is frozen');
  await db.exec("set test.uid='22222222-2222-4222-8222-222222222222'");await assert.rejects(read,/access required/);assert.equal((await db.query('select pos_shift_history152() r')).rows[0].r.length,0);
+ const rollover=await manage('open',{openingCash:{LAK:0},openingNonce:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'});assert.match(rollover.shift_code,/-SB001$/);
  await db.exec("set test.uid=''");await assert.rejects(read,/access required/);
  console.log('PASS original-currency cash, change, manual movements, methods, tips, refunds, count validation, stale-close protection, idempotency, frozen receipt and cashier isolation');await db.close();
 })().catch(e=>{console.error(e);process.exitCode=1});

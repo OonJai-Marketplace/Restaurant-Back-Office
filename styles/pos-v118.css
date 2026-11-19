@@ -336,22 +336,31 @@ html body.shell113 .pos-shift-dialog .pos-shift-form{display:block!important}
 html body.shell113 .pos-shift-dialog table{width:100%;border-collapse:collapse;min-width:430px}
 html body.shell113 .pos-shift-dialog :is(th,td){padding:8px!important;border-bottom:1px solid #cad6cb;text-align:right!important;font-variant-numeric:tabular-nums;white-space:nowrap}
 html body.shell113 .pos-shift-dialog tr>:first-child{text-align:left!important}
-.pos-shift-counts{display:grid;gap:12px;margin:12px 0}
-.pos-shift-counts>section{padding:12px;border:1px solid #c2d2c4;border-radius:8px;background:#fffdf7}
-.pos-shift-counts>section>header{display:flex;justify-content:space-between;gap:8px;padding:0;margin-bottom:10px;background:none;color:inherit}
-.pos-shift-counts>section>div{display:grid;grid-template-columns:minmax(0,1fr) minmax(140px,1fr) minmax(100px,1fr);gap:14px;align-items:center}
-.pos-shift-counts strong{display:block;font-variant-numeric:tabular-nums}
-html body.shell113 .pos-shift-dialog input{font-size:16px!important;height:44px!important;min-height:44px!important;box-sizing:border-box;width:100%;min-width:0;text-align:right}
+html body.shell113 .pos-shift-dialog input{font-size:16px!important;height:40px!important;min-height:40px!important;box-sizing:border-box;width:100%;min-width:0;text-align:right}
 html body.shell113 .pos-shift-dialog label{margin:0!important;min-width:0}
-.pos-shift-counts output{font-weight:700;color:#17553e}
-.pos-shift-counts output[data-short=true]{color:#9b302b}
-.pos-shift-counts details{margin-top:8px;font-size:13px}
-.pos-shift-counts dl>div{display:flex;justify-content:space-between;gap:8px}.pos-shift-counts dd{margin:0;font-variant-numeric:tabular-nums}
+.shift-cash-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:16px 0 8px}
+.shift-cash-heading h4{margin:0}
+html body.shell113 .pos-shift-dialog .shift-cash-heading select{width:auto;max-width:100%;min-height:34px}
+.shift-cash-scroll{max-width:100%;overflow-x:auto;border:1px solid #c2d2c4;border-radius:8px}
+html body.shell113 .pos-shift-dialog table.shift-cash-matrix{width:100%;min-width:0;table-layout:fixed;margin:0}
+html body.shell113 .pos-shift-dialog .shift-cash-matrix :is(th,td){padding:6px 8px!important;white-space:normal;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.shift-cash-matrix thead{background:#edf4ed;color:#254737}
+.shift-cash-matrix tbody th{font-weight:600}
+.shift-cash-matrix td{vertical-align:middle}
+.shift-cash-matrix output{font-weight:650}
+.shift-cash-matrix output[data-short=true]{color:#922f2d}
+.shift-cash-details{margin:8px 0;font-size:13px}
+.shift-cash-details summary{cursor:pointer;margin-bottom:5px}
+html body.shell113 .pos-shift-receipt>header{display:flex!important;align-items:center!important;gap:8px;flex-wrap:nowrap}
+html body.shell113 .pos-shift-receipt>header h3{flex:1;min-width:0}
+html body.shell113 .pos-shift-receipt>header button.shift-print-action{display:inline-flex!important;align-items:center;justify-content:center;position:static!important;width:auto!important;max-width:none!important;flex:0 0 auto!important;height:40px!important;min-height:40px!important;margin:0!important;padding:0 12px!important;background:#17553e!important;color:white!important;font:600 14px/1.2 system-ui!important;border:1px solid #17553e!important;border-radius:8px;white-space:nowrap;text-indent:0}
+.pos-shift-dialog>footer:empty,.pos-shift-receipt>footer:empty{display:none!important}
 .pos-shift-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-top:18px}
 html body.shell113 .pos-shift-dialog button[type=submit]{background:#17553e!important;color:white!important;min-height:44px}
 .pos-opening-cash{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:16px 0}
 .pos-shift-history{display:grid;gap:8px}.pos-shift-history button{display:flex!important;justify-content:space-between;align-items:center;gap:12px;padding:12px!important;text-align:left}
-@media(max-width:550px){.pos-shift-summary,.pos-opening-cash{grid-template-columns:1fr}.pos-shift-counts>section>div{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)}.pos-shift-counts output{grid-column:1/-1}.pos-shift-history button{flex-wrap:wrap}}
+@media(max-width:550px){.pos-shift-summary{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.pos-shift-summary>div{padding:6px;font-size:12px}.pos-shift-summary strong{font-size:14px;overflow-wrap:anywhere}.pos-opening-cash{grid-template-columns:1fr}.pos-shift-history button{flex-wrap:wrap}.shift-cash-scroll:has(th:nth-child(4)) table.shift-cash-matrix{min-width:320px}html body.shell113 .pos-shift-dialog .shift-cash-matrix :is(th,td){padding:5px 4px!important}}
+
 
 /* Keep photo, item details and quantity on one centered line. */
 html body.shell113 #restaurantApp #pos118 .pos-line118{position:relative;align-items:center}

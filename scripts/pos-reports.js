@@ -155,7 +155,7 @@ var posReports = globalThis.posReports || (() => {
  }
  async function shiftsReport(s,r,check,events=[]) {
   const shifts=s.sample?s.shifts.filter(v=>inRange(v.opened_at,r)):await pages(()=>ojmDb.from('pos_shifts118')
-   .select('id,cashier,opened_at,closed_at,opening,opening_cash,counted,closing_report,profile:profiles(full_name)').gte('opened_at',r.start).lt('opened_at',r.end),check);
+   .select('id,shift_code,cashier,opened_at,closed_at,opening,opening_cash,counted,closing_report,profile:profiles(full_name)').gte('opened_at',r.start).lt('opened_at',r.end),check);
   shifts.sort((a,b)=>Date.parse(b.opened_at)-Date.parse(a.opened_at));
   const rows=[[...shiftHeader]],foreignRows=[],currencies=new Set(),seenRefunds=new Set();
   for(let i=0;i<shifts.length;i+=25) {
@@ -185,10 +185,10 @@ var posReports = globalThis.posReports || (() => {
     const drawer=report.cash.find(c=>c.currency==='LAK'),counted=drawer.counted??shift.counted;
     const t=report.totals,refundAmount=report.methods.reduce((sum,m)=>sum+cents(m.refunds),0)/100;
     const salesAmount=report.methods.reduce((sum,m)=>sum+cents(m.paid),0)/100;
-    rows.push([shift.id,report.cashier||shift.profile?.full_name||paid[0]?.data.cashier||(s.sample?'Sample cashier':'Name unavailable'),stamp(shift.opened_at),stamp(shift.closed_at),shift.closed_at?'Closed':'Open',
+    rows.push([shift.shift_code||report.shiftCode||(s.sample?posShifts.sampleCode(s,shift):shift.id),report.cashier||shift.profile?.full_name||paid[0]?.data.cashier||(s.sample?'Sample cashier':'Name unavailable'),stamp(shift.opened_at),stamp(shift.closed_at),shift.closed_at?'Closed':'Open',
      t.paidCount,t.refundCount,salesAmount,refundAmount,t.collected,drawer.opening,drawer.received,drawer.refunds,drawer.cashIn,drawer.cashOut,drawer.expected,counted??'',counted==null?'':drawer.variance??(cents(counted)-cents(drawer.expected))/100,drawer.change]);
     const foreign=new Map();
-    for(const c of report.cash)if(c.currency!=='LAK'){currencies.add(c.currency);foreign.set(c.currency,c)}
+    for(const c of report.cash)if(c.currency!=='LAK'&&posShifts.hasDrawerActivity(c)){currencies.add(c.currency);foreign.set(c.currency,c)}
     foreignRows.push(foreign);
    }
   }
@@ -245,7 +245,7 @@ var posReports = globalThis.posReports || (() => {
   }catch(error){if(el.isConnected&&el.dataset.selection===key)el.textContent=error.message}
  }
  function printTable(type,rows,r,sample,summaryRows){
-  const cols=type==='items'?[0,1,2,5,6,8,9,10,11,12]:[2,3,1,4,5,6,9,15,16,17,...rows[0].map((label,i)=>i>18&&/^Expected cash/.test(label)?i:null).filter(i=>i!=null)];
+  const cols=type==='items'?[0,1,2,5,6,8,9,10,11,12]:[0,2,3,1,4,5,6,9,15,16,17,...rows[0].map((label,i)=>i>18&&/^Expected cash/.test(label)?i:null).filter(i=>i!=null)];
   printRows('Oon Jai Marketplace · '+types[type],(sample?'SAMPLE · ':'')+r.from+' – '+r.to+' · '+summary(rows,type),summaryRows,rows.map(row=>cols.map(c=>row[c])));
  }
  function printRows(title,subtitle,summaryRows,rows){
@@ -269,6 +269,15 @@ var posReports = globalThis.posReports || (() => {
    return printTable(type,rows,r,sample,summaryRows);
   }
   const exportRows=rows.map((row,i)=>[...row,i===0?'Sample':sample?'YES':'NO']);
+  if(type!=='shifts'){
+   const ids=[...new Set(rows.slice(1).map(row=>row[3]).filter(Boolean))],codes=new Map();
+   if(sample){for(const shift of state.shifts||[])codes.set(shift.id,posShifts.sampleCode(state,shift))}
+   else for(let i=0;i<ids.length;i+=100){
+    const result=await ojmDb.from('pos_shifts118').select('id,shift_code').in('id',ids.slice(i,i+100));check();
+    if(result.error)throw Error(result.error.message);for(const shift of result.data)codes.set(shift.id,shift.shift_code);
+   }
+   for(const row of exportRows.slice(1))row[3]=codes.get(row[3])||row[3];
+  }
   const url=URL.createObjectURL(new Blob(['\ufeff'+csv([['Oon Jai Restaurant',types[type],r.from,r.to,sample?'SAMPLE':''],...summaryRows,[],['Details'],...exportRows])],{type:'text/csv;charset=utf-8'}));
   const a=document.createElement('a');
   a.href=url;

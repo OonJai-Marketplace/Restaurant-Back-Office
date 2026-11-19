@@ -41,3 +41,8 @@ article.pos-thermal-paper .paper-timestamp { display: block; text-align: center;
 article.pos-thermal-paper .receipt-row118 > span:first-child { flex: 1 }
 article.pos-thermal-paper .receipt-row118 > span:last-child { flex: none; white-space: nowrap }
 article.pos-thermal-paper .receipt-fx > span { display: block }
+
+article.pos-thermal-paper .shift-cash-matrix{width:100%;border-collapse:collapse;table-layout:fixed;margin:1mm 0 2mm;font-size:10px;font-variant-numeric:tabular-nums}
+article.pos-thermal-paper .shift-cash-matrix :is(th,td){padding:.5mm .2mm;text-align:right;vertical-align:top;overflow-wrap:anywhere}
+article.pos-thermal-paper .shift-cash-matrix th:first-child{text-align:left;width:31%}
+article.pos-thermal-paper .shift-cash-matrix thead{border-bottom:1px solid #777}

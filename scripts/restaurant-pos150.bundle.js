@@ -64,19 +64,56 @@ function totals(opening,sales,refunds,moves){
 const stamp=v=>new Date(v).toLocaleString('en-GB',{timeZone:'Asia/Vientiane',dateStyle:'short',timeStyle:'short'});
 const symbols={LAK:'₭',USD:'$',THB:'฿'};
 const amount=(v,c='LAK')=>(symbols[c]||c+' ')+posMoney.display(v);
-const difference=(v,c)=>v===0?'Balanced':(v<0?'Short ':'Over ')+amount(Math.abs(v),c);
+const drawerDetails=[['Starting cash','opening'],['Cash received','received'],['Change given','change'],['Cash refunds','refunds'],['Cash in','cashIn'],['Cash out','cashOut']];
+const signedCount=v=>(v>0?'+':'')+posMoney.display(v);
+function hasDrawerActivity(c){
+ return c.currency==='LAK'||[...drawerDetails.map(([,key])=>c[key]),c.expected,c.counted,c.variance].some(value=>Number(value||0)!==0);
+}
+function sampleCode(s,shift){
+ if(shift.shift_code)return shift.shift_code;
+ const year=new Intl.DateTimeFormat('en',{timeZone:'Asia/Vientiane',year:'2-digit'}),y=year.format(new Date(shift.opened_at));
+ const shifts=[...s.shifts].sort((a,b)=>Date.parse(a.opened_at)-Date.parse(b.opened_at)||String(a.id).localeCompare(String(b.id)));
+ const index=shifts.findIndex(row=>row.id===shift.id);
+ if(index<0)return 'Sample shift';
+ let block=Math.floor(index/999)+1,letters='';
+ while(block>0){letters=String.fromCharCode(65+(block-1)%26)+letters;block=Math.floor((block-1)/26)}
+ return 'SAMPLE'+y+'-S'+letters+String(index%999+1).padStart(3,'0');
+}
+function cashTable(cash,esc,rows,label){
+ const header=cash.map(c=>'<th scope="col">'+esc(c.currency)+'</th>').join('');
+ return '<table class="shift-cash-matrix" aria-label="'+label+'"><thead><tr><th scope="col">Currency</th>'+header+'</tr></thead><tbody>'+rows.map(([name,cell])=>'<tr><th scope="row">'+name+'</th>'+cash.map(c=>'<td>'+cell(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+}
+function breakdown(cash,esc){
+ const rows=drawerDetails.filter(([,key])=>cash.some(c=>Number(c[key]))).map(([label,key])=>[label,c=>posMoney.display(c[key])]);
+ return rows.length?cashTable(cash,esc,rows,'Cash breakdown'):'';
+}
 function sampleReport(s,shift){
- if(shift.closing_report)return shift.closing_report;
+ if(shift.closing_report)return {...shift.closing_report,shiftCode:sampleCode(s,shift)};
  const report=totals(shift.opening_cash||{LAK:shift.opening},s.orders.filter(o=>o.data.shiftId===shift.id&&['paid','refunded'].includes(o.status)),s.orders.filter(o=>o.data.refundShiftId===shift.id&&o.status==='refunded'),s.cash.filter(c=>c.shift_id===shift.id));
- return {...report,version:1,shiftId:shift.id,cashierId:shift.cashier,cashier:shift.profile?.full_name||'Sample cashier',openedAt:shift.opened_at,closedAt:shift.closed_at||null,sample:true,reviewToken:JSON.stringify(report)};
+ return {...report,version:1,shiftId:shift.id,shiftCode:sampleCode(s,shift),cashierId:shift.cashier,cashier:shift.profile?.full_name||'Sample cashier',openedAt:shift.opened_at,closedAt:shift.closed_at||null,sample:true,reviewToken:JSON.stringify(report)};
 }
 function receipt(report,esc,width,review=false){
  const row=(a,b)=>'<div class="receipt-row118"><span>'+esc(a)+'</span><span>'+esc(b)+'</span></div>',t=report.totals;
- return '<article class="pos-thermal-paper" style="--receipt-width:'+width+'mm"><div class="paper-brand"><img src="assets/brand/oonjai-logo.png" alt="Oon Jai"><strong>Oon Jai Marketplace</strong><b>'+(review?'SHIFT REVIEW · NOT CLOSED':'CLOSE SHIFT RECEIPT')+'</b>'+(report.sample?'<b>SAMPLE · NOT A LIVE SHIFT</b>':'')+'</div><hr><div>Cashier: '+esc(report.cashier)+'</div><div>Opened: '+esc(stamp(report.openedAt))+'</div><div>Closed: '+esc(report.closedAt?stamp(report.closedAt):'Still open')+'</div><hr>'+row('Paid receipts',t.paidCount)+row('Gross sales',amount(t.grossSales))+row('Discounts',amount(t.discounts))+row('Refunds',amount(t.refunds))+row('Net sales',amount(t.netSales))+row('Tips (net)',amount(t.tips))+row('Total collected',amount(t.collected))+'<hr><b>PAYMENT SUMMARY (₭)</b>'+report.methods.map(m=>row(m.method,amount(m.net))+(m.refunds?row('  Refunds',amount(m.refunds)):'')).join('')+'<hr><b>CASH RECONCILIATION</b>'+report.cash.map(c=>'<hr><b>'+esc(c.currency)+'</b>'+row('Starting cash',amount(c.opening,c.currency))+row('Cash received',amount(c.received,c.currency))+(c.change?row('Change given',amount(c.change,c.currency)):'')+(c.refunds?row('Cash refunds',amount(c.refunds,c.currency)):'')+(c.cashIn?row('Cash in',amount(c.cashIn,c.currency)):'')+(c.cashOut?row('Cash out',amount(c.cashOut,c.currency)):'')+row('Expected cash',amount(c.expected,c.currency))+row('Actual count',c.counted==null?'Not recorded':amount(c.counted,c.currency))+row('Difference',c.variance==null?'Not recorded':difference(c.variance,c.currency))).join('')+'<hr>'+(report.legacy?'<p>Historical shift: foreign cash counts were not recorded.</p>':'')+'<small class="paper-timestamp">Shift '+esc(report.shiftId)+'</small></article>';
+ const cash=report.cash.filter(hasDrawerActivity);
+ const movements=breakdown(cash,esc);
+ const counts=cashTable(cash,esc,[
+  ['Expected',c=>posMoney.display(c.expected)],
+  ['Actual count',c=>c.counted==null?'—':posMoney.display(c.counted)],
+  ['Difference',c=>c.variance==null?'—':signedCount(c.variance)]
+ ],'Cash reconciliation');
+ return '<article class="pos-thermal-paper" style="--receipt-width:'+width+'mm"><div class="paper-brand"><img src="assets/brand/oonjai-logo.png" alt="Oon Jai"><strong>Oon Jai Marketplace</strong><b>'+(review?'SHIFT REVIEW · NOT CLOSED':'CLOSE SHIFT RECEIPT')+'</b>'+(report.sample?'<b>SAMPLE · NOT A LIVE SHIFT</b>':'')+'</div><hr>'+row('Shift ID',report.shiftCode||'—')+'<div>Cashier: '+esc(report.cashier)+'</div><div>Opened: '+esc(stamp(report.openedAt))+'</div><div>Closed: '+esc(report.closedAt?stamp(report.closedAt):'Still open')+'</div><hr>'+row('Paid receipts',t.paidCount)+row('Gross sales',amount(t.grossSales))+row('Discounts',amount(t.discounts))+row('Refunds',amount(t.refunds))+row('Net sales',amount(t.netSales))+row('Tips (net)',amount(t.tips))+row('Total collected',amount(t.collected))+'<hr><b>PAYMENT SUMMARY (₭)</b>'+report.methods.map(m=>row(m.method,amount(m.net))+(m.refunds?row('  Refunds',amount(m.refunds)):'')).join('')+'<hr><b>CASH RECONCILIATION</b>'+counts+(movements?'<b>CASH MOVEMENTS</b>'+movements:'')+(report.legacy?'<p>Historical shift. Foreign cash counts were not recorded.</p>':'')+'</article>';
 }
-function summary(report,esc){const t=report.totals;return '<div class="pos-shift-meta"><strong>'+esc(report.cashier)+'</strong><span>'+esc(stamp(report.openedAt))+' → '+(report.closedAt?esc(stamp(report.closedAt)):'Current shift')+'</span></div><div class="pos-shift-summary">'+[['Net sales',t.netSales],['Tips (net)',t.tips],['Total collected',t.collected]].map(([label,n])=>'<div>'+label+'<strong>'+amount(n)+'</strong></div>').join('')+'</div><p>'+t.paidCount+' paid receipts · '+t.refundCount+' refunds · Includes this cashier’s whole shift.</p><div class="pos-shift-table"><table><thead><tr><th>Payment</th><th>Paid (₭)</th><th>Refunds (₭)</th><th>Net (₭)</th></tr></thead><tbody>'+report.methods.map(m=>'<tr><th>'+esc(m.method)+'</th><td>'+posMoney.display(m.paid)+'</td><td>'+posMoney.display(m.refunds)+'</td><td>'+posMoney.display(m.net)+'</td></tr>').join('')+'</tbody></table></div>'}
+function summary(report,esc){const t=report.totals;return '<div class="pos-shift-meta"><strong>'+esc(report.shiftCode||'Shift')+' · '+esc(report.cashier)+'</strong><span>'+esc(stamp(report.openedAt))+' → '+(report.closedAt?esc(stamp(report.closedAt)):'Current shift')+'</span></div><div class="pos-shift-summary">'+[['Net sales',t.netSales],['Tips (net)',t.tips],['Total collected',t.collected]].map(([label,n])=>'<div>'+label+'<strong>'+amount(n)+'</strong></div>').join('')+'</div><p>'+t.paidCount+' paid receipts · '+t.refundCount+' refunds · Includes this cashier’s whole shift.</p><div class="pos-shift-table"><table><thead><tr><th>Payment</th><th>Paid (₭)</th><th>Refunds (₭)</th><th>Net (₭)</th></tr></thead><tbody>'+report.methods.map(m=>'<tr><th>'+esc(m.method)+'</th><td>'+posMoney.display(m.paid)+'</td><td>'+posMoney.display(m.refunds)+'</td><td>'+posMoney.display(m.net)+'</td></tr>').join('')+'</tbody></table></div>'}
 function input(name,value='',signed=false){return '<input type="text" name="'+name+'" data-pos-money="2" inputmode="decimal" autocomplete="off" value="'+value+'" '+(signed?'':'min="0" ')+'max="999999999999.99" required>'}
-function view(report,h,review=false){const root=h.dialog(review?'Shift review':'Close shift receipt',receipt(report,h.esc,h.paperWidth(),review),null,{explicitClose:true});root.querySelector('.pos-dialog118').classList.add('pos-shift-receipt');const print=document.createElement('button');print.type='button';print.textContent=review?'Print review':'Print shift receipt';root.querySelector('[data-close]').before(print);print.onclick=()=>h.runPrintButton(print,()=>h.printPaper(h.paperWidth(),'Shift receipt',receipt(report,h.esc,h.paperWidth(),review)));return root}
+function view(report,h,review=false){
+ const title=review?'Shift review':'Close shift receipt',paper=()=>receipt(report,h.esc,h.paperWidth(),review);
+ const root=h.dialog(title,paper(),null,{explicitClose:true}),panel=root.querySelector('.pos-dialog118');
+ panel.classList.add('pos-shift-receipt');
+ const print=document.createElement('button');print.type='button';print.className='shift-print-action';
+ print.textContent=review?'Print review':'Print receipt';panel.querySelector('[data-close]').before(print);
+ print.onclick=()=>h.runPrintButton(print,()=>h.printPaper(h.paperWidth(),title,paper()));
+ return root;
+}
 function current(h){return h.state.shifts.find(s=>!s.closed_at&&(h.state.sample||s.cashier===h.owner()))}
 function guard(h){if(!h.state.sample&&(!navigator.onLine||h.state.offline||h.state.offlineQueue.length))throw Error(h.state.offlineQueue.length?'Sync pending sales before changing the shift.':'Connect to confirm the complete shift totals before changing the shift.')}
 async function open(action,h){
@@ -85,17 +122,40 @@ async function open(action,h){
   const shift=current(h);if(!shift)throw Error('Open your shift first');
   let report=s.sample?sampleReport(s,shift):await h.rpc('pos_shift_report152',{p_shift:shift.id});check();
   if(report.closedAt){view(report,h);return}
-  let root;const rootReport=()=>{
+  const extraCurrencies=new Set();
+  let root;
+  function rootReport(){
    const values=Object.fromEntries([...root.querySelectorAll('[data-cash-count]')].map(el=>[el.dataset.cashCount,el.value]));
-   const host=root.querySelector('[data-shift-content]');host.innerHTML=summary(report,h.esc)+'<h4>Count the cash in your drawer</h4><p>Enter each currency separately. BCEL and bank payments are excluded from physical cash.</p><div class="pos-shift-counts">'+report.cash.map(c=>'<section data-count-row="'+h.esc(c.currency)+'"><header><strong>'+h.esc(c.currency)+' · '+(symbols[c.currency]||'')+'</strong><span>Received '+amount(c.received,c.currency)+'</span></header><div><span>Expected<strong>'+amount(c.expected,c.currency)+'</strong></span><label>Actual count'+input('count_'+c.currency,h.esc(values[c.currency]??'')).replace('data-pos-money="2"','data-pos-money="2" data-cash-count="'+h.esc(c.currency)+'"')+'</label><output data-variance>Enter count</output></div><details><summary>Cash breakdown</summary><dl>'+[['Starting cash',c.opening],['Cash received',c.received],['Change given',-c.change],['Cash refunds',-c.refunds],['Cash in',c.cashIn],['Cash out',-c.cashOut]].map(([label,v])=>'<div><dt>'+label+'</dt><dd>'+amount(v,c.currency)+'</dd></div>').join('')+'</dl></details></section>').join('')+'</div>';
+   const cash=report.cash.filter(c=>hasDrawerActivity(c)||extraCurrencies.has(c.currency)||values[c.currency]);
+   const hidden=report.cash.filter(c=>!cash.includes(c)),details=breakdown(cash,h.esc);
+   const picker=hidden.length?'<select data-include-cash aria-label="Count another currency"><option value="">Count another currency…</option>'+hidden.map(c=>'<option>'+h.esc(c.currency)+'</option>').join('')+'</select>':'';
+   const matrix=cashTable(cash,h.esc,[
+    ['Expected',c=>posMoney.display(c.expected)],
+    ['Actual count',c=>input('count_'+c.currency,h.esc(values[c.currency]??'')).replace('data-pos-money=', 'aria-label="Actual count in '+h.esc(c.currency)+'" data-cash-count="'+h.esc(c.currency)+'" data-pos-money=')],
+    ['Difference',c=>'<output data-variance="'+h.esc(c.currency)+'" aria-label="Difference in '+h.esc(c.currency)+'">—</output>']
+   ],'Cash reconciliation');
+   const host=root.querySelector('[data-shift-content]');
+   host.innerHTML=summary(report,h.esc)+'<div class="shift-cash-heading"><h4>Cash reconciliation</h4>'+picker+'</div><div class="shift-cash-scroll">'+matrix+'</div>'+(details?'<details class="shift-cash-details"><summary>Cash breakdown</summary><div class="shift-cash-scroll">'+details+'</div></details>':'');
+   const more=host.querySelector('[data-include-cash]');
+   if(more)more.onchange=()=>{const code=more.value;if(code){extraCurrencies.add(code);rootReport();root.querySelector('[data-cash-count="'+code+'"]').focus()}};
    posMoney.bind(root);refreshVariance();
-  };
-  function refreshVariance(){for(const row of root.querySelectorAll('[data-count-row]')){const el=row.querySelector('input'),currency=row.dataset.countRow,expected=report.cash.find(c=>c.currency===currency).expected,out=row.querySelector('output');const diff=round(posMoney.value(el)-expected);out.textContent=el.value&&el.validity.valid?difference(diff,currency):'Enter count';out.dataset.short=String(!!el.value&&diff<0)}}
-  function counted(){return Object.fromEntries([...root.querySelectorAll('[data-cash-count]')].map(el=>[el.dataset.cashCount,posMoney.value(el)]))}
+  }
+  function refreshVariance(){
+   for(const el of root.querySelectorAll('[data-cash-count]')){
+    const currency=el.dataset.cashCount,out=root.querySelector('[data-variance="'+currency+'"]'),expected=report.cash.find(c=>c.currency===currency).expected;
+    const value=el.value&&el.validity.valid?round(posMoney.value(el)-expected):null;
+    out.textContent=value==null?'—':signedCount(value);out.dataset.short=String(value!=null&&value<0);
+   }
+  }
+  function counted(){
+   const counts=Object.fromEntries(report.cash.map(c=>[c.currency,0]));
+   for(const el of root.querySelectorAll('[data-cash-count]'))counts[el.dataset.cashCount]=posMoney.value(el);
+   return counts;
+  }
   root=h.dialog('Close shift · reconciliation','<form class="pos-shift-form"><div data-shift-content></div><div class="pos-shift-actions"><button type="button" data-refresh-shift>Refresh totals</button><button type="button" data-review-shift>Print review</button><button type="submit">Confirm close shift</button></div></form>',async()=>{
    check();guard(h);if(!s.sample&&(await h.pending()).length)throw Error('Sync all pending sales before closing.');
    const counts=counted();let result;
-   const close=root.querySelector('[data-close]'),locked=[...root.querySelectorAll('input,select,button')];for(const el of locked)el.disabled=true;
+   const locked=[...root.querySelectorAll('input,select,button')];for(const el of locked)el.disabled=true;
    try{
     if(s.sample){const latest=sampleReport(s,shift);if(latest.reviewToken!==report.reviewToken)throw Error('Shift activity changed. Refresh totals and review before closing.');const frozen={...report,closedAt:new Date().toISOString(),cash:report.cash.map(c=>({...c,counted:counts[c.currency],variance:round(counts[c.currency]-c.expected)}))};delete frozen.reviewToken;result={...shift,closed_at:frozen.closedAt,counted:counts.LAK,expected:report.cash.find(c=>c.currency==='LAK').expected,closing_report:frozen};}
     else result=await h.rpc('pos_manage118',{p_action:'close',p_data:{shiftId:shift.id,reviewToken:report.reviewToken,countedCash:counts},p_version:0});
@@ -105,7 +165,7 @@ async function open(action,h){
   },{explicitClose:true,keepOpen:true});
   root.querySelector('.pos-dialog118').classList.add('pos-shift-dialog');rootReport();root.querySelector('form').addEventListener('input',refreshVariance);
   root.querySelector('[data-refresh-shift]').onclick=async e=>{const b=e.currentTarget;b.disabled=true;try{guard(h);report=s.sample?sampleReport(s,shift):await h.rpc('pos_shift_report152',{p_shift:shift.id});check();if(report.closedAt){root.resolve108(true);view(report,h);return}rootReport()}catch(err){h.status(err.message,true)}finally{b.disabled=false}};
-  root.querySelector('[data-review-shift]').onclick=()=>{if([...root.querySelectorAll('[data-cash-count]')].some(el=>el.value&&!el.reportValidity()))return;const counts=counted();view({...report,cash:report.cash.map(c=>({...c,...(root.querySelector('[data-cash-count="'+c.currency+'"]').value?{counted:counts[c.currency],variance:round(counts[c.currency]-c.expected)}:{})}))},h,true)};
+  root.querySelector('[data-review-shift]').onclick=()=>{if([...root.querySelectorAll('[data-cash-count]')].some(el=>el.value&&!el.reportValidity()))return;const counts=counted();view({...report,cash:report.cash.map(c=>({...c,...(root.querySelector('[data-cash-count="'+c.currency+'"]')?.value?{counted:counts[c.currency],variance:round(counts[c.currency]-c.expected)}:{})}))},h,true)};
   return;
  }
  const opening=action==='open',shift=current(h);if(opening&&shift)throw Error('Your shift is already open.');if(!opening&&!shift)throw Error('Open your shift first');
@@ -119,12 +179,12 @@ async function open(action,h){
  },{explicitClose:true});root.querySelector('.pos-dialog118').classList.add('pos-shift-dialog');
 }
 async function history(h){
- const owner=h.owner(),s=h.state;const rows=s.sample?s.shifts.filter(s=>s.closed_at).map(s=>({...s,cashier:s.profile?.full_name||'Sample cashier'})):await h.rpc('pos_shift_history152',{});
+ const owner=h.owner(),s=h.state;const rows=s.sample?s.shifts.filter(s=>s.closed_at).map(s=>({...s,shift_code:sampleCode(h.state,s),cashier:s.profile?.full_name||'Sample cashier'})):await h.rpc('pos_shift_history152',{});
  if(owner!==h.owner())throw Error('The signed-in cashier changed.');
- const root=h.dialog('Shift receipts','<p>Latest 50 closed shifts. Each receipt keeps its recorded cash count and differences.</p><div class="pos-shift-history">'+rows.map(r=>'<button type="button" data-shift-receipt="'+h.esc(r.id)+'"><strong>'+h.esc(r.cashier)+'</strong><span>'+h.esc(stamp(r.closed_at))+'</span><span>View / Print</span></button>').join('')+(rows.length?'':'<p>No closed shifts yet.</p>')+'</div>',null,{explicitClose:true});
+ const root=h.dialog('Shift receipts','<p>Latest 50 closed shifts. Each receipt keeps its recorded cash count and differences.</p><div class="pos-shift-history">'+rows.map(r=>'<button type="button" data-shift-receipt="'+h.esc(r.id)+'"><strong>'+h.esc(r.shift_code||'Shift')+' · '+h.esc(r.cashier)+'</strong><span>'+h.esc(stamp(r.closed_at))+'</span><span>View / Print</span></button>').join('')+(rows.length?'':'<p>No closed shifts yet.</p>')+'</div>',null,{explicitClose:true});
  root.querySelector('.pos-dialog118').classList.add('pos-shift-dialog');root.querySelector('.pos-shift-history').onclick=async e=>{const b=e.target.closest('[data-shift-receipt]');if(!b)return;b.disabled=true;try{const report=s.sample?sampleReport(s,s.shifts.find(x=>x.id===b.dataset.shiftReceipt)):await h.rpc('pos_shift_report152',{p_shift:b.dataset.shiftReceipt});if(owner!==h.owner())throw Error('The signed-in cashier changed.');view(report,h)}catch(err){h.status(err.message,true)}finally{b.disabled=false}};
 }
-window.posShifts={open,history,totals,receipt,sampleReport};
+window.posShifts={open,history,totals,receipt,sampleReport,sampleCode,hasDrawerActivity};
 })();
 
 ;
@@ -750,7 +810,7 @@ var posReports = globalThis.posReports || (() => {
  }
  async function shiftsReport(s,r,check,events=[]) {
   const shifts=s.sample?s.shifts.filter(v=>inRange(v.opened_at,r)):await pages(()=>ojmDb.from('pos_shifts118')
-   .select('id,cashier,opened_at,closed_at,opening,opening_cash,counted,closing_report,profile:profiles(full_name)').gte('opened_at',r.start).lt('opened_at',r.end),check);
+   .select('id,shift_code,cashier,opened_at,closed_at,opening,opening_cash,counted,closing_report,profile:profiles(full_name)').gte('opened_at',r.start).lt('opened_at',r.end),check);
   shifts.sort((a,b)=>Date.parse(b.opened_at)-Date.parse(a.opened_at));
   const rows=[[...shiftHeader]],foreignRows=[],currencies=new Set(),seenRefunds=new Set();
   for(let i=0;i<shifts.length;i+=25) {
@@ -780,10 +840,10 @@ var posReports = globalThis.posReports || (() => {
     const drawer=report.cash.find(c=>c.currency==='LAK'),counted=drawer.counted??shift.counted;
     const t=report.totals,refundAmount=report.methods.reduce((sum,m)=>sum+cents(m.refunds),0)/100;
     const salesAmount=report.methods.reduce((sum,m)=>sum+cents(m.paid),0)/100;
-    rows.push([shift.id,report.cashier||shift.profile?.full_name||paid[0]?.data.cashier||(s.sample?'Sample cashier':'Name unavailable'),stamp(shift.opened_at),stamp(shift.closed_at),shift.closed_at?'Closed':'Open',
+    rows.push([shift.shift_code||report.shiftCode||(s.sample?posShifts.sampleCode(s,shift):shift.id),report.cashier||shift.profile?.full_name||paid[0]?.data.cashier||(s.sample?'Sample cashier':'Name unavailable'),stamp(shift.opened_at),stamp(shift.closed_at),shift.closed_at?'Closed':'Open',
      t.paidCount,t.refundCount,salesAmount,refundAmount,t.collected,drawer.opening,drawer.received,drawer.refunds,drawer.cashIn,drawer.cashOut,drawer.expected,counted??'',counted==null?'':drawer.variance??(cents(counted)-cents(drawer.expected))/100,drawer.change]);
     const foreign=new Map();
-    for(const c of report.cash)if(c.currency!=='LAK'){currencies.add(c.currency);foreign.set(c.currency,c)}
+    for(const c of report.cash)if(c.currency!=='LAK'&&posShifts.hasDrawerActivity(c)){currencies.add(c.currency);foreign.set(c.currency,c)}
     foreignRows.push(foreign);
    }
   }
@@ -840,7 +900,7 @@ var posReports = globalThis.posReports || (() => {
   }catch(error){if(el.isConnected&&el.dataset.selection===key)el.textContent=error.message}
  }
  function printTable(type,rows,r,sample,summaryRows){
-  const cols=type==='items'?[0,1,2,5,6,8,9,10,11,12]:[2,3,1,4,5,6,9,15,16,17,...rows[0].map((label,i)=>i>18&&/^Expected cash/.test(label)?i:null).filter(i=>i!=null)];
+  const cols=type==='items'?[0,1,2,5,6,8,9,10,11,12]:[0,2,3,1,4,5,6,9,15,16,17,...rows[0].map((label,i)=>i>18&&/^Expected cash/.test(label)?i:null).filter(i=>i!=null)];
   printRows('Oon Jai Marketplace · '+types[type],(sample?'SAMPLE · ':'')+r.from+' – '+r.to+' · '+summary(rows,type),summaryRows,rows.map(row=>cols.map(c=>row[c])));
  }
  function printRows(title,subtitle,summaryRows,rows){
@@ -864,6 +924,15 @@ var posReports = globalThis.posReports || (() => {
    return printTable(type,rows,r,sample,summaryRows);
   }
   const exportRows=rows.map((row,i)=>[...row,i===0?'Sample':sample?'YES':'NO']);
+  if(type!=='shifts'){
+   const ids=[...new Set(rows.slice(1).map(row=>row[3]).filter(Boolean))],codes=new Map();
+   if(sample){for(const shift of state.shifts||[])codes.set(shift.id,posShifts.sampleCode(state,shift))}
+   else for(let i=0;i<ids.length;i+=100){
+    const result=await ojmDb.from('pos_shifts118').select('id,shift_code').in('id',ids.slice(i,i+100));check();
+    if(result.error)throw Error(result.error.message);for(const shift of result.data)codes.set(shift.id,shift.shift_code);
+   }
+   for(const row of exportRows.slice(1))row[3]=codes.get(row[3])||row[3];
+  }
   const url=URL.createObjectURL(new Blob(['\ufeff'+csv([['Oon Jai Restaurant',types[type],r.from,r.to,sample?'SAMPLE':''],...summaryRows,[],['Details'],...exportRows])],{type:'text/csv;charset=utf-8'}));
   const a=document.createElement('a');
   a.href=url;

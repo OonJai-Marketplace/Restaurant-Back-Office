@@ -47,7 +47,7 @@
   }
  }};
  const active=()=>root()?.classList.contains('active')&&restaurantRouteAllowed128(route);
- const shiftName=id=>{const s=state.shifts.get(id);if(!s)return id==='unassigned'?'Unassigned shift':'Shift '+id;return [posReports.stamp(s.opened_at).slice(0,16),s.profile?.full_name||state.events.find(e=>!e.refund&&e.shift===id)?.order.data.cashier||'Name unavailable'].join(' · ')};
+ const shiftName=id=>{const s=state.shifts.get(id);if(!s)return id==='unassigned'?'Unassigned shift':'Shift '+id;return [s.shift_code,posReports.stamp(s.opened_at).slice(0,16),s.profile?.full_name||state.events.find(e=>!e.refund&&e.shift===id)?.order.data.cashier||'Name unavailable'].filter(Boolean).join(' · ')};
  const option=(value,name,selected)=>'<option value="'+esc(value)+'"'+(value===selected?' selected':'')+'>'+esc(name)+'</option>';
  const select=(label,key,choices,current)=>'<label>'+label+'<select aria-label="'+esc(label)+'" data-key="'+key+'">'+choices.map(([v,name])=>option(v,name,current)).join('')+'</select></label>';
  const btn=(label,key,value='',extra='')=>'<button type="button" data-op="'+key+'" data-value="'+esc(value)+'" '+extra+'>'+esc(label)+'</button>';
@@ -57,7 +57,7 @@
   const check=()=>{if(g!==generation||liveProfile?.id!==id||session!==sessionEpoch121||!active())throw Error('Report changed')};
   state.loading=true;state.error='';state.events=[];state.shifts=new Map();state.items=new Map();state.page=0;render();
   try{
-   const range=posReports.range(state.dates),cols='id,cashier,opened_at,closed_at,opening,expected,counted,profile:profiles(full_name)';
+   const range=posReports.range(state.dates),cols='id,shift_code,cashier,opened_at,closed_at,opening,expected,counted,profile:profiles(full_name)';
    const [events,shifts]=await Promise.all([posReports.transactions({sample:false},range,check),posReports.pages(()=>ojmDb.from('pos_shifts118').select(cols).gte('opened_at',range.start).lt('opened_at',range.end),check)]);
    check();const rows=prepare(events),map=new Map(shifts.map(s=>[String(s.id),s]));
    const unknown=[...new Set(rows.map(e=>e.shift).filter(v=>v!=='unassigned'&&!map.has(v)))];
