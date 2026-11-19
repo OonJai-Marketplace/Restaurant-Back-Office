@@ -396,3 +396,15 @@ html body.shell113 .pos-builder-options .choice-tile131{display:flex;flex-direct
 html body.shell113 .pos-builder-options .choice-tile131 input{flex:0 0 18px;width:18px!important;height:18px!important;min-height:18px!important;margin:0;accent-color:#205942}
 .pos-builder-options .choice-tile131.selected{outline:1px solid #417055}
 .pos-builder-options .choice-tile131.unavailable{opacity:.6}
+
+#pos118 .order-pane .pos-line-name118 > strong {
+  font-size: 20px;
+  line-height: 1.25;
+  font-weight: 700;
+}
+#pos118 .order-pane .pos-line-name118 > .pos-amount118 {
+  font-size: 18px;
+  line-height: 1.3;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
