@@ -78,22 +78,36 @@ async function open(action,h){
   const shift=current(h);if(!shift)throw Error('Open your shift first');
   let report=s.sample?sampleReport(s,shift):await h.rpc('pos_shift_report152',{p_shift:shift.id});check();
   if(report.closedAt){view(report,h);return}
-  const extraCurrencies=new Set();
+  let activeCurrency='LAK';
   let root;
   function rootReport(){
    const values=Object.fromEntries([...root.querySelectorAll('[data-cash-count]')].map(el=>[el.dataset.cashCount,el.value]));
-   const cash=report.cash.filter(c=>hasDrawerActivity(c)||extraCurrencies.has(c.currency)||values[c.currency]);
-   const hidden=report.cash.filter(c=>!cash.includes(c)),details=breakdown(cash,h.esc);
-   const picker=hidden.length?'<select data-include-cash aria-label="Count another currency"><option value="">Count another currency…</option>'+hidden.map(c=>'<option>'+h.esc(c.currency)+'</option>').join('')+'</select>':'';
-   const matrix=cashTable(cash,h.esc,[
-    ['Expected',c=>posMoney.display(c.expected)],
-    ['Actual count',c=>input('count_'+c.currency,h.esc(values[c.currency]??'')).replace('data-pos-money=', 'aria-label="Actual count in '+h.esc(c.currency)+'" data-cash-count="'+h.esc(c.currency)+'" data-pos-money=')],
-    ['Difference',c=>'<output data-variance="'+h.esc(c.currency)+'" aria-label="Difference in '+h.esc(c.currency)+'">—</output>']
-   ],'Cash reconciliation');
+   const cash=report.cash;
+   if(!cash.some(c=>c.currency===activeCurrency))activeCurrency=cash[0]?.currency;
+   const tabs=cash.map(c=>'<button type="button" data-count-tab="'+h.esc(c.currency)+'">'+h.esc(c.currency)+'</button>').join('');
+   const panels=cash.map(c=>{
+    const count=input('count_'+c.currency,h.esc(values[c.currency]??'')).replace('data-pos-money=', 'aria-label="Actual count in '+h.esc(c.currency)+'" data-cash-count="'+h.esc(c.currency)+'" data-pos-money=');
+    const matrix=cashTable([c],h.esc,[
+     ['Expected',()=>posMoney.display(c.expected)],
+     ['Actual count',()=>hasDrawerActivity(c)?count:count.replace(' required>','>')],
+     ['Difference',()=>'<output data-variance="'+h.esc(c.currency)+'" aria-label="Difference in '+h.esc(c.currency)+'">—</output>']
+    ],'Cash reconciliation in '+h.esc(c.currency));
+    const details=breakdown([c],h.esc);
+    return '<div data-count-panel="'+h.esc(c.currency)+'" hidden>'+matrix+(details?'<details class="shift-cash-details"><summary>Cash breakdown</summary>'+details+'</details>':'')+'</div>';
+   }).join('');
    const host=root.querySelector('[data-shift-content]');
-   host.innerHTML=summary(report,h.esc)+'<div class="shift-cash-heading"><h4>Cash reconciliation</h4>'+picker+'</div><div class="shift-cash-scroll">'+matrix+'</div>'+(details?'<details class="shift-cash-details"><summary>Cash breakdown</summary><div class="shift-cash-scroll">'+details+'</div></details>':'');
-   const more=host.querySelector('[data-include-cash]');
-   if(more)more.onchange=()=>{const code=more.value;if(code){extraCurrencies.add(code);rootReport();root.querySelector('[data-cash-count="'+code+'"]').focus()}};
+   host.innerHTML=summary(report,h.esc)+'<h4>Cash reconciliation</h4><div class="shift-count-tabs" role="group" aria-label="Currency to count">'+tabs+'</div>'+panels;
+   function select(code){
+    activeCurrency=code;
+    for(const tab of host.querySelectorAll('[data-count-tab]'))tab.setAttribute('aria-pressed',String(tab.dataset.countTab===code));
+    for(const panel of host.querySelectorAll('[data-count-panel]'))panel.hidden=panel.dataset.countPanel!==code;
+   }
+   for(const tab of host.querySelectorAll('[data-count-tab]'))tab.onclick=()=>select(tab.dataset.countTab);
+   for(const el of host.querySelectorAll('[data-cash-count]'))el.oninvalid=()=>{
+    const first=host.querySelector('[data-cash-count]:invalid');
+    if(first)select(first.dataset.cashCount);
+   };
+   select(activeCurrency);
    posMoney.bind(root);refreshVariance();
   }
   function refreshVariance(){
